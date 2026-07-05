@@ -2,13 +2,6 @@ import type { Metadata } from "next";
 import { Fraunces, Hanken_Grotesk } from "next/font/google";
 import "./globals.css";
 import { site } from "@/lib/site";
-import { getCategories } from "@/lib/catalog";
-import { CartProvider } from "@/components/cart/CartContext";
-import { CartDrawer } from "@/components/cart/CartDrawer";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
-import { WhatsAppFloat } from "@/components/WhatsAppFloat";
-import { SmoothScroll } from "@/components/SmoothScroll";
 
 const fraunces = Fraunces({
   variable: "--font-fraunces",
@@ -46,13 +39,13 @@ const organizationJsonLd = {
   telephone: site.phone,
 };
 
-export default async function RootLayout({
+// Storefront chrome (header, footer, cart) lives in (store)/layout.tsx; the
+// admin dashboard under /admin brings its own shell.
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const categories = await getCategories();
-
   return (
     <html lang="en" className={`${fraunces.variable} ${hanken.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">
@@ -60,14 +53,7 @@ export default async function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
         />
-        <CartProvider>
-          <SmoothScroll />
-          <Header categories={categories} />
-          <main className="flex-1">{children}</main>
-          <Footer categories={categories} />
-          <CartDrawer />
-          <WhatsAppFloat />
-        </CartProvider>
+        {children}
       </body>
     </html>
   );

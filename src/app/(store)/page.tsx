@@ -1,4 +1,4 @@
-import { getCategories, getFeaturedProducts } from "@/lib/catalog";
+import { getFeaturedProducts, getHomeCategories } from "@/lib/catalog";
 import { Hero } from "@/components/home/Hero";
 import { Preloader } from "@/components/Preloader";
 import { MarqueeRibbon } from "@/components/home/MarqueeRibbon";
@@ -15,7 +15,7 @@ const img = (id: string, w = 1600) =>
 
 export default async function HomePage() {
   const [categories, featured] = await Promise.all([
-    getCategories(),
+    getHomeCategories(),
     getFeaturedProducts(),
   ]);
 

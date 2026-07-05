@@ -4,17 +4,42 @@ import { useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { motion } from "motion/react";
 import { useCart } from "@/components/cart/CartContext";
 import { placeOrder } from "@/lib/actions";
-import { formatPrice } from "@/lib/site";
+import { formatPrice, paymentMethodLabel, paymentMethods } from "@/lib/site";
+import type { PaymentMethod } from "@/lib/types";
 
-const labelClass = "mb-1.5 block text-[0.82rem] font-medium text-ink";
+const labelClass = "mb-1.5 block text-[0.82rem] font-semibold text-ink";
+
+const EMAIL_RE = /^\S+@\S+\.\S+$/;
+
+const steps = [
+  { n: 1, label: "Contact" },
+  { n: 2, label: "Delivery" },
+  { n: 3, label: "Payment" },
+] as const;
+
+function joinList(parts: string[]) {
+  if (parts.length <= 1) return parts[0] ?? "";
+  return `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
+}
 
 export function CheckoutForm() {
   const { items, subtotal, clearCart } = useCart();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [step, setStep] = useState(1);
+  const [values, setValues] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+    city: "",
+    notes: "",
+  });
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cod");
 
   const deliveryFree = subtotal >= 25000;
 
@@ -29,18 +54,58 @@ export function CheckoutForm() {
     );
   }
 
+  function update<K extends keyof typeof values>(key: K) {
+    return (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+      setValues((v) => ({ ...v, [key]: e.target.value }));
+  }
+
+  function validateStep(s: number): string | null {
+    const missing: string[] = [];
+    if (s === 1) {
+      if (!values.name.trim()) missing.push("your name");
+      if (!values.email.trim()) missing.push("your email");
+      if (!values.phone.trim()) missing.push("your phone number");
+      if (missing.length > 0) return `Please fill in ${joinList(missing)}.`;
+      if (!EMAIL_RE.test(values.email.trim())) {
+        return "Please enter a valid email address.";
+      }
+    }
+    if (s === 2) {
+      if (!values.address.trim()) missing.push("your delivery address");
+      if (!values.city.trim()) missing.push("your city");
+      if (missing.length > 0) return `Please fill in ${joinList(missing)}.`;
+    }
+    return null;
+  }
+
+  function goToStep(n: number) {
+    setError(null);
+    setStep(n);
+  }
+
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const form = new FormData(e.currentTarget);
     setError(null);
+
+    if (step < 3) {
+      const message = validateStep(step);
+      if (message) {
+        setError(message);
+        return;
+      }
+      setStep(step + 1);
+      return;
+    }
+
     startTransition(async () => {
       const result = await placeOrder({
-        customerName: String(form.get("name") ?? ""),
-        email: String(form.get("email") ?? ""),
-        phone: String(form.get("phone") ?? ""),
-        address: String(form.get("address") ?? ""),
-        city: String(form.get("city") ?? ""),
-        notes: String(form.get("notes") ?? ""),
+        customerName: values.name.trim(),
+        email: values.email.trim(),
+        phone: values.phone.trim(),
+        address: values.address.trim(),
+        city: values.city.trim(),
+        notes: values.notes.trim(),
+        paymentMethod,
         items: items.map((i) => ({
           productSlug: i.productSlug,
           sizeName: i.sizeName,
@@ -53,6 +118,7 @@ export function CheckoutForm() {
           ref: result.reference,
           total: String(result.total),
           wa: result.whatsappUrl,
+          pm: result.paymentMethod,
         });
         router.push(`/checkout/success?${params.toString()}`);
       } else {
@@ -63,52 +129,190 @@ export function CheckoutForm() {
 
   return (
     <div className="grid gap-10 lg:grid-cols-[1.2fr_1fr] lg:gap-16">
-      <form onSubmit={onSubmit} className="space-y-5">
-        <h2 className="font-display text-2xl">Delivery details</h2>
-        <div className="grid gap-5 sm:grid-cols-2">
-          <div>
-            <label htmlFor="co-name" className={labelClass}>
-              Full name *
-            </label>
-            <input id="co-name" name="name" required className="field" autoComplete="name" />
-          </div>
-          <div>
-            <label htmlFor="co-phone" className={labelClass}>
-              Phone (WhatsApp) *
-            </label>
-            <input id="co-phone" name="phone" required type="tel" className="field" autoComplete="tel" />
-          </div>
-        </div>
-        <div>
-          <label htmlFor="co-email" className={labelClass}>
-            Email
-          </label>
-          <input id="co-email" name="email" type="email" className="field" autoComplete="email" />
-        </div>
-        <div>
-          <label htmlFor="co-address" className={labelClass}>
-            Delivery address *
-          </label>
-          <input id="co-address" name="address" required className="field" autoComplete="street-address" />
-        </div>
-        <div>
-          <label htmlFor="co-city" className={labelClass}>
-            City *
-          </label>
-          <input id="co-city" name="city" required className="field" autoComplete="address-level2" />
-        </div>
-        <div>
-          <label htmlFor="co-notes" className={labelClass}>
-            Order notes
-          </label>
-          <textarea
-            id="co-notes"
-            name="notes"
-            rows={3}
-            className="field"
-            placeholder="Colour preferences, delivery instructions…"
-          />
-        </div>
+      <form onSubmit={onSubmit} noValidate className="space-y-6">
+        {/* Stepper */}
+        <nav aria-label="Checkout progress">
+          <ol className="flex items-center">
+            {steps.map((s, i) => {
+              const done = s.n < step;
+              const current = s.n === step;
+              return (
+                <li key={s.n} className={i < steps.length - 1 ? "flex flex-1 items-center" : "flex items-center"}>
+                  <button
+                    type="button"
+                    onClick={done ? () => goToStep(s.n) : undefined}
+                    disabled={!done}
+                    aria-current={current ? "step" : undefined}
+                    className={`flex items-center gap-2.5 ${done ? "" : "cursor-default"}`}
+                  >
+                    <span
+                      className={`flex h-7 w-7 items-center justify-center rounded-full text-[0.8rem] font-semibold ${
+                        done || current ? "bg-ink text-white" : "bg-sand text-ink-soft"
+                      }`}
+                    >
+                      {done ? <CheckIcon className="h-3.5 w-3.5" /> : s.n}
+                    </span>
+                    <span className={`text-[0.82rem] font-semibold ${current ? "text-ink" : "text-ink-soft"}`}>
+                      {s.label}
+                    </span>
+                  </button>
+                  {i < steps.length - 1 && <span aria-hidden className="hairline mx-3 flex-1 border-t" />}
+                </li>
+              );
+            })}
+          </ol>
+        </nav>
+
+        {/* Keyed remount = entrance-only animation. No AnimatePresence exit
+            gate here: a paused rAF (backgrounded tab) mid-transition would
+            leave checkout stuck between steps. */}
+        <motion.div
+          key={step}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+          className="space-y-5"
+        >
+            {step === 1 && (
+              <>
+                <h2 className="font-display text-2xl">Contact details</h2>
+                <div>
+                  <label htmlFor="co-name" className={labelClass}>
+                    Full name *
+                  </label>
+                  <input
+                    id="co-name"
+                    name="name"
+                    required
+                    className="field"
+                    autoComplete="name"
+                    value={values.name}
+                    onChange={update("name")}
+                  />
+                </div>
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <div>
+                    <label htmlFor="co-email" className={labelClass}>
+                      Email *
+                    </label>
+                    <input
+                      id="co-email"
+                      name="email"
+                      required
+                      type="email"
+                      className="field"
+                      autoComplete="email"
+                      value={values.email}
+                      onChange={update("email")}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="co-phone" className={labelClass}>
+                      Phone (WhatsApp) *
+                    </label>
+                    <input
+                      id="co-phone"
+                      name="phone"
+                      required
+                      type="tel"
+                      className="field"
+                      autoComplete="tel"
+                      value={values.phone}
+                      onChange={update("phone")}
+                    />
+                  </div>
+                </div>
+              </>
+            )}
+
+            {step === 2 && (
+              <>
+                <h2 className="font-display text-2xl">Delivery details</h2>
+                <div>
+                  <label htmlFor="co-address" className={labelClass}>
+                    Delivery address *
+                  </label>
+                  <input
+                    id="co-address"
+                    name="address"
+                    required
+                    className="field"
+                    autoComplete="street-address"
+                    value={values.address}
+                    onChange={update("address")}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="co-city" className={labelClass}>
+                    City *
+                  </label>
+                  <input
+                    id="co-city"
+                    name="city"
+                    required
+                    className="field"
+                    autoComplete="address-level2"
+                    value={values.city}
+                    onChange={update("city")}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="co-notes" className={labelClass}>
+                    Order notes
+                  </label>
+                  <textarea
+                    id="co-notes"
+                    name="notes"
+                    rows={3}
+                    className="field"
+                    placeholder="Anything the courier should know?"
+                    value={values.notes}
+                    onChange={update("notes")}
+                  />
+                </div>
+              </>
+            )}
+
+            {step === 3 && (
+              <>
+                <h2 className="font-display text-2xl">Payment</h2>
+                <div className="space-y-3">
+                  {paymentMethods.map((m) => {
+                    const selected = paymentMethod === m.id;
+                    return (
+                      <label
+                        key={m.id}
+                        className={`flex cursor-pointer items-start gap-3.5 rounded-xl border bg-white p-4 ${
+                          selected ? "border-ink shadow-card" : "border-board"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          value={m.id}
+                          checked={selected}
+                          onChange={() => setPaymentMethod(m.id)}
+                          className="sr-only"
+                        />
+                        <span
+                          aria-hidden
+                          className={`mt-0.5 flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full border-2 ${
+                            selected ? "border-ink" : "border-board"
+                          }`}
+                        >
+                          {selected && <span className="h-2 w-2 rounded-full bg-ink" />}
+                        </span>
+                        <span>
+                          <span className="block font-semibold">{m.label}</span>
+                          <span className="mt-0.5 block text-sm text-ink-soft">{m.description}</span>
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+        </motion.div>
 
         {error && (
           <p role="alert" className="rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -116,13 +320,28 @@ export function CheckoutForm() {
           </p>
         )}
 
-        <button type="submit" disabled={pending} className="btn btn-solid w-full disabled:opacity-60">
-          {pending ? "Placing order…" : `Place order — ${formatPrice(subtotal)}`}
-        </button>
-        <p className="text-xs leading-relaxed text-ink-soft">
-          Payment is settled on delivery or by bank transfer — we&apos;ll confirm your
-          order and payment details on WhatsApp within a few hours.
-        </p>
+        <div className="flex gap-3">
+          {step > 1 && (
+            <button type="button" onClick={() => goToStep(step - 1)} className="btn btn-outline">
+              Back
+            </button>
+          )}
+          {step < 3 ? (
+            <button type="submit" className="btn btn-solid flex-1">
+              Continue
+            </button>
+          ) : (
+            <button type="submit" disabled={pending} className="btn btn-solid w-full flex-1 disabled:opacity-60">
+              {pending ? "Placing order…" : `Place order — ${formatPrice(subtotal)}`}
+            </button>
+          )}
+        </div>
+
+        {step === 3 && (
+          <p className="text-xs leading-relaxed text-ink-soft">
+            We confirm every order and delivery personally on WhatsApp within a few hours.
+          </p>
+        )}
       </form>
 
       <aside className="card-lift h-fit p-6 md:p-7">
@@ -155,6 +374,12 @@ export function CheckoutForm() {
               {deliveryFree ? "FREE" : "Confirmed on WhatsApp"}
             </span>
           </div>
+          {step === 3 && (
+            <div className="flex justify-between text-ink-soft">
+              <span>Payment</span>
+              <span>{paymentMethodLabel(paymentMethod)}</span>
+            </div>
+          )}
           <div className="flex items-baseline justify-between pt-2">
             <span className="font-medium text-ink">Total</span>
             <span className="text-xl font-semibold text-ink">{formatPrice(subtotal)}</span>
@@ -178,6 +403,14 @@ export function CheckoutForm() {
         </ul>
       </aside>
     </div>
+  );
+}
+
+function CheckIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" aria-hidden>
+      <path d="M4.5 12.5l5 5 10-11" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   );
 }
 

@@ -3,8 +3,8 @@
 import { randomUUID } from "node:crypto";
 import { getSupabase } from "./supabase";
 import { getProduct } from "./catalog";
-import { site } from "./site";
-import type { InquiryInput, OrderInput } from "./types";
+import { paymentMethodLabel, site } from "./site";
+import type { InquiryInput, OrderInput, PaymentMethod } from "./types";
 
 function orderReference() {
   const stamp = Date.now().toString(36).toUpperCase().slice(-4);
@@ -13,12 +13,23 @@ function orderReference() {
 }
 
 export type PlaceOrderResult =
-  | { ok: true; reference: string; total: number; whatsappUrl: string }
+  | { ok: true; reference: string; total: number; whatsappUrl: string; paymentMethod: PaymentMethod }
   | { ok: false; error: string };
+
+const PAYMENT_METHODS: PaymentMethod[] = ["cod", "bank_transfer"];
 
 export async function placeOrder(input: OrderInput): Promise<PlaceOrderResult> {
   if (!input.customerName.trim() || !input.phone.trim()) {
     return { ok: false, error: "Please provide your name and phone number." };
+  }
+  if (!/^\S+@\S+\.\S+$/.test(input.email.trim())) {
+    return { ok: false, error: "Please enter a valid email address." };
+  }
+  if (!input.address.trim() || !input.city.trim()) {
+    return { ok: false, error: "Please provide your delivery address and city." };
+  }
+  if (!PAYMENT_METHODS.includes(input.paymentMethod)) {
+    return { ok: false, error: "Please choose a payment method." };
   }
   if (!input.items.length) {
     return { ok: false, error: "Your cart is empty." };
@@ -36,7 +47,7 @@ export async function placeOrder(input: OrderInput): Promise<PlaceOrderResult> {
   for (const item of input.items) {
     const product = await getProduct(item.productSlug);
     const size = product?.sizes.find((s) => s.name === item.sizeName);
-    if (!product || !size) {
+    if (!product || !product.in_stock || !size) {
       return { ok: false, error: "One of the items in your cart is unavailable." };
     }
     const quantity = Math.max(1, Math.min(50, Math.round(item.quantity)));
@@ -69,6 +80,7 @@ export async function placeOrder(input: OrderInput): Promise<PlaceOrderResult> {
       notes: input.notes,
       total,
       status: "pending",
+      payment_method: input.paymentMethod,
     });
     if (error) {
       return { ok: false, error: "We couldn't save your order. Please try again." };
@@ -86,10 +98,10 @@ export async function placeOrder(input: OrderInput): Promise<PlaceOrderResult> {
   const summary = lines
     .map((l) => `• ${l.product_name} (${l.size_name}) × ${l.quantity}`)
     .join("\n");
-  const message = `Hello ${site.name}! I just placed order ${reference}.\n\n${summary}\n\nTotal: Rs ${total.toLocaleString("en-US")}\nName: ${input.customerName}\nDelivery: ${input.address}, ${input.city}`;
+  const message = `Hello ${site.name}! I just placed order ${reference}.\n\n${summary}\n\nTotal: Rs ${total.toLocaleString("en-US")}\nPayment: ${paymentMethodLabel(input.paymentMethod)}\nName: ${input.customerName}\nDelivery: ${input.address}, ${input.city}`;
   const whatsappUrl = `https://wa.me/${site.whatsappNumber}?text=${encodeURIComponent(message)}`;
 
-  return { ok: true, reference, total, whatsappUrl };
+  return { ok: true, reference, total, whatsappUrl, paymentMethod: input.paymentMethod };
 }
 
 export type InquiryResult = { ok: true } | { ok: false; error: string };

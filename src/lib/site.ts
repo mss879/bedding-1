@@ -21,6 +21,33 @@ export const nav = [
   { href: "/contact", label: "Contact" },
 ];
 
+// Checkout payment options. Bank details are placeholders — swap in the
+// client's real account before launch (shown on the order-success page for
+// bank-transfer orders).
+export const paymentMethods = [
+  {
+    id: "cod",
+    label: "Cash on Delivery",
+    description: "Pay the courier in cash when your order arrives.",
+  },
+  {
+    id: "bank_transfer",
+    label: "Direct Bank Transfer",
+    description: "Transfer to our bank account — details shown after you place the order.",
+  },
+] as const;
+
+export function paymentMethodLabel(id: string) {
+  return paymentMethods.find((m) => m.id === id)?.label ?? id;
+}
+
+export const bankDetails = {
+  bankName: "Commercial Bank of Ceylon",
+  accountName: "Aveline Bedding (Pvt) Ltd",
+  accountNumber: "0000 0000 0000",
+  branch: "Colombo 03",
+};
+
 export function whatsappLink(message: string) {
   return `https://wa.me/${site.whatsappNumber}?text=${encodeURIComponent(message)}`;
 }

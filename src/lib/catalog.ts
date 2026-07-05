@@ -2,16 +2,31 @@ import { getSupabase } from "./supabase";
 import { seedCategories, seedProducts } from "./seed-data";
 import type { Category, Product } from "./types";
 
+// Fallback rules: the seed catalog is used when Supabase env vars are missing
+// (the site must demo end-to-end before the client provisions the backend) or
+// when a query fails outright. Once the database answers, its data is the
+// truth — an empty table means an empty shelf, so products removed in the
+// admin dashboard actually disappear from the storefront.
+
 export async function getCategories(): Promise<Category[]> {
   const sb = getSupabase();
-  if (sb) {
-    const { data, error } = await sb
-      .from("categories")
-      .select("*")
-      .order("sort_order");
-    if (!error && data && data.length > 0) return data as Category[];
-  }
-  return seedCategories;
+  if (!sb) return seedCategories;
+  const { data, error } = await sb
+    .from("categories")
+    .select("*")
+    .order("sort_order");
+  if (error || !data) return seedCategories;
+  return data as Category[];
+}
+
+/** Categories shown in the header/footer nav — controlled from the admin dashboard. */
+export async function getNavCategories(): Promise<Category[]> {
+  return (await getCategories()).filter((c) => c.show_in_nav !== false);
+}
+
+/** Categories shown in homepage sections — controlled from the admin dashboard. */
+export async function getHomeCategories(): Promise<Category[]> {
+  return (await getCategories()).filter((c) => c.show_on_home !== false);
 }
 
 export async function getProducts(categorySlug?: string, q?: string): Promise<Product[]> {
@@ -21,7 +36,7 @@ export async function getProducts(categorySlug?: string, q?: string): Promise<Pr
     let query = sb.from("products").select("*").eq("in_stock", true);
     if (categorySlug) query = query.eq("category_slug", categorySlug);
     const { data, error } = await query;
-    if (!error && data && data.length > 0) products = data as Product[];
+    if (!error && data) products = data as Product[];
   }
   if (!products) {
     products = categorySlug
@@ -47,15 +62,14 @@ export async function getFeaturedProducts(): Promise<Product[]> {
 
 export async function getProduct(slug: string): Promise<Product | null> {
   const sb = getSupabase();
-  if (sb) {
-    const { data, error } = await sb
-      .from("products")
-      .select("*")
-      .eq("slug", slug)
-      .maybeSingle();
-    if (!error && data) return data as Product;
-  }
-  return seedProducts.find((p) => p.slug === slug) ?? null;
+  if (!sb) return seedProducts.find((p) => p.slug === slug) ?? null;
+  const { data, error } = await sb
+    .from("products")
+    .select("*")
+    .eq("slug", slug)
+    .maybeSingle();
+  if (error) return seedProducts.find((p) => p.slug === slug) ?? null;
+  return (data as Product | null) ?? null;
 }
 
 export async function getRelatedProducts(product: Product): Promise<Product[]> {

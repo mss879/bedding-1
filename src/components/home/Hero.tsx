@@ -100,56 +100,58 @@ export function Hero({ tiles }: { tiles: HeroTile[] }) {
   const speeds = [-14, -26, -8, -20];
 
   return (
-    <section ref={ref} className="container-x pt-3 md:pt-5" aria-label="Welcome">
-      <div className="relative overflow-hidden rounded-3xl">
+    <section ref={ref} className="w-full p-[10px]" aria-label="Welcome">
+      <div className="relative overflow-hidden rounded-[24px] min-h-[calc(100vh-100px)] flex items-center py-8 md:py-12">
         <FabricCanvas />
-        <div 
-          style={{ opacity: isPreloaded ? 1 : 0 }}
-          className="relative grid items-center gap-10 px-6 py-12 md:px-12 md:py-16 lg:grid-cols-[1.05fr_0.95fr] lg:gap-6 lg:py-20"
-        >
-          <div data-hero-copy>
-            <p
-              data-hero-rest
-              className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/70 px-4 py-1.5 text-[0.78rem] font-semibold text-clay backdrop-blur"
-            >
-              Handwoven in Sri Lanka · Free delivery over Rs 25,000
-            </p>
-            <h1
-              data-hero-heading
-              className="font-display text-[2.6rem] font-medium leading-[1.04] tracking-tight text-ink sm:text-5xl md:text-6xl xl:text-[4.2rem]"
-            >
-              Bedding you&rsquo;ll love, made by hand.
-            </h1>
-            <p data-hero-rest className="mt-5 max-w-md text-[0.98rem] leading-relaxed text-ink-soft">
-              Percale, sateen and stonewashed linen — cut, sewn and finished in small
-              batches, then delivered straight from our workshop to your bed.
-            </p>
-            <div data-hero-rest className="mt-8 flex flex-wrap items-center gap-3">
-              <Link href="/shop" className="btn btn-solid">
-                Shop bestsellers
-              </Link>
-              <Link href="/hotel-bulk" className="btn btn-outline">
-                Hotel &amp; bulk orders
-              </Link>
+        <div className="container-x relative w-full">
+          <div 
+            style={{ opacity: isPreloaded ? 1 : 0 }}
+            className="relative grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-8"
+          >
+            <div data-hero-copy>
+              <p
+                data-hero-rest
+                className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/70 px-4 py-1.5 text-[0.78rem] font-semibold text-clay backdrop-blur"
+              >
+                Handwoven in Sri Lanka · Free delivery over Rs 25,000
+              </p>
+              <h1
+                data-hero-heading
+                className="font-display text-[2.6rem] font-medium leading-[1.04] tracking-tight text-ink sm:text-5xl md:text-6xl xl:text-[4.2rem]"
+              >
+                Bedding you&rsquo;ll love, made by hand.
+              </h1>
+              <p data-hero-rest className="mt-5 max-w-md text-[0.98rem] leading-relaxed text-ink-soft">
+                Percale, sateen and stonewashed linen — cut, sewn and finished in small
+                batches, then delivered straight from our workshop to your bed.
+              </p>
+              <div data-hero-rest className="mt-8 flex flex-wrap items-center gap-3">
+                <Link href="/shop" className="btn btn-solid">
+                  Shop bestsellers
+                </Link>
+                <Link href="/hotel-bulk" className="btn btn-outline">
+                  Hotel &amp; bulk orders
+                </Link>
+              </div>
+              <p data-hero-rest className="mt-6 flex items-center gap-2 text-[0.85rem] text-ink-soft">
+                <Stars rating={4.9} size={15} />
+                <span>
+                  <strong className="font-semibold text-ink">4.9</strong> average from 12,000+
+                  well-rested sleepers
+                </span>
+              </p>
             </div>
-            <p data-hero-rest className="mt-6 flex items-center gap-2 text-[0.85rem] text-ink-soft">
-              <Stars rating={4.9} size={15} />
-              <span>
-                <strong className="font-semibold text-ink">4.9</strong> average from 12,000+
-                well-rested sleepers
-              </span>
-            </p>
-          </div>
 
-          {/* Product collage */}
-          <div className="grid grid-cols-2 gap-4 sm:gap-5">
-            <div className="flex flex-col gap-4 sm:gap-5">
-              <Tile tile={tiles[0]} speed={speeds[0]} className="aspect-[4/5]" />
-              <Tile tile={tiles[1]} speed={speeds[1]} className="aspect-square" />
-            </div>
-            <div className="mt-8 flex flex-col gap-4 sm:gap-5">
-              <Tile tile={tiles[2]} speed={speeds[2]} className="aspect-square" />
-              <Tile tile={tiles[3]} speed={speeds[3]} className="aspect-[4/5]" />
+            {/* Product collage */}
+            <div className="grid grid-cols-2 gap-4 sm:gap-5">
+              <div className="flex flex-col gap-4 sm:gap-5">
+                <Tile tile={tiles[0]} speed={speeds[0]} className="aspect-[4/5]" />
+                <Tile tile={tiles[1]} speed={speeds[1]} className="aspect-square" />
+              </div>
+              <div className="mt-8 flex flex-col gap-4 sm:gap-5">
+                <Tile tile={tiles[2]} speed={speeds[2]} className="aspect-square" />
+                <Tile tile={tiles[3]} speed={speeds[3]} className="aspect-[4/5]" />
+              </div>
             </div>
           </div>
         </div>

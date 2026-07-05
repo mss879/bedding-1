@@ -5,6 +5,11 @@ export type Category = {
   description: string;
   image: string;
   sort_order: number;
+  // Storefront visibility, controlled from the admin dashboard. Optional so
+  // rows from a database that predates migration 0002 still type-check;
+  // treat anything other than `false` as visible.
+  show_in_nav?: boolean;
+  show_on_home?: boolean;
 };
 
 export type ProductSize = {
@@ -41,6 +46,10 @@ export type CartItem = {
   quantity: number;
 };
 
+export type PaymentMethod = "cod" | "bank_transfer";
+
+export type OrderStatus = "pending" | "confirmed" | "shipped" | "delivered" | "cancelled";
+
 export type OrderInput = {
   customerName: string;
   email: string;
@@ -48,7 +57,33 @@ export type OrderInput = {
   address: string;
   city: string;
   notes: string;
+  paymentMethod: PaymentMethod;
   items: { productSlug: string; sizeName: string; quantity: number }[];
+};
+
+export type Order = {
+  id: string;
+  reference: string;
+  customer_name: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  notes: string;
+  total: number;
+  status: OrderStatus;
+  payment_method: PaymentMethod;
+  created_at: string;
+};
+
+export type OrderItem = {
+  id: string;
+  order_id: string;
+  product_slug: string;
+  product_name: string;
+  size_name: string;
+  unit_price: number;
+  quantity: number;
 };
 
 export type InquiryInput = {

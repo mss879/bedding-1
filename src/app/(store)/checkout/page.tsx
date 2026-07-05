@@ -36,7 +36,8 @@ export default function CheckoutPage() {
         <Reveal className="mb-8 max-w-2xl">
           <h1 className="font-display text-4xl md:text-5xl">Checkout</h1>
           <p className="mt-3 text-sm leading-relaxed text-ink-soft md:text-base">
-            Pay on delivery or by bank transfer — we confirm every order personally on WhatsApp.
+            Three quick steps — contact, delivery and payment. We confirm every order
+            personally on WhatsApp.
           </p>
         </Reveal>
 

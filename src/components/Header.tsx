@@ -56,6 +56,7 @@ export function Header({ categories }: { categories: Category[] }) {
     { href: "/shop", label: "Bestsellers" },
     ...categories.map((c) => ({ href: `/shop?category=${c.slug}`, label: c.name })),
     { href: "/hotel-bulk", label: "Hotel & Bulk" },
+    { href: "/contact", label: "Contact" },
   ];
 
   return (
@@ -220,7 +221,7 @@ export function Header({ categories }: { categories: Category[] }) {
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
           >
             <div className="container-x flex flex-col gap-0.5 py-4">
-              {[{ href: "/shop", label: "Shop everything" }, ...subNav.slice(1), { href: "/about", label: "About" }, { href: "/contact", label: "Contact" }].map(
+              {[{ href: "/shop", label: "Shop everything" }, ...subNav.slice(1, -1), { href: "/about", label: "About" }, { href: "/contact", label: "Contact" }].map(
                 (item, i) => (
                   <motion.div
                     key={item.label}

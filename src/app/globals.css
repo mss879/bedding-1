@@ -53,7 +53,7 @@ body {
   color: #fff;
 }
 
-/* Warm thin scrollbar */
+/* Candy blue thin scrollbar */
 ::-webkit-scrollbar {
   width: 10px;
 }
@@ -61,7 +61,7 @@ body {
   background: var(--color-cream);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-taupe);
+  background: var(--color-clay);
   border-radius: 8px;
   border: 2px solid var(--color-cream);
 }

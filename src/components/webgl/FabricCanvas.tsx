@@ -77,7 +77,7 @@ const FRAG = /* glsl */ `
 
     // Gentle vignette keeps edges calm behind text
     float vig = smoothstep(1.25, 0.45, distance(uv, vec2(0.42, 0.55)));
-    col = mix(col, paper, 1.0 - vig * 0.9);
+    col = mix(col, tint, 1.0 - vig * 0.5);
 
     gl_FragColor = vec4(col, 1.0);
   }
@@ -179,7 +179,7 @@ export function FabricCanvas({ className }: { className?: string }) {
       className={`absolute inset-0 overflow-hidden ${className ?? ""}`}
       style={{
         background:
-          "linear-gradient(120deg, #FAF8F5 0%, #B2D5E5 45%, #D2E5EE 75%, #B2D5E5 100%)",
+          "linear-gradient(120deg, #B2D5E5 0%, #D2E5EE 50%, #B2D5E5 100%)",
       }}
     />
   );
