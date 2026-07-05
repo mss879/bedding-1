@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { gsap, SplitText, useGSAP, MOTION_OK, MOTION_REDUCE } from "@/lib/gsap";
@@ -17,9 +17,23 @@ export type HeroTile = { src: string; alt: string };
  */
 export function Hero({ tiles }: { tiles: HeroTile[] }) {
   const ref = useRef<HTMLElement>(null);
+  const [isPreloaded, setIsPreloaded] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if ((window as any).__preloaderComplete) {
+        setIsPreloaded(true);
+      } else {
+        const handleComplete = () => setIsPreloaded(true);
+        window.addEventListener("preloader-complete", handleComplete);
+        return () => window.removeEventListener("preloader-complete", handleComplete);
+      }
+    }
+  }, []);
 
   useGSAP(
     () => {
+      if (!isPreloaded) return;
       const q = gsap.utils.selector(ref);
       const mm = gsap.matchMedia();
 
@@ -80,7 +94,7 @@ export function Hero({ tiles }: { tiles: HeroTile[] }) {
         return () => split.revert();
       });
     },
-    { scope: ref }
+    { scope: ref, dependencies: [isPreloaded] }
   );
 
   const speeds = [-14, -26, -8, -20];
@@ -89,7 +103,10 @@ export function Hero({ tiles }: { tiles: HeroTile[] }) {
     <section ref={ref} className="container-x pt-3 md:pt-5" aria-label="Welcome">
       <div className="relative overflow-hidden rounded-3xl">
         <FabricCanvas />
-        <div className="relative grid items-center gap-10 px-6 py-12 md:px-12 md:py-16 lg:grid-cols-[1.05fr_0.95fr] lg:gap-6 lg:py-20">
+        <div 
+          style={{ opacity: isPreloaded ? 1 : 0 }}
+          className="relative grid items-center gap-10 px-6 py-12 md:px-12 md:py-16 lg:grid-cols-[1.05fr_0.95fr] lg:gap-6 lg:py-20"
+        >
           <div data-hero-copy>
             <p
               data-hero-rest

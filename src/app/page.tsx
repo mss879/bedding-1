@@ -1,5 +1,6 @@
 import { getCategories, getFeaturedProducts } from "@/lib/catalog";
 import { Hero } from "@/components/home/Hero";
+import { Preloader } from "@/components/Preloader";
 import { MarqueeRibbon } from "@/components/home/MarqueeRibbon";
 import { CategoryCircles } from "@/components/home/CategoryCircles";
 import { ProductRail } from "@/components/home/ProductRail";
@@ -18,14 +19,22 @@ export default async function HomePage() {
     getFeaturedProducts(),
   ]);
 
+  const heroImages = [
+    img("1616594039964-ae9021a400a0", 900),
+    img("1631049552057-403cdb8f0658", 900),
+    img("1522771739844-6a9f6d5f14af", 900),
+    img("1560185893-a55cbc8c57e8", 900),
+  ];
+
   return (
     <>
+      <Preloader images={heroImages} />
       <Hero
         tiles={[
-          { src: img("1616594039964-ae9021a400a0", 900), alt: "Terracotta linen duvet set" },
-          { src: img("1631049552057-403cdb8f0658", 900), alt: "Linen pillowcases with hand-tied bows" },
-          { src: img("1522771739844-6a9f6d5f14af", 900), alt: "Stonewashed linen sheets" },
-          { src: img("1560185893-a55cbc8c57e8", 900), alt: "Complete bedding set on a styled bed" },
+          { src: heroImages[0], alt: "Terracotta linen duvet set" },
+          { src: heroImages[1], alt: "Linen pillowcases with hand-tied bows" },
+          { src: heroImages[2], alt: "Stonewashed linen sheets" },
+          { src: heroImages[3], alt: "Complete bedding set on a styled bed" },
         ]}
       />
       <MarqueeRibbon />
