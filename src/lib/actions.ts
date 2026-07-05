@@ -1,0 +1,136 @@
+"use server";
+
+import { randomUUID } from "node:crypto";
+import { getSupabase } from "./supabase";
+import { getProduct } from "./catalog";
+import { site } from "./site";
+import type { InquiryInput, OrderInput } from "./types";
+
+function orderReference() {
+  const stamp = Date.now().toString(36).toUpperCase().slice(-4);
+  const rand = Math.random().toString(36).toUpperCase().slice(2, 6);
+  return `AV-${stamp}${rand}`;
+}
+
+export type PlaceOrderResult =
+  | { ok: true; reference: string; total: number; whatsappUrl: string }
+  | { ok: false; error: string };
+
+export async function placeOrder(input: OrderInput): Promise<PlaceOrderResult> {
+  if (!input.customerName.trim() || !input.phone.trim()) {
+    return { ok: false, error: "Please provide your name and phone number." };
+  }
+  if (!input.items.length) {
+    return { ok: false, error: "Your cart is empty." };
+  }
+
+  // Re-price every line on the server so the client can't tamper with totals.
+  const lines: {
+    product_slug: string;
+    product_name: string;
+    size_name: string;
+    unit_price: number;
+    quantity: number;
+  }[] = [];
+
+  for (const item of input.items) {
+    const product = await getProduct(item.productSlug);
+    const size = product?.sizes.find((s) => s.name === item.sizeName);
+    if (!product || !size) {
+      return { ok: false, error: "One of the items in your cart is unavailable." };
+    }
+    const quantity = Math.max(1, Math.min(50, Math.round(item.quantity)));
+    lines.push({
+      product_slug: product.slug,
+      product_name: product.name,
+      size_name: size.name,
+      unit_price: size.price,
+      quantity,
+    });
+  }
+
+  const total = lines.reduce((sum, l) => sum + l.unit_price * l.quantity, 0);
+  const reference = orderReference();
+
+  const sb = getSupabase();
+  if (sb) {
+    // The id is generated here rather than returned by the insert, so the
+    // orders table needs no public SELECT policy — customer data stays
+    // unreadable with the anon key.
+    const orderId = randomUUID();
+    const { error } = await sb.from("orders").insert({
+      id: orderId,
+      reference,
+      customer_name: input.customerName,
+      email: input.email,
+      phone: input.phone,
+      address: input.address,
+      city: input.city,
+      notes: input.notes,
+      total,
+      status: "pending",
+    });
+    if (error) {
+      return { ok: false, error: "We couldn't save your order. Please try again." };
+    }
+    const { error: itemsError } = await sb
+      .from("order_items")
+      .insert(lines.map((l) => ({ ...l, order_id: orderId })));
+    if (itemsError) {
+      return { ok: false, error: "We couldn't save your order. Please try again." };
+    }
+  }
+  // Without Supabase configured, the order still completes so the flow can be
+  // demoed end-to-end; the WhatsApp message carries the full order detail.
+
+  const summary = lines
+    .map((l) => `• ${l.product_name} (${l.size_name}) × ${l.quantity}`)
+    .join("\n");
+  const message = `Hello ${site.name}! I just placed order ${reference}.\n\n${summary}\n\nTotal: Rs ${total.toLocaleString("en-US")}\nName: ${input.customerName}\nDelivery: ${input.address}, ${input.city}`;
+  const whatsappUrl = `https://wa.me/${site.whatsappNumber}?text=${encodeURIComponent(message)}`;
+
+  return { ok: true, reference, total, whatsappUrl };
+}
+
+export type InquiryResult = { ok: true } | { ok: false; error: string };
+
+export async function submitInquiry(input: InquiryInput): Promise<InquiryResult> {
+  if (!input.name.trim() || !input.message.trim()) {
+    return { ok: false, error: "Please fill in your name and message." };
+  }
+  const sb = getSupabase();
+  if (sb) {
+    const { error } = await sb.from("inquiries").insert({
+      type: input.type,
+      name: input.name,
+      email: input.email,
+      phone: input.phone,
+      business_type: input.businessType ?? null,
+      quantity: input.quantity ?? null,
+      sizes: input.sizes ?? null,
+      materials: input.materials ?? null,
+      budget: input.budget ?? null,
+      delivery: input.delivery ?? null,
+      message: input.message,
+    });
+    if (error) {
+      return { ok: false, error: "We couldn't send your inquiry. Please try again." };
+    }
+  }
+  return { ok: true };
+}
+
+export async function subscribeNewsletter(email: string): Promise<InquiryResult> {
+  if (!/^\S+@\S+\.\S+$/.test(email)) {
+    return { ok: false, error: "Please enter a valid email address." };
+  }
+  const sb = getSupabase();
+  if (sb) {
+    const { error } = await sb.from("newsletter_subscribers").insert({ email });
+    // 23505 = duplicate subscription; treat as success.
+    if (error && error.code !== "23505") {
+      return { ok: false, error: "Something went wrong. Please try again." };
+    }
+  }
+  return { ok: true };
+}

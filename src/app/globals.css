@@ -1,26 +1,345 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+ * Aveline design tokens — Etsy-marketplace direction (see DESIGN.md).
+ * Legacy token names are kept but remapped to the warm "paper" palette so
+ * every existing utility class stays valid.
+ */
+@theme {
+  --color-cream: #faf8f5; /* page background — warm paper */
+  --color-parchment: #ffffff; /* white band sections */
+  --color-sand: #efecea; /* placeholders, soft fills */
+  --color-clay: #2b6580; /* brand accent (legible candy blue text/highlights) — never primary CTAs */
+  --color-clay-dark: #1f4b60;
+  --color-ink: #222222; /* primary text + primary button fill */
+  --color-ink-soft: #595959;
+  --color-taupe: #9f938e;
+  --color-linen: #ffffff;
+  --color-fog: #757575; /* tertiary text, unlit stars */
+  --color-board: #e0dad6; /* soft warm borders */
+  --color-accent-tint: #B2D5E5;
+  --color-beeswax: #d2e5ee;
+  --color-powder: #d5e8f2;
+  --color-star: #ffa300;
+  --color-sale: #1ba050;
+
+  --shadow-card: 0 0 2px rgba(21, 10, 4, 0.18);
+  --shadow-lift: 0 2px 8px rgba(21, 10, 4, 0.06), 0 6px 16px 2px rgba(21, 10, 4, 0.08);
+  --shadow-pop: 0 4px 12px rgba(21, 10, 4, 0.06), 0 8px 20px 2px rgba(21, 10, 4, 0.1);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-hanken), ui-sans-serif, system-ui, "Helvetica Neue", Arial, sans-serif;
+  --font-display: var(--font-fraunces), Charter, Cambria, Georgia, serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: auto;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-display {
+  font-optical-sizing: auto;
+}
+
+::selection {
+  background: var(--color-clay);
+  color: #fff;
+}
+
+/* Warm thin scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-cream);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-taupe);
+  border-radius: 8px;
+  border: 2px solid var(--color-cream);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@utility container-x {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 80rem;
+  padding-inline: 1.25rem;
+  @media (width >= 48rem) {
+    padding-inline: 3rem;
+  }
+}
+
+@layer components {
+  /*
+   * Buttons — Etsy pills: sentence case, 500 weight, fully rounded,
+   * tactile squash-and-stretch on hover.
+   */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 3rem;
+    padding: 0.7rem 1.65rem;
+    border-radius: 9999px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    letter-spacing: 0.005em;
+    cursor: pointer;
+    transition:
+      background-color 200ms ease,
+      color 200ms ease,
+      border-color 200ms ease,
+      box-shadow 200ms ease,
+      transform 180ms ease;
+  }
+  .btn:hover {
+    transform: scaleX(1.015) scaleY(1.035) perspective(1px);
+  }
+  .btn:active {
+    transform: scale(0.99);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .btn:hover,
+    .btn:active {
+      transform: none;
+    }
+  }
+
+  .btn-solid {
+    background: var(--color-ink);
+    color: #fff;
+  }
+  .btn-solid:hover {
+    background: #2f2f2f;
+  }
+
+  .btn-clay {
+    background: var(--color-accent-tint);
+    color: var(--color-ink);
+  }
+  .btn-clay:hover {
+    background: var(--color-clay);
+    color: #fff;
+  }
+
+  .btn-outline {
+    border: 2px solid currentColor;
+    background: transparent;
+  }
+  .btn-outline:hover {
+    background: rgba(14, 14, 14, 0.05);
+  }
+
+  .btn-tint {
+    background: rgba(14, 14, 14, 0.09);
+    color: var(--color-ink);
+  }
+  .btn-tint:hover {
+    background: rgba(14, 14, 14, 0.14);
+  }
+
+  .btn-white {
+    background: #fff;
+    color: var(--color-ink);
+    box-shadow: var(--shadow-card);
+  }
+  .btn-white:hover {
+    background: var(--color-accent-tint);
+  }
+
+  .btn-sm {
+    min-height: 2.5rem;
+    padding: 0.4rem 1.15rem;
+    font-size: 0.85rem;
+  }
+
+  /* Filter / category chips */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 2.35rem;
+    padding: 0.35rem 1rem;
+    border-radius: 9999px;
+    border: 1px solid var(--color-board);
+    background: #fff;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--color-ink);
+    cursor: pointer;
+    transition:
+      border-color 180ms ease,
+      background-color 180ms ease,
+      color 180ms ease,
+      box-shadow 180ms ease;
+  }
+  .chip:hover {
+    border-color: var(--color-ink);
+    box-shadow: var(--shadow-card);
+  }
+  .chip-active {
+    background: var(--color-ink);
+    border-color: var(--color-ink);
+    color: #fff;
+  }
+  .chip-active:hover {
+    border-color: var(--color-ink);
+  }
+
+  /* Raised card */
+  .card-lift {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: var(--shadow-card);
+    transition:
+      box-shadow 250ms ease,
+      transform 250ms ease;
+  }
+  .card-lift:hover {
+    box-shadow: var(--shadow-lift);
+    transform: translateY(-2px);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .card-lift:hover {
+      transform: none;
+    }
+  }
+
+  /* Tiny badge over listing images (Bestseller, New, Save 20%) */
+  .badge-img {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 4px;
+    background: #fff;
+    padding: 0.2rem 0.45rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--color-ink);
+    box-shadow: var(--shadow-card);
+  }
+
+  /* Hairline dividers */
+  .hairline {
+    border-color: var(--color-board);
+  }
+
+  /* Form fields — recessed, per Etsy: inset shadow, 8px radius */
+  .field {
+    width: 100%;
+    border: 1px solid #949494;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: inset 0 1px 4px rgba(14, 14, 14, 0.09);
+    padding: 0.8rem 1rem;
+    font-size: 0.95rem;
+    color: var(--color-ink);
+    outline: none;
+    transition:
+      border-color 180ms ease,
+      box-shadow 180ms ease;
+  }
+  .field:focus {
+    border-color: var(--color-ink);
+    box-shadow:
+      inset 0 1px 4px rgba(14, 14, 14, 0.09),
+      0 0 0 1px var(--color-ink);
+  }
+  .field::placeholder {
+    color: var(--color-fog);
+  }
+
+  /* Search pill — full-round group with nested circular orange submit */
+  .search-pill {
+    display: flex;
+    align-items: center;
+    border: 2px solid var(--color-ink);
+    border-radius: 9999px;
+    background: #fff;
+    box-shadow: inset 1px 2px 4px rgba(14, 14, 14, 0.07);
+    padding: 0.25rem 0.3rem 0.25rem 1.25rem;
+    transition: box-shadow 180ms ease;
+  }
+  .search-pill:focus-within {
+    box-shadow:
+      inset 1px 2px 4px rgba(14, 14, 14, 0.07),
+      var(--shadow-lift);
+  }
+  .search-pill input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 0.95rem;
+    color: var(--color-ink);
+  }
+  .search-pill input::placeholder {
+    color: var(--color-ink-soft);
+  }
+
+  /* Circular icon buttons (header, carousel arrows) */
+  .icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 9999px;
+    color: var(--color-ink);
+    transition:
+      background-color 180ms ease,
+      transform 180ms ease,
+      box-shadow 180ms ease;
+  }
+  .icon-btn:hover {
+    background: rgba(14, 14, 14, 0.07);
+  }
+
+  .arrow-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 9999px;
+    background: #fff;
+    border: 1px solid var(--color-board);
+    color: var(--color-ink);
+    box-shadow: var(--shadow-pop);
+    cursor: pointer;
+    transition:
+      transform 180ms ease,
+      box-shadow 180ms ease,
+      opacity 180ms ease;
+  }
+  .arrow-btn:hover {
+    transform: scale(1.06);
+  }
+  .arrow-btn:disabled {
+    opacity: 0.35;
+    cursor: default;
+    transform: none;
+  }
+}
+
+/* Hide scrollbars on snap rails (content still scrolls) */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }

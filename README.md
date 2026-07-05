@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Aveline — Bedding Website & E-Commerce Platform
 
-## Getting Started
+Premium bedding storefront built with **Next.js 16** and **Supabase**, per the
+Arcai Agency project proposal. Two customer journeys:
 
-First, run the development server:
+1. **Retail** — browse in-stock products, add to cart, place an order.
+2. **Hotel / bulk / custom** — a dedicated inquiry flow that routes straight to
+   WhatsApp with the buyer's requirements pre-filled.
+
+## Running locally
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The site is fully functional out of the box using the built-in seed catalog —
+no database required.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Connecting Supabase
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Create a Supabase project.
+2. Run [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql)
+   (paste into the SQL editor, or `supabase db push`). It creates all tables,
+   RLS policies, and seeds the catalog.
+3. Copy `.env.example` to `.env.local` and fill in:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `NEXT_PUBLIC_WHATSAPP_NUMBER` — the client's WhatsApp number
+   - `NEXT_PUBLIC_SITE_URL` — production URL (for SEO/sitemap)
 
-## Learn More
+Once the env vars are present, products/categories are read from Supabase and
+orders, inquiries and newsletter signups are written to it. Without them, the
+site falls back to the seed catalog and completes flows in demo mode.
 
-To learn more about Next.js, take a look at the following resources:
+### Tables
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Table | Purpose | Public access |
+| --- | --- | --- |
+| `categories`, `products` | Catalog (sizes/prices as JSONB) | read |
+| `orders`, `order_items` | Retail purchase flow (server re-prices every line) | insert |
+| `inquiries` | Contact + hotel/bulk inquiries | insert |
+| `newsletter_subscribers` | Footer signups | insert |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Structure
 
-## Deploy on Vercel
+- `src/app/` — pages: home, `shop` (category filters), `product/[slug]`,
+  `hotel-bulk`, `about`, `contact`, `checkout` (+ success), sitemap, robots.
+- `src/lib/` — site config (`site.ts`), catalog data layer with Supabase
+  fallback (`catalog.ts`), server actions (`actions.ts`), seed data.
+- `src/components/anim/` — scroll animation primitives: `Reveal`, `MaskReveal`,
+  `Stagger`, `LineReveal` (masked line-by-line headlines), `ParallaxImage`,
+  `ScrollExpand` (pinned image that grows to full-bleed on scroll).
+- Smooth scrolling via Lenis; animations via Motion (framer-motion). All
+  animations respect `prefers-reduced-motion`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Notes for handover
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Brand name "Aveline", copy, and Unsplash imagery are placeholders — swap in
+  the client's brand, product photography, and real WhatsApp number.
+- Checkout settles payment on delivery / bank transfer, confirmed over
+  WhatsApp; payment gateways were out of scope per the proposal.
