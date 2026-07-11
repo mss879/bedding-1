@@ -213,23 +213,43 @@ export function ProductDetail({ product }: { product: Product }) {
         </Reveal>
 
         <Reveal y={20} delay={0.12} className="mt-6 flex flex-col gap-3">
-          <button
-            onClick={() => {
-              addItem(cartItem(), quantity);
-            }}
-            className="btn btn-solid w-full"
-          >
-            Add to cart — {formatPrice(size.price * quantity)}
-          </button>
-          <button
-            onClick={() => {
-              addItem(cartItem(), quantity);
-              router.push("/checkout");
-            }}
-            className="btn btn-outline w-full"
-          >
-            Buy it now
-          </button>
+          {product.in_stock ? (
+            <>
+              <button
+                onClick={() => {
+                  addItem(cartItem(), quantity);
+                }}
+                className="btn btn-solid w-full"
+              >
+                Add to cart — {formatPrice(size.price * quantity)}
+              </button>
+              <button
+                onClick={() => {
+                  addItem(cartItem(), quantity);
+                  router.push("/checkout");
+                }}
+                className="btn btn-outline w-full"
+              >
+                Buy it now
+              </button>
+            </>
+          ) : (
+            <>
+              <button disabled className="btn btn-solid w-full cursor-not-allowed opacity-60">
+                Sold out
+              </button>
+              <a
+                href={whatsappLink(
+                  `Hello ${site.name}! Please let me know when the ${product.name} (${size.name}) is back in stock.`
+                )}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-outline w-full"
+              >
+                Notify me on WhatsApp
+              </a>
+            </>
+          )}
         </Reveal>
 
         <Reveal y={20} delay={0.16} className="mt-6 space-y-2.5 text-sm">

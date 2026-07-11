@@ -50,7 +50,7 @@ const reviewPool = [
     name: "Ruwan",
     place: "Negombo",
     quote:
-      "Second order from Aveline. Quality is better than the imported brands I used to buy, at a fraction of the price.",
+      "Second order from Ivory Homez. Quality is better than the imported brands I used to buy, at a fraction of the price.",
   },
   {
     name: "Ishara",

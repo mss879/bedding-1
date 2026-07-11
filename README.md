@@ -1,4 +1,4 @@
-# Aveline — Bedding Website & E-Commerce Platform
+# Ivory Homez — Bedding Website & E-Commerce Platform
 
 Premium bedding storefront built with **Next.js 16** and **Supabase**, per the
 Arcai Agency project proposal. Two customer journeys plus a management one:
@@ -19,7 +19,7 @@ npm run dev
 
 The site is fully functional out of the box using the built-in seed catalog —
 no database required. The admin dashboard needs `ADMIN_PASSWORD` (already set
-to `aveline-admin` in `.env.local` for local dev) and Supabase to manage real
+to `ivoryhomez-admin` in `.env.local` for local dev) and Supabase to manage real
 data.
 
 ## Connecting Supabase
@@ -30,6 +30,12 @@ data.
      tables, RLS policies, seed catalog.
    - [`supabase/migrations/0002_admin_ecommerce.sql`](supabase/migrations/0002_admin_ecommerce.sql) —
      collection visibility flags + order payment method.
+   - [`supabase/migrations/0003_production_hardening.sql`](supabase/migrations/0003_production_hardening.sql) —
+     safe collection renames (FK `on update cascade` / `on delete restrict`),
+     `updated_at` + order status-change timestamps, integrity checks & indexes,
+     the `product-images` Storage bucket (for image uploads), and it closes the
+     public anon write policies now that the storefront writes via the service
+     role. Additive and idempotent — safe to run after 0001+0002.
 3. Copy `.env.example` to `.env.local` and fill in:
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
@@ -46,13 +52,18 @@ site falls back to the seed catalog and completes flows in demo mode.
 
 | Table | Purpose | Public access |
 | --- | --- | --- |
-| `categories`, `products` | Catalog (sizes/prices as JSONB, storefront visibility flags) | read |
-| `orders`, `order_items` | Retail purchase flow (server re-prices every line; COD / bank transfer) | insert |
-| `inquiries` | Contact + hotel/bulk inquiries | insert |
-| `newsletter_subscribers` | Footer signups | insert |
+| `categories`, `products` | Catalog (sizes/prices as JSONB, storefront visibility flags) | read (anon) |
+| `orders`, `order_items` | Retail purchase flow (server re-prices every line; COD / bank transfer) | none — server-only writes |
+| `inquiries` | Contact + hotel/bulk inquiries | none — server-only writes |
+| `newsletter_subscribers` | Footer signups | none — server-only writes |
 
-The admin dashboard reads and writes through the **service-role key** on the
-server (bypasses RLS); the storefront only ever uses the anon key.
+The storefront reads the catalog with the **anon key** (public read policies).
+All *writes* — orders, inquiries, newsletter — happen inside server actions
+through the **service-role key**, and `0003` drops the old public insert
+policies so nobody can POST forged orders or spam straight to the REST API with
+the anon key. The admin dashboard also reads/writes through the service-role key
+(bypasses RLS). The service-role key is server-only and never reaches the
+browser bundle.
 
 ## Admin dashboard
 
@@ -63,7 +74,9 @@ server (bypasses RLS); the storefront only ever uses the anon key.
   delivery, payment method; update status (pending → confirmed → shipped →
   delivered / cancelled).
 - **Products** — create, edit, delete; sizes & pricing (incl. compare-at),
-  images by URL, details/care/colors, badge, featured, stock toggle.
+  images (upload a photo to Supabase Storage or paste a URL), details/care/colors,
+  badge, featured, stock toggle. Out-of-stock products show "Sold out" and can't
+  be ordered.
 - **Collections** — create, edit, delete; **storefront control**: per-collection
   "show in navigation" and "show on homepage" toggles + sort order drive the
   header menus, footer, and homepage sections.
@@ -87,10 +100,21 @@ server (bypasses RLS); the storefront only ever uses the anon key.
 
 ## Notes for handover
 
-- Brand name "Aveline", copy, and Unsplash imagery are placeholders — swap in
-  the client's brand, product photography, and real WhatsApp number.
+- Brand is **Ivory Homez** (`https://www.ivoryhomez.com`), set in `src/lib/site.ts`
+  and `.env` (`NEXT_PUBLIC_SITE_URL`). Still placeholder and needing the client's
+  real values in `src/lib/site.ts`: `email`, `phone`, `addressLines`, and
+  `whatsappNumber` (also `NEXT_PUBLIC_WHATSAPP_NUMBER`). Seed products and the
+  Unsplash imagery are demo content — replace with the client's real catalogue in
+  `/admin` once Supabase is connected.
 - Bank-transfer details on the order-success page are placeholders — set the
   client's real account in `src/lib/site.ts` (`bankDetails`).
-- Change `ADMIN_PASSWORD` to something strong before deploying.
+- Change `ADMIN_PASSWORD` to something strong before deploying, and set
+  `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` /
+  `SUPABASE_SERVICE_ROLE_KEY`. Provisioning Supabase (env vars + running all
+  three migrations) is a **launch gate**: until it's done the storefront runs on
+  the seed catalog and orders are not persisted.
 - Payment gateways remain out of scope; checkout settles cash on delivery or
   bank transfer, confirmed over WhatsApp.
+- Recommended follow-ups (not blocking): rate-limiting/lockout on `/admin` login,
+  server-enforced session expiry, and a real inventory count (the `stock_quantity`
+  column is provisioned in `0003` but not yet wired into the admin UI).

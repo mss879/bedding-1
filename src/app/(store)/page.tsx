@@ -57,7 +57,7 @@ export default async function HomePage() {
       <ScrollExpand
         src={img("1505691938895-1758d7feb511", 2400)}
         alt="Moody bedroom dressed in soft layered bedding"
-        eyebrow="The Aveline difference"
+        eyebrow="The Ivory Homez difference"
         title="Fabric you can feel from here."
         body="Long-staple fibres, small-batch dyeing and hand-finished seams. Scroll into the weave — this is what 400 washes later still feels like."
         ctaLabel="Feel it yourself"

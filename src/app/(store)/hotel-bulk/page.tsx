@@ -162,7 +162,7 @@ export default function HotelBulkPage() {
             <div className="relative min-h-[13rem] md:w-[42%]">
               <Image
                 src={img("1611892440504-42a792e24d32", 1200)}
-                alt="Hotel bedroom dressed in Aveline linen"
+                alt="Hotel bedroom dressed in Ivory Homez linen"
                 fill
                 sizes="(max-width: 768px) 100vw, 34vw"
                 className="object-cover"

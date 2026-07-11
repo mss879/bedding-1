@@ -6,7 +6,7 @@ import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 // this module is imported by proxy.ts, which runs outside a request scope,
 // so it must not touch next/headers.
 
-export const ADMIN_COOKIE = "aveline_admin";
+export const ADMIN_COOKIE = "ivoryhomez_admin";
 
 export function adminConfigured(): boolean {
   return Boolean(process.env.ADMIN_PASSWORD);
@@ -15,7 +15,7 @@ export function adminConfigured(): boolean {
 export function adminSessionToken(): string | null {
   const password = process.env.ADMIN_PASSWORD;
   if (!password) return null;
-  return createHmac("sha256", password).update("aveline-admin-session-v1").digest("hex");
+  return createHmac("sha256", password).update("ivoryhomez-admin-session-v1").digest("hex");
 }
 
 export function isValidAdminToken(token: string | null | undefined): boolean {

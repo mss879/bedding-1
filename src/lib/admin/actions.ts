@@ -1,5 +1,6 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -63,6 +64,26 @@ function slugify(value: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
+// next/image throws a hard render-time error for any host not whitelisted in
+// next.config.ts, and there is no error boundary — so a single product/collection
+// saved with an off-host image URL would 500 the storefront AND the admin list.
+// Keep persisted data in lockstep with what next/image can actually render by
+// rejecting disallowed hosts here. Mirror next.config.ts remotePatterns exactly.
+const IMAGE_HOST_HELP =
+  "Images must be hosted on Unsplash (images.unsplash.com) or your Supabase Storage bucket.";
+
+function isAllowedImageUrl(url: string): boolean {
+  let host: string;
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== "https:") return false;
+    host = parsed.hostname;
+  } catch {
+    return false;
+  }
+  return host === "images.unsplash.com" || host === "supabase.co" || host.endsWith(".supabase.co");
+}
+
 // ---------------------------------------------------------------------------
 // Session
 // ---------------------------------------------------------------------------
@@ -115,8 +136,8 @@ export async function saveProduct(input: ProductInput): Promise<AdminActionResul
 
   const images = input.images.map((url) => url.trim()).filter(Boolean);
   if (images.length === 0) return { ok: false, error: "Add at least one image URL." };
-  if (images.some((url) => !url.startsWith("https://"))) {
-    return { ok: false, error: "Image URLs must start with https://." };
+  if (images.some((url) => !isAllowedImageUrl(url))) {
+    return { ok: false, error: IMAGE_HOST_HELP };
   }
 
   const sizes: ProductSize[] = [];
@@ -182,6 +203,55 @@ export async function deleteProduct(id: string): Promise<AdminActionResult> {
 }
 
 // ---------------------------------------------------------------------------
+// Image upload
+// ---------------------------------------------------------------------------
+
+export type UploadResult = { ok: true; url: string } | { ok: false; error: string };
+
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/avif", "image/gif"];
+const IMAGE_BUCKET = "product-images";
+
+// Uploads a product/collection photo to the Supabase Storage bucket provisioned
+// in migration 0003, and returns its public URL (a *.supabase.co/storage URL,
+// which is allow-listed in next.config.ts and by isAllowedImageUrl). Lets a
+// non-technical owner add a photo without hosting it elsewhere first.
+export async function uploadImage(formData: FormData): Promise<UploadResult> {
+  if (!(await isAdmin())) return { ok: false, error: EXPIRED };
+  const sb = getSupabaseAdmin();
+  if (!sb) return { ok: false, error: UNCONFIGURED };
+
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) {
+    return { ok: false, error: "Choose an image file to upload." };
+  }
+  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+    return { ok: false, error: "Images must be JPEG, PNG, WebP, AVIF or GIF." };
+  }
+  if (file.size > MAX_IMAGE_BYTES) {
+    return { ok: false, error: "Images must be 5 MB or smaller." };
+  }
+
+  const ext = (file.name.split(".").pop() ?? "").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+  const path = `${randomUUID()}.${ext}`;
+  const { error } = await sb.storage.from(IMAGE_BUCKET).upload(path, file, {
+    contentType: file.type,
+    upsert: false,
+  });
+  if (error) {
+    return {
+      ok: false,
+      error: "The image couldn't be uploaded. Make sure the 'product-images' bucket exists (migration 0003).",
+    };
+  }
+  const { data } = sb.storage.from(IMAGE_BUCKET).getPublicUrl(path);
+  if (!data?.publicUrl) {
+    return { ok: false, error: "The image uploaded but no public URL was returned." };
+  }
+  return { ok: true, url: data.publicUrl };
+}
+
+// ---------------------------------------------------------------------------
 // Collections
 // ---------------------------------------------------------------------------
 
@@ -199,8 +269,11 @@ export async function saveCategory(input: CategoryInput): Promise<AdminActionRes
   }
 
   const image = input.image.trim();
-  if (image && !image.startsWith("https://")) {
-    return { ok: false, error: "Image URL must start with https://." };
+  if (!image) {
+    return { ok: false, error: "Add an image URL — it's shown on the homepage circles and shop tiles." };
+  }
+  if (!isAllowedImageUrl(image)) {
+    return { ok: false, error: IMAGE_HOST_HELP };
   }
 
   const sortOrder = Math.round(Number(input.sort_order));
@@ -220,6 +293,15 @@ export async function saveCategory(input: CategoryInput): Promise<AdminActionRes
     : await sb.from("categories").insert(row);
   if (error) {
     if (error.code === "23505") return { ok: false, error: "That slug is already in use." };
+    // 23503: products still reference the old slug (FK has no ON UPDATE CASCADE
+    // until migration 0003 is applied). Give a clear reason instead of a generic
+    // "please try again".
+    if (error.code === "23503") {
+      return {
+        ok: false,
+        error: "Move this collection's products to another collection before renaming its slug.",
+      };
+    }
     return { ok: false, error: "The collection couldn't be saved. Please try again." };
   }
 
@@ -236,9 +318,13 @@ export async function deleteCategory(id: string): Promise<AdminActionResult> {
   const category = await adminGetCategory(id);
   if (!category) return { ok: false, error: "This collection no longer exists." };
 
-  // The category_slug FK cascades, so deleting a non-empty collection would
-  // silently take its products with it — refuse instead.
+  // Deleting a non-empty collection would take its products with it via the
+  // category_slug FK — refuse instead. If the count can't be verified, refuse
+  // too rather than risk a cascade delete on a bad read.
   const count = await adminCountProductsInCategory(category.slug);
+  if (count === null) {
+    return { ok: false, error: "Couldn't check this collection's products just now. Please try again." };
+  }
   if (count > 0) {
     return {
       ok: false,

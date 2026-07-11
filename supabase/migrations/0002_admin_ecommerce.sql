@@ -1,4 +1,4 @@
--- Aveline Bedding — admin backend + checkout payment options.
+-- Ivory Homez Bedding — admin backend + checkout payment options.
 -- Run after 0001_init.sql with: supabase db push (or paste into the Supabase SQL editor).
 --
 -- What this adds:

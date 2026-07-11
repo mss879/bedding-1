@@ -3,7 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { saveProduct } from "@/lib/admin/actions";
+import { saveProduct, uploadImage } from "@/lib/admin/actions";
 import type { Category, Product } from "@/lib/types";
 
 const labelClass = "mb-1.5 block text-[0.82rem] font-semibold text-ink";
@@ -30,6 +30,7 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [uploadingKey, setUploadingKey] = useState<number | null>(null);
 
   // Keys for the dynamic rows so removals don't reshuffle React state.
   const nextKey = useRef(0);
@@ -59,6 +60,18 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
 
   function setImage(key: number, url: string) {
     setImages((rows) => rows.map((row) => (row.key === key ? { ...row, url } : row)));
+  }
+
+  async function handleUpload(key: number, file: File | undefined) {
+    if (!file) return;
+    setError(null);
+    setUploadingKey(key);
+    const fd = new FormData();
+    fd.append("file", file);
+    const result = await uploadImage(fd);
+    setUploadingKey(null);
+    if (result.ok) setImage(key, result.url);
+    else setError(result.error);
   }
 
   function setSize(key: number, patch: Partial<SizeRow>) {
@@ -301,10 +314,26 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
                 type="url"
                 className="field"
                 aria-label={`Image URL ${index + 1}`}
-                placeholder="https://…"
+                placeholder="https://… or upload →"
                 value={row.url}
                 onChange={(e) => setImage(row.key, e.target.value)}
               />
+              <label
+                className={`btn btn-tint btn-sm shrink-0 cursor-pointer ${
+                  uploadingKey !== null ? "pointer-events-none opacity-60" : ""
+                }`}
+              >
+                {uploadingKey === row.key ? "Uploading…" : "Upload"}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="sr-only"
+                  onChange={(e) => {
+                    handleUpload(row.key, e.target.files?.[0]);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
               {images.length > 1 && (
                 <button
                   type="button"
@@ -325,8 +354,8 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
             Add image
           </button>
           <p className={hintClass}>
-            Paste public HTTPS image URLs — https://images.unsplash.com links or Supabase Storage
-            public URLs both work. The first image is the listing photo.
+            Upload a photo (JPEG/PNG/WebP, up to 5 MB) or paste a public HTTPS URL from
+            images.unsplash.com. The first image is the listing photo.
           </p>
         </div>
       </section>

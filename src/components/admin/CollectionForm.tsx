@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { saveCategory } from "@/lib/admin/actions";
+import { saveCategory, uploadImage } from "@/lib/admin/actions";
 import type { Category } from "@/lib/types";
 
 const labelClass = "mb-1.5 block text-[0.82rem] font-semibold text-ink";
@@ -23,8 +23,22 @@ export function CollectionForm({ category }: { category?: Category }) {
 
   const [name, setName] = useState(category?.name ?? "");
   const [slug, setSlug] = useState(category?.slug ?? "");
+  const [image, setImage] = useState(category?.image ?? "");
+  const [uploading, setUploading] = useState(false);
   // While the slug hasn't been edited by hand, it live-follows the name.
   const [slugTouched, setSlugTouched] = useState(Boolean(category));
+
+  async function handleUpload(file: File | undefined) {
+    if (!file) return;
+    setError(null);
+    setUploading(true);
+    const fd = new FormData();
+    fd.append("file", file);
+    const result = await uploadImage(fd);
+    setUploading(false);
+    if (result.ok) setImage(result.url);
+    else setError(result.error);
+  }
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -36,7 +50,7 @@ export function CollectionForm({ category }: { category?: Category }) {
         name,
         slug,
         description: String(form.get("description") ?? ""),
-        image: String(form.get("image") ?? ""),
+        image,
         sort_order: Number(form.get("sort_order") ?? 0),
         show_in_nav: form.get("show_in_nav") === "on",
         show_on_home: form.get("show_on_home") === "on",
@@ -105,19 +119,38 @@ export function CollectionForm({ category }: { category?: Category }) {
           <div className="grid gap-4 sm:grid-cols-[1fr_10rem]">
             <div>
               <label htmlFor="cf-image" className={labelClass}>
-                Image URL
+                Image *
               </label>
-              <input
-                id="cf-image"
-                name="image"
-                type="url"
-                className="field"
-                placeholder="https://…"
-                defaultValue={category?.image ?? ""}
-              />
+              <div className="flex items-center gap-2">
+                <input
+                  id="cf-image"
+                  type="url"
+                  required
+                  className="field"
+                  placeholder="https://… or upload →"
+                  value={image}
+                  onChange={(e) => setImage(e.target.value)}
+                />
+                <label
+                  className={`btn btn-tint btn-sm shrink-0 cursor-pointer ${
+                    uploading ? "pointer-events-none opacity-60" : ""
+                  }`}
+                >
+                  {uploading ? "Uploading…" : "Upload"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="sr-only"
+                    onChange={(e) => {
+                      handleUpload(e.target.files?.[0]);
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
+              </div>
               <p className={hintClass}>
-                Shown on the homepage circles and shop tiles — an https:// Unsplash or Supabase
-                Storage URL.
+                Shown on the homepage circles and shop tiles. Upload a photo (up to 5 MB) or paste an
+                https:// Unsplash / Supabase Storage URL.
               </p>
             </div>
             <div>

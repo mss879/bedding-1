@@ -19,10 +19,10 @@ const props = [
 /** Etsy's "What is Etsy?" band — powder blue, three columns with dividers. */
 export function ValueProps() {
   return (
-    <section className="bg-powder" aria-label={`What is Aveline?`}>
+    <section className="bg-powder" aria-label={`What is Ivory Homez?`}>
       <div className="container-x py-14 text-center md:py-20">
         <Reveal>
-          <h2 className="font-display text-3xl md:text-4xl">What is Aveline?</h2>
+          <h2 className="font-display text-3xl md:text-4xl">What is Ivory Homez?</h2>
           <Link
             href="/about"
             className="mt-2 inline-block text-sm font-medium text-ink underline underline-offset-4 hover:text-clay"

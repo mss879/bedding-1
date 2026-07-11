@@ -139,7 +139,7 @@ export function Preloader({ images }: PreloaderProps) {
           className="font-display text-4xl font-semibold lowercase tracking-tight text-clay"
           style={{ opacity: 0, transform: "translateY(20px)" }}
         >
-          aveline
+          ivory homez
         </h2>
 
         {/* Dynamic percentage counter */}

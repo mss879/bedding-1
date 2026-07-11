@@ -5,7 +5,7 @@ import { Reveal } from "@/components/anim/Reveal";
 
 export const metadata: Metadata = {
   title: "Checkout",
-  description: "Complete your Aveline bedding order.",
+  description: "Complete your Ivory Homez bedding order.",
 };
 
 export default function CheckoutPage() {

@@ -14,11 +14,11 @@ export function EditorsPicks({ categories }: { categories: Category[] }) {
   const [large, ...small] = categories;
 
   return (
-    <section className="bg-parchment py-14 md:py-20" aria-label="The Aveline edit">
+    <section className="bg-parchment py-14 md:py-20" aria-label="The Ivory Homez edit">
       <div className="container-x">
         <Reveal className="mb-8 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2 className="font-display text-3xl md:text-4xl">The Aveline edit</h2>
+            <h2 className="font-display text-3xl md:text-4xl">The Ivory Homez edit</h2>
             <p className="mt-1.5 text-sm text-ink-soft">
               Hand-picked by the people who sew it.
             </p>

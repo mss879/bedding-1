@@ -1,6 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    // Product/collection image uploads go through a Server Action, so raise the
+    // 1 MB default body cap to allow real photos (upload validation caps files
+    // at 5 MB; the extra headroom covers multipart overhead).
+    serverActions: {
+      bodySizeLimit: "8mb",
+    },
+  },
   images: {
     remotePatterns: [
       {

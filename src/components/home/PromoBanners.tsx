@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Reveal } from "@/components/anim/Reveal";
 
 /**
- * Etsy's two-up rounded promo banners, recoloured for Aveline:
+ * Etsy's two-up rounded promo banners, recoloured for Ivory Homez:
  * bedding sets (beeswax) + hotel & bulk (powder blue).
  */
 export function PromoBanners({
@@ -20,19 +20,19 @@ export function PromoBanners({
           <div className="flex flex-1 flex-col items-start justify-center gap-4 p-8 md:p-10">
             <span className="badge-img">Save 20%</span>
             <h3 className="font-display text-2xl leading-snug md:text-3xl">
-              The complete bed, boxed.
+              The complete bedroom.
             </h3>
             <p className="text-sm leading-relaxed text-ink-soft">
-              Seven matching pieces, one gift-ready box — 20% less than buying them alone.
+              Premium washed linen sheets, duvet covers and pillowcases woven to last.
             </p>
-            <Link href="/shop?category=bedding-sets" className="btn btn-solid btn-sm">
-              Shop bedding sets
+            <Link href="/shop?category=bedroom" className="btn btn-solid btn-sm">
+              Shop bedroom
             </Link>
           </div>
           <div className="relative min-h-[11rem] sm:w-[42%]">
             <Image
               src={setsImage}
-              alt="Aveline signature bedding set"
+              alt="Ivory Homez signature bedding set"
               fill
               sizes="(max-width: 640px) 100vw, 24vw"
               className="object-cover"
@@ -58,7 +58,7 @@ export function PromoBanners({
           <div className="relative min-h-[11rem] sm:w-[42%]">
             <Image
               src={hotelImage}
-              alt="Hotel bedroom dressed in Aveline linen"
+              alt="Hotel bedroom dressed in Ivory Homez linen"
               fill
               sizes="(max-width: 640px) 100vw, 24vw"
               className="object-cover"

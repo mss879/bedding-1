@@ -44,14 +44,18 @@ export async function adminGetCategory(id: string): Promise<Category | null> {
   return data as Category;
 }
 
-export async function adminCountProductsInCategory(slug: string): Promise<number> {
+// Returns null when the count can't be determined (unconfigured or query
+// error). Callers that gate a destructive action on this MUST treat null as
+// "unknown — refuse", never as zero: the category_slug FK cascades, so a
+// mistaken 0 could let a delete wipe a non-empty collection's products.
+export async function adminCountProductsInCategory(slug: string): Promise<number | null> {
   const sb = getSupabaseAdmin();
-  if (!sb) return 0;
+  if (!sb) return null;
   const { count, error } = await sb
     .from("products")
     .select("*", { count: "exact", head: true })
     .eq("category_slug", slug);
-  if (error) return 0;
+  if (error) return null;
   return count ?? 0;
 }
 

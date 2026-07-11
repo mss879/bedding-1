@@ -9,7 +9,7 @@ import { site, whatsappLink } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Contact",
   description:
-    "Get in touch with Aveline — WhatsApp, email, phone or the contact form. We reply within one working day.",
+    "Get in touch with Ivory Homez — WhatsApp, email, phone or the contact form. We reply within one working day.",
 };
 
 export default function ContactPage() {

@@ -29,14 +29,14 @@ const reviews = [
     place: "Galle",
     quote:
       "Ordered the full signature set as a wedding gift. It arrived in a cotton keeper bag, beautifully folded — the couple thought it cost twice what it did.",
-    productName: "Aveline Signature Bedding Set",
-    productSlug: "aveline-signature-bedding-set",
+    productName: "Ivory Homez Signature Bedding Set",
+    productSlug: "ivory-homez-signature-bedding-set",
     image:
       "https://images.unsplash.com/photo-1560185893-a55cbc8c57e8?w=200&q=80&auto=format&fit=crop",
   },
 ];
 
-/** Etsy's "Recent reviews from happy shoppers" cards, Aveline edition. */
+/** Etsy's "Recent reviews from happy shoppers" cards, Ivory Homez edition. */
 export function ReviewsRow() {
   return (
     <section className="container-x py-12 md:py-16" aria-label="Customer reviews">

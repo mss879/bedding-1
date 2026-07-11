@@ -1,17 +1,17 @@
-# Aveline — Design System (Etsy-marketplace direction)
+# Ivory Homez — Design System (Etsy-marketplace direction)
 
 The client wants the **primary look of etsy.com** — warm, crafty, dense marketplace — elevated
 with GSAP scroll animations and a WebGL hero. Tokens below were extracted from Etsy's real
-production CSS (Collage design system, 2025–26 "refresh" theme) and adapted to the Aveline
+production CSS (Collage design system, 2025–26 "refresh" theme) and adapted to the Ivory Homez
 bedding brand. Every color/radius/shadow in the codebase must trace to a token here.
 
 ## 1. Identity
 
-- Product: premium bedding e-commerce (retail + hotel/bulk), Sri Lanka. Brand "Aveline" (placeholder).
+- Product: premium bedding e-commerce (retail + hotel/bulk), Sri Lanka. Brand "Ivory Homez" (placeholder).
 - Feel: "paper and cardboard, not screen" — warm neutrals, ink-black pill CTAs, candy blue as a
   *special* accent (never the primary CTA color), gold stars, green sale text, rounded everything.
 - Reference: etsy.com. Card anatomy, search pill, badges, and section rhythm follow Etsy;
-  copy and imagery stay Aveline.
+  copy and imagery stay Ivory Homez.
 
 ## 2. Color tokens (globals.css `@theme`)
 
@@ -32,7 +32,7 @@ Legacy names are kept (remapped) so existing utility classes keep working:
 | `--color-board` | `#E0DAD6` | Soft borders ("cardboard") |
 | `--color-accent-tint` | `#B2D5E5` | Candy blue background (accent tint) |
 | `--color-beeswax` | `#d2e5ee` | Subtle candy blue promo band |
-| `--color-powder` | `#D5E8F2` | "What is Aveline?" value-props band (Etsy powder blue) |
+| `--color-powder` | `#D5E8F2` | "What is Ivory Homez?" value-props band (Etsy powder blue) |
 | `--color-star` | `#FFA300` | Lit rating stars (gold) |
 | `--color-sale` | `#1BA050` | Sale prices, "(20% off)", "FREE delivery" text — green, never red |
 
@@ -123,7 +123,7 @@ on unmount.
 - PDP: left = vertical thumbnail rail + rounded main image; right buy box order: urgency line,
   price (sale green), title, shop line with stars, size/qty selects, black "Add to cart" pill +
   2px-outline "Buy it now", signal rows (truck/returns/free delivery), accordions (Item details
-  open by default, Shipping & returns), then reviews (gold stars) and "More from Aveline" carousel.
+  open by default, Shipping & returns), then reviews (gold stars) and "More from Ivory Homez" carousel.
 - Footer: newsletter capture band (beeswax) → dark ink footer, 4 link columns → bottom legal row
   with region "Sri Lanka | English (UK) | Rs (LKR)".
 

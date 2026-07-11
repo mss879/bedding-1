@@ -1,25 +1,22 @@
 export const site = {
-  name: "Aveline",
+  name: "Ivory Homez",
   tagline: "Fine Bedding",
   description:
-    "Aveline crafts premium bed linen, duvet covers and bedding sets — woven from the finest long-staple cotton and stonewashed linen. Retail, hotel and bulk bedding from Sri Lanka.",
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+    "Ivory Homez crafts premium bed linen, duvet covers and bedding sets — woven from the finest long-staple cotton and stonewashed linen. Retail, hotel and bulk bedding.",
+  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.ivoryhomez.com",
   // Replace with the client's WhatsApp number (country code, no + or spaces).
   whatsappNumber: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "94771852522",
-  email: "hello@avelinebedding.com",
+  email: "hello@ivoryhomez.com",
   phone: "+94 77 185 2522",
   addressLines: ["42 Galle Road", "Colombo 03, Sri Lanka"],
   instagram: "https://instagram.com",
   facebook: "https://facebook.com",
 };
 
-export const nav = [
-  { href: "/shop", label: "Shop" },
-  { href: "/shop?category=bedding-sets", label: "Bedding Sets" },
-  { href: "/hotel-bulk", label: "Hotel & Bulk" },
-  { href: "/about", label: "About" },
-  { href: "/contact", label: "Contact" },
-];
+// Note: the storefront header/footer navigation is data-driven from the
+// `categories` table (see getNavCategories in lib/catalog.ts), so there is no
+// hardcoded nav array here — collections created in /admin appear in the nav
+// automatically.
 
 // Checkout payment options. Bank details are placeholders — swap in the
 // client's real account before launch (shown on the order-success page for
@@ -43,7 +40,7 @@ export function paymentMethodLabel(id: string) {
 
 export const bankDetails = {
   bankName: "Commercial Bank of Ceylon",
-  accountName: "Aveline Bedding (Pvt) Ltd",
+  accountName: "Ivory Homez",
   accountNumber: "0000 0000 0000",
   branch: "Colombo 03",
 };

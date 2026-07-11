@@ -8,7 +8,7 @@ import { ScrollExpand } from "@/components/anim/ScrollExpand";
 export const metadata: Metadata = {
   title: "About",
   description:
-    "The Aveline story — ethically handmade bed linen from a small atelier in Colombo, woven for a life well rested.",
+    "The Ivory Homez story — ethically handmade bed linen from a small atelier in Colombo, woven for a life well rested.",
 };
 
 const img = (id: string, w = 1800) =>
@@ -69,7 +69,7 @@ export default function AboutPage() {
           </MaskReveal>
           <Reveal delay={0.2} className="max-w-lg space-y-6 self-center text-sm leading-relaxed text-ink-soft md:text-base">
             <p>
-              Aveline began with one loom, one seamstress and one belief: that the
+              Ivory Homez began with one loom, one seamstress and one belief: that the
               third of your life you spend asleep deserves the same care as the rest.
             </p>
             <p>

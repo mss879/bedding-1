@@ -7,7 +7,7 @@ import { AdminNav } from "@/components/admin/AdminNav";
 function Brand({ compact = false }: { compact?: boolean }) {
   return (
     <Link href="/admin" className="inline-flex items-baseline gap-2">
-      <span className={`font-display text-clay ${compact ? "text-xl" : "text-2xl"}`}>Aveline</span>
+      <span className={`font-display text-clay ${compact ? "text-xl" : "text-2xl"}`}>Ivory Homez</span>
       <span className="text-xs font-semibold text-fog">Admin</span>
     </Link>
   );

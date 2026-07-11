@@ -148,14 +148,7 @@ export function Header({ categories }: { categories: Category[] }) {
           >
             <WhatsAppIcon className="h-5 w-5" />
           </a>
-          <Link
-            href="/shop?category=bedding-sets"
-            aria-label="Gift-ready bedding sets"
-            title="Gift-ready bedding sets"
-            className="icon-btn hidden md:inline-flex"
-          >
-            <GiftIcon className="h-5 w-5" />
-          </Link>
+
           <button
             onClick={openCart}
             aria-label={`Open cart, ${count} items`}
@@ -255,14 +248,7 @@ function BurgerIcon({ className }: { className?: string }) {
   );
 }
 
-function GiftIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
-      <rect x="3.5" y="8" width="17" height="4" rx="1" />
-      <path d="M5 12v7.2a1 1 0 001 1h12a1 1 0 001-1V12M12 8v12M12 8s-4.2.2-5.4-1.4C5.6 5.2 6.8 3.5 8.4 3.5c2.2 0 3.6 4.5 3.6 4.5zm0 0s4.2.2 5.4-1.4c1-1.4-.2-3.1-1.8-3.1-2.2 0-3.6 4.5-3.6 4.5z" />
-    </svg>
-  );
-}
+
 
 function CartIcon({ className }: { className?: string }) {
   return (
