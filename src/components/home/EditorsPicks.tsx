@@ -20,7 +20,7 @@ export function EditorsPicks({ categories }: { categories: Category[] }) {
           <div>
             <h2 className="font-display text-3xl md:text-4xl">The Ivory Homez edit</h2>
             <p className="mt-1.5 text-sm text-ink-soft">
-              Hand-picked by the people who sew it.
+              Hand-picked by the people who make it.
             </p>
           </div>
           <Link

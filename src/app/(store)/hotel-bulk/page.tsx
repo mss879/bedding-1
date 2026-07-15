@@ -8,32 +8,32 @@ import { BulkInquiryForm } from "@/components/forms/BulkInquiryForm";
 import { site, whatsappLink } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Hotel & Bulk Bedding",
+  title: "Hotel & Trade Orders",
   description:
-    "Custom and bulk bedding for hotels, villas, apartments and guest houses. Commercial-grade weaves, custom sizes and volume pricing — discussed personally on WhatsApp.",
+    "Bulk and custom home goods for hotels, villas, restaurants and guest houses — linens, stoneware, lighting and more. Commercial-grade quality, custom specs and volume pricing, discussed personally on WhatsApp.",
 };
 
 const img = (id: string, w = 1600) =>
   `https://images.unsplash.com/photo-${id}?w=${w}&q=80&auto=format&fit=crop`;
 
 const segments = [
-  { name: "Hotels", image: img("1582719478250-c89cae4dc85b"), copy: "Full-property programmes, from suites to staff quarters." },
-  { name: "Villas & Resorts", image: img("1520250497591-112f2f40a3f4"), copy: "Resort-weight linens that survive sun, salt and season." },
-  { name: "Apartments", image: img("1522708323590-d24dbb6b0267"), copy: "Turnkey bedding packs for serviced and rental units." },
+  { name: "Hotels", image: img("1582719478250-c89cae4dc85b"), copy: "Full-property programmes — guest rooms, restaurants and spas." },
+  { name: "Villas & Resorts", image: img("1520250497591-112f2f40a3f4"), copy: "Interiors and outdoor living that survive sun, salt and season." },
+  { name: "Restaurants & Cafés", image: img("1517248135467-4c7edcad34c4"), copy: "Table linen, stoneware and lighting, made to your spec." },
   { name: "Guest Houses", image: img("1445019980597-93fa8acb246c"), copy: "Small-property pricing with the same five-star hand feel." },
 ];
 
 const steps = [
   { title: "Inquire", copy: "Send your property details through the form — it lands directly in our WhatsApp." },
   { title: "Consult", copy: "We talk quantities, sizes, materials, budget and timelines. Personally, not by ticket." },
-  { title: "Sample", copy: "We send fabric swatches and a made-up sample set for your housekeeping team to trial." },
-  { title: "Produce", copy: "Your order is cut, sewn and quality-checked in our own atelier, batch by batch." },
-  { title: "Deliver", copy: "Pressed, packed per room and delivered on your schedule — with reorder support after." },
+  { title: "Sample", copy: "We send swatches, glaze samples and a made-up room kit for your team to trial." },
+  { title: "Produce", copy: "Your order is cut, thrown, sewn and quality-checked in our own workshop, batch by batch." },
+  { title: "Deliver", copy: "Packed per room and delivered on your schedule — with reorder support after." },
 ];
 
 const hospitalityPoints = [
-  "Commercial-laundry tested percale and linen weaves",
-  "Custom sizes, hems and embroidered monograms",
+  "Commercial-laundry tested linens, towels and robes",
+  "Custom sizes, glazes, finishes and embroidered monograms",
   "Volume pricing with reorder support, season after season",
 ];
 
@@ -51,7 +51,7 @@ export default function HotelBulkPage() {
             </li>
             <li aria-hidden>›</li>
             <li aria-current="page" className="text-ink">
-              Hotel &amp; bulk
+              Hotel &amp; trade
             </li>
           </ol>
         </nav>
@@ -59,11 +59,11 @@ export default function HotelBulkPage() {
         {/* Hero — in-flow rounded banner (header is white + sticky above) */}
         <section
           className="relative overflow-hidden rounded-3xl"
-          aria-label="Hotel and bulk bedding"
+          aria-label="Hotel and trade orders"
         >
           <Image
-            src={img("1618773928121-c32242e63f39", 2400)}
-            alt="A crisp white hotel bed"
+            src={img("1566073771259-6a8506099945", 2400)}
+            alt="A resort pool deck lined with loungers at golden hour"
             fill
             preload
             sizes="(max-width: 1280px) 100vw, 1216px"
@@ -73,26 +73,26 @@ export default function HotelBulkPage() {
           <div className="relative flex min-h-[24rem] flex-col items-start justify-center px-6 py-14 text-linen md:min-h-[28rem] md:px-14">
             <Reveal>
               <p className="mb-4 text-[0.82rem] font-semibold text-linen/85">
-                For hospitality &amp; volume buyers
+                For hospitality &amp; trade buyers
               </p>
             </Reveal>
             <LineReveal
               as="h1"
               animateOnMount
               delay={0.15}
-              lines={["Bedding your guests", "will write home about."]}
+              lines={["Interiors your guests", "will write home about."]}
               className="font-display text-4xl leading-tight md:text-6xl"
             />
             <Reveal delay={0.5} className="mt-6 max-w-xl text-sm leading-relaxed text-linen/90 md:text-base">
               <p>
-                Hotel and bulk orders live on quantity, sizing, materials, branding and
+                Hotel and trade orders live on quantity, sizing, materials, branding and
                 timelines — details better discussed than checked out. That&apos;s why this
                 flow goes straight to a human, on WhatsApp.
               </p>
             </Reveal>
             <Reveal delay={0.65} className="mt-8 flex flex-col gap-3 sm:flex-row">
               <a
-                href={whatsappLink(`Hello ${site.name}! I'd like to discuss a hotel/bulk bedding order.`)}
+                href={whatsappLink(`Hello ${site.name}! I'd like to discuss a hotel/trade order.`)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn btn-clay"
@@ -112,7 +112,7 @@ export default function HotelBulkPage() {
         <div className="container-x">
           <Reveal className="mb-8 md:mb-10">
             <p className="mb-2 text-[0.82rem] font-semibold text-clay">Who we supply</p>
-            <h2 className="font-display text-3xl md:text-4xl">Built for busy beds</h2>
+            <h2 className="font-display text-3xl md:text-4xl">Built for busy properties</h2>
           </Reveal>
           <Stagger className="grid grid-cols-2 gap-4 md:gap-5 lg:grid-cols-4" stagger={0.08}>
             {segments.map((segment) => (
@@ -145,7 +145,7 @@ export default function HotelBulkPage() {
             <div className="flex flex-1 flex-col items-start justify-center gap-4 p-8 md:p-12">
               <span className="badge-img">For hospitality</span>
               <h2 className="font-display text-2xl leading-snug md:text-4xl">
-                Five-star sheets, priced by volume.
+                Five-star interiors, priced by volume.
               </h2>
               <ul className="space-y-2 text-sm leading-relaxed text-ink-soft md:text-[0.95rem]">
                 {hospitalityPoints.map((point) => (
@@ -177,7 +177,7 @@ export default function HotelBulkPage() {
         <div className="container-x">
           <Reveal className="mb-9 md:mb-12">
             <p className="mb-2 text-[0.82rem] font-semibold text-clay">The process</p>
-            <h2 className="font-display text-3xl md:text-4xl">From inquiry to turn-down</h2>
+            <h2 className="font-display text-3xl md:text-4xl">From inquiry to opening day</h2>
           </Reveal>
           <Stagger className="grid gap-x-5 gap-y-9 sm:grid-cols-2 lg:grid-cols-5" stagger={0.08}>
             {steps.map((step, i) => (
@@ -208,8 +208,8 @@ export default function HotelBulkPage() {
             />
             <Reveal delay={0.2} className="mt-6 max-w-md space-y-5 text-sm leading-relaxed text-ink-soft md:text-base">
               <p>
-                Every property is different — 20 rooms or 200, standard queens or
-                custom emperor beds, embroidered monograms or plain hems. A checkout
+                Every property is different — 20 rooms or 200, guest suites or garden
+                terraces, monogrammed linen or made-to-spec stoneware. A checkout
                 page can&apos;t hold that conversation. WhatsApp can.
               </p>
               <p>

@@ -7,7 +7,7 @@ import { WhatsAppIcon } from "./Header";
 export function WhatsAppFloat() {
   return (
     <motion.a
-      href={whatsappLink(`Hello ${site.name}! I'd like to know more about your bedding.`)}
+      href={whatsappLink(`Hello ${site.name}! I'd like to know more about your products.`)}
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Chat with us on WhatsApp"

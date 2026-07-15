@@ -8,7 +8,7 @@ import { ScrollExpand } from "@/components/anim/ScrollExpand";
 export const metadata: Metadata = {
   title: "About",
   description:
-    "The Ivory Homez story — ethically handmade bed linen from a small atelier in Colombo, woven for a life well rested.",
+    "The Ivory Homez story — a Colombo workshop making honest, handmade goods for every room of the home.",
 };
 
 const img = (id: string, w = 1800) =>
@@ -16,16 +16,16 @@ const img = (id: string, w = 1800) =>
 
 const values = [
   {
-    title: "Woven to last",
-    copy: "Long-staple cotton and European flax, chosen for how they feel after the hundredth wash, not just the first.",
+    title: "Built to last",
+    copy: "Long-staple cotton, solid teak, high-fire stoneware — materials chosen for how they hold up after the hundredth wash and the hundredth year, not just the first.",
   },
   {
     title: "Made by hand",
-    copy: "Every hem, tie and button placket is finished by a person, not a production line. Small batches, no shortcuts.",
+    copy: "Every hem, glaze, weave and joint is finished by a person, not a production line. Small batches, no shortcuts.",
   },
   {
     title: "Fairly made",
-    copy: "Our atelier pays fair wages, keeps honest hours and uses OEKO-TEX certified fibres, free of harsh chemicals.",
+    copy: "Our workshop pays fair wages, keeps honest hours and uses responsibly sourced fibres, timber and clay.",
   },
 ];
 
@@ -55,44 +55,45 @@ export default function AboutPage() {
           as="h1"
           animateOnMount
           delay={0.15}
-          lines={["Made by hand.", "Brought into the", "world with love."]}
+          lines={["Made by hand.", "For every room", "you live in."]}
           className="max-w-4xl font-display text-4xl leading-[1.08] md:text-6xl"
         />
         <div className="mt-12 grid gap-8 md:mt-14 md:gap-10 lg:grid-cols-[1fr_1fr]">
           <MaskReveal className="rounded-3xl">
             <ParallaxImage
-              src={img("1560185127-6ed189bf02f4")}
-              alt="Sunlight over a softly made bed"
+              src={img("1459908676235-d5f02a50184b")}
+              alt="A maker's bench crowded with brushes and tools"
               className="aspect-[4/5] w-full rounded-3xl"
               strength={9}
             />
           </MaskReveal>
           <Reveal delay={0.2} className="max-w-lg space-y-6 self-center text-sm leading-relaxed text-ink-soft md:text-base">
             <p>
-              Ivory Homez began with one loom, one seamstress and one belief: that the
-              third of your life you spend asleep deserves the same care as the rest.
+              Ivory Homez began with one loom, one seamstress and one belief: that
+              the everyday things you live with deserve the same care as the
+              things you keep for best.
             </p>
             <p>
-              From a small atelier in Colombo we weave, cut and sew bedding in small
-              batches — sheets that get softer each year, duvet covers with hand-tied
-              closures, and hotel linens that survive the hardest laundry cycles
-              without losing their hand feel.
+              We started with bedding — sheets worth the third of your life you
+              spend in them. Then the people who slept in our linen asked for the
+              kitchen, the bath, the garden. So the workshop grew: a potter&apos;s
+              wheel beside the looms, a wood bench beside the cutting table.
             </p>
             <p>
-              Today our bedding dresses homes across the island and the beds of
-              boutique hotels beyond it. Every piece still passes through the same
-              pairs of hands.
+              Today we make for the whole house — stoneware and teak, rattan light
+              and washed linen — one room at a time, and every piece still passes
+              through the same pairs of hands.
             </p>
           </Reveal>
         </div>
       </section>
 
       <ScrollExpand
-        src={img("1567016432779-094069958ea5", 2400)}
-        alt="Detail of soft, textured bedding"
-        eyebrow="The atelier"
+        src={img("1530124566582-a618bc2615dc", 2400)}
+        alt="A wall of well-used hand tools in the workshop"
+        eyebrow="The workshop"
         title="Slow made, in a fast world."
-        body="No seasonal churn, no landfill collections. We make fewer things, better — and stand behind each of them for 365 nights."
+        body="No seasonal churn, no landfill collections. We make fewer things, better — and stand behind each of them for 365 days."
       />
 
       {/* Values band — powder blue, white lifted cards */}
@@ -122,8 +123,8 @@ export default function AboutPage() {
           <div className="grid gap-5 md:grid-cols-2 md:gap-6">
             <MaskReveal className="rounded-2xl">
               <ParallaxImage
-                src={img("1615874959474-d609969a20ed")}
-                alt="Close weave of natural-toned bedding"
+                src={img("1603199506016-b9a594b593c0")}
+                alt="Hand-thrown stoneware bowls, stacked and ready for the kiln"
                 className="aspect-[4/3] w-full rounded-2xl"
                 strength={8}
               />
@@ -131,7 +132,7 @@ export default function AboutPage() {
             <MaskReveal delay={0.15} className="rounded-2xl">
               <ParallaxImage
                 src={img("1616486338812-3dadae4b4ace")}
-                alt="A calm interior styled with natural textiles"
+                alt="A calm interior styled with handmade pieces"
                 className="aspect-[4/3] w-full rounded-2xl"
                 strength={8}
               />
@@ -139,9 +140,9 @@ export default function AboutPage() {
           </div>
 
           <Reveal className="mx-auto mt-16 max-w-xl text-center md:mt-20">
-            <h2 className="font-display text-3xl md:text-4xl">Sleep on it, properly</h2>
+            <h2 className="font-display text-3xl md:text-4xl">Live with it, properly</h2>
             <p className="mt-3 text-sm leading-relaxed text-ink-soft md:text-base">
-              Browse what&apos;s on the loom right now, or write to us — we answer
+              Browse what&apos;s on the bench right now, or write to us — we answer
               every message ourselves.
             </p>
             <div className="mt-7 flex flex-wrap items-center justify-center gap-3">

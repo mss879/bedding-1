@@ -4,25 +4,27 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Category } from "@/lib/types";
 
-const MATERIALS = ["Linen", "Cotton", "Sateen", "Percale", "Waffle"];
+const MATERIALS = ["Linen", "Cotton", "Stoneware", "Teak", "Rattan", "Brass", "Canvas"];
 
 const COLOR_MAP: Record<string, { hex: string; border?: boolean }> = {
   "cloud white": { hex: "#F8F8F8", border: true },
+  "cream": { hex: "#F3EDDF", border: true },
+  "speckled cream": { hex: "#EFE9DC", border: true },
   "oat": { hex: "#E8E2D9" },
-  "sage": { hex: "#9CA998" },
-  "terracotta": { hex: "#C27C65" },
-  "charcoal": { hex: "#3A3A3A" },
-  "clay": { hex: "#2b6580" },
-  "olive": { hex: "#707A60" },
-  "natural": { hex: "#D8CFCA" },
-  "stone": { hex: "#8E8A85" },
-  "ivory": { hex: "#FFFFF0", border: true },
-  "dusk blue": { hex: "#7C95A3" },
-  "ochre": { hex: "#CFA055" },
-  "moss": { hex: "#5D7052" },
-  "blush": { hex: "#E5C2C0" },
-  "graphite": { hex: "#4D4D4D" },
   "oatmeal": { hex: "#E2D9CF" },
+  "sand": { hex: "#DCCDB2" },
+  "natural": { hex: "#D8CFCA" },
+  "whitewash": { hex: "#EDEAE4", border: true },
+  "stone": { hex: "#8E8A85" },
+  "sage": { hex: "#9CA998" },
+  "olive": { hex: "#707A60" },
+  "terracotta": { hex: "#C27C65" },
+  "clay": { hex: "#A9705A" },
+  "ochre": { hex: "#CFA055" },
+  "honey": { hex: "#C89B5F" },
+  "tan": { hex: "#B58A60" },
+  "natural teak": { hex: "#8B5E3C" },
+  "charcoal": { hex: "#3A3A3A" },
   "default": { hex: "#EFECEA" },
 };
 
@@ -120,9 +122,9 @@ export function FilterPanel({
   };
 
   const availableColors = [
-    "Cloud White", "Oat", "Sage", "Terracotta", "Charcoal", 
-    "Clay", "Olive", "Natural", "Stone", "Ivory", 
-    "Dusk Blue", "Ochre", "Moss", "Blush", "Graphite", "Oatmeal"
+    "Cloud White", "Cream", "Speckled Cream", "Oat", "Oatmeal", "Sand",
+    "Natural", "Whitewash", "Stone", "Sage", "Olive", "Terracotta",
+    "Clay", "Ochre", "Honey", "Tan", "Natural Teak", "Charcoal",
   ];
 
   return (

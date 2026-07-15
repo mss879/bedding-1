@@ -113,31 +113,32 @@ export function Hero({ tiles }: { tiles: HeroTile[] }) {
                 data-hero-rest
                 className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/70 px-4 py-1.5 text-[0.78rem] font-semibold text-clay backdrop-blur"
               >
-                Handwoven in Sri Lanka · Free delivery over Rs 25,000
+                Handcrafted in Sri Lanka · Free delivery over Rs 25,000
               </p>
               <h1
                 data-hero-heading
                 className="font-display text-[2.6rem] font-medium leading-[1.04] tracking-tight text-ink sm:text-5xl md:text-6xl xl:text-[4.2rem]"
               >
-                Bedding you&rsquo;ll love, made by hand.
+                A home you&rsquo;ll love, made by hand.
               </h1>
               <p data-hero-rest className="mt-5 max-w-md text-[0.98rem] leading-relaxed text-ink-soft">
-                Percale, sateen and stonewashed linen — cut, sewn and finished in small
-                batches, then delivered straight from our workshop to your bed.
+                Stoneware, teak, rattan and washed linen — designed and finished in
+                small batches, then delivered from our workshop to every room of
+                your home.
               </p>
               <div data-hero-rest className="mt-8 flex flex-wrap items-center gap-3">
                 <Link href="/shop" className="btn btn-solid">
                   Shop bestsellers
                 </Link>
                 <Link href="/hotel-bulk" className="btn btn-outline">
-                  Hotel &amp; bulk orders
+                  Hotel &amp; trade orders
                 </Link>
               </div>
               <p data-hero-rest className="mt-6 flex items-center gap-2 text-[0.85rem] text-ink-soft">
                 <Stars rating={4.9} size={15} />
                 <span>
                   <strong className="font-semibold text-ink">4.9</strong> average from 12,000+
-                  well-rested sleepers
+                  happy homes
                 </span>
               </p>
             </div>

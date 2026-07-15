@@ -25,7 +25,7 @@ export function CategoryCircles({
   return (
     <section className="container-x py-12 md:py-16" aria-label="Shop by category">
       <Reveal className="mb-8 flex flex-wrap items-end justify-between gap-3">
-        <h2 className="font-display text-3xl md:text-4xl">Shop bedding by category</h2>
+        <h2 className="font-display text-3xl md:text-4xl">Shop room by room</h2>
         <Link
           href="/shop"
           className="text-sm font-medium text-ink underline-offset-4 hover:text-clay hover:underline"

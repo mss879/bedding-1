@@ -3,11 +3,13 @@
 The client wants the **primary look of etsy.com** — warm, crafty, dense marketplace — elevated
 with GSAP scroll animations and a WebGL hero. Tokens below were extracted from Etsy's real
 production CSS (Collage design system, 2025–26 "refresh" theme) and adapted to the Ivory Homez
-bedding brand. Every color/radius/shadow in the codebase must trace to a token here.
+home & living brand. Every color/radius/shadow in the codebase must trace to a token here.
 
 ## 1. Identity
 
-- Product: premium bedding e-commerce (retail + hotel/bulk), Sri Lanka. Brand "Ivory Homez" (placeholder).
+- Product: holistic home & living e-commerce (retail + hotel/trade), Sri Lanka. Brand "Ivory Homez" (placeholder).
+  Range spans every room — bedding and textiles (heritage line), stoneware, teak, rattan lighting,
+  candles, planters and workshop storage.
 - Feel: "paper and cardboard, not screen" — warm neutrals, ink-black pill CTAs, candy blue as a
   *special* accent (never the primary CTA color), gold stars, green sale text, rounded everything.
 - Reference: etsy.com. Card anatomy, search pill, badges, and section rhythm follow Etsy;

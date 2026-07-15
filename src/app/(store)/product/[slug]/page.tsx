@@ -44,7 +44,7 @@ const reviewPool = [
     name: "Nadia",
     place: "Colombo",
     quote:
-      "Exactly as pictured, beautifully packed, and it washes like a dream. You can feel the hand-finishing in every seam.",
+      "Exactly as pictured, beautifully packed, and even nicer in person. You can feel the hand-finishing in every detail.",
   },
   {
     name: "Ruwan",
@@ -56,13 +56,13 @@ const reviewPool = [
     name: "Ishara",
     place: "Kandy",
     quote:
-      "Arrived in three days with a handwritten note. The fabric is noticeably cool at night — worth every rupee.",
+      "Arrived in three days with a handwritten note. It's the first thing guests comment on — worth every rupee.",
   },
   {
     name: "Tharindu",
     place: "Galle",
     quote:
-      "Bought this for our guest room and guests keep asking where it's from. Will be back for the king size.",
+      "Bought this for our guest room and guests keep asking where it's from. Will be back for the matching pieces.",
   },
 ];
 
@@ -184,7 +184,7 @@ export default async function ProductPage({
         <ProductRail
           products={related}
           title={`More from ${site.name}`}
-          subtitle="In the same soft neighbourhood."
+          subtitle="From the same workshop shelves."
           moreHref="/shop"
           moreLabel="Shop everything"
         />

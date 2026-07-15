@@ -1,11 +1,12 @@
-# Ivory Homez — Bedding Website & E-Commerce Platform
+# Ivory Homez — Home & Living E-Commerce Platform
 
-Premium bedding storefront built with **Next.js 16** and **Supabase**, per the
+Holistic home & living storefront (handcrafted bedding, stoneware, lighting,
+storage and garden pieces) built with **Next.js 16** and **Supabase**, per the
 Arcai Agency project proposal. Two customer journeys plus a management one:
 
 1. **Retail** — browse in-stock products, add to cart, 3-step checkout
    (contact → delivery → payment), cash on delivery or direct bank transfer.
-2. **Hotel / bulk / custom** — a dedicated inquiry flow that routes straight to
+2. **Hotel / trade / custom** — a dedicated inquiry flow that routes straight to
    WhatsApp with the buyer's requirements pre-filled.
 3. **Admin dashboard** (`/admin`) — Shopify-style backend: manage orders,
    products, and collections, including what the storefront shows.
@@ -36,6 +37,14 @@ data.
      the `product-images` Storage bucket (for image uploads), and it closes the
      public anon write policies now that the storefront writes via the service
      role. Additive and idempotent — safe to run after 0001+0002.
+   - [`supabase/migrations/0004_update_categories.sql`](supabase/migrations/0004_update_categories.sql) —
+     replaces the original bedding categories with the six room collections
+     (Kitchen, Bedroom, Lounge, Bathroom, Garden, Garage).
+   - [`supabase/migrations/0005_holistic_home_catalog.sql`](supabase/migrations/0005_holistic_home_catalog.sql) —
+     the holistic home & living rebrand: room descriptions + the full 25-piece
+     catalog (stoneware, teak, rattan lighting, candles, planters, workshop
+     storage alongside the retained textile line). Upserts by slug; see the
+     header comment before running if products were added via the admin.
 3. Copy `.env.example` to `.env.local` and fill in:
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`

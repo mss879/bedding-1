@@ -4,7 +4,15 @@ import { useState, useTransition } from "react";
 import { submitInquiry } from "@/lib/actions";
 import { site, whatsappLink } from "@/lib/site";
 
-const businessTypes = ["Hotel", "Villa", "Apartments", "Guest house", "Restaurant / Spa", "Other"];
+const businessTypes = [
+  "Hotel",
+  "Villa / Resort",
+  "Restaurant / Café",
+  "Apartments",
+  "Guest house",
+  "Interior designer",
+  "Other",
+];
 
 const labelClass = "mb-1.5 block text-[0.82rem] font-medium text-ink";
 
@@ -38,7 +46,7 @@ export function BulkInquiryForm() {
         return;
       }
       const lines = [
-        `Hello ${site.name}! I'd like to discuss a hotel/bulk bedding order.`,
+        `Hello ${site.name}! I'd like to discuss a hotel/trade order.`,
         ``,
         `Business: ${fields.businessType || "—"}`,
         `Quantity: ${fields.quantity || "—"}`,
@@ -121,7 +129,7 @@ export function BulkInquiryForm() {
           <label htmlFor="bi-materials" className={labelClass}>
             Material preference
           </label>
-          <input id="bi-materials" name="materials" placeholder="e.g. percale, linen" className="field" />
+          <input id="bi-materials" name="materials" placeholder="e.g. linen, stoneware, teak" className="field" />
         </div>
         <div>
           <label htmlFor="bi-budget" className={labelClass}>
@@ -138,7 +146,7 @@ export function BulkInquiryForm() {
       </div>
       <div>
         <label htmlFor="bi-message" className={labelClass}>
-          Tell us about your property *
+          Tell us about your property or project *
         </label>
         <textarea id="bi-message" name="message" required rows={4} className="field" />
       </div>

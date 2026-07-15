@@ -389,8 +389,8 @@ export function CheckoutForm() {
         {/* Trust signals */}
         <ul className="mt-6 space-y-2.5 border-t hairline pt-4 text-[0.82rem] text-ink-soft">
           <li className="flex items-center gap-2.5">
-            <MoonIcon className="h-4.5 w-4.5 shrink-0 text-ink" />
-            365-night comfort guarantee
+            <ShieldIcon className="h-4.5 w-4.5 shrink-0 text-ink" />
+            365-day quality guarantee
           </li>
           <li className="flex items-center gap-2.5">
             <TruckIcon className="h-4.5 w-4.5 shrink-0 text-ink" />
@@ -414,10 +414,11 @@ function CheckIcon({ className }: { className?: string }) {
   );
 }
 
-function MoonIcon({ className }: { className?: string }) {
+function ShieldIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden>
-      <path d="M20 13.5A8.2 8.2 0 0 1 10.5 4a8.2 8.2 0 1 0 9.5 9.5Z" strokeLinejoin="round" />
+      <path d="M12 3.5 5 6v5.5c0 4.4 3 7.6 7 9 4-1.4 7-4.6 7-9V6l-7-2.5Z" strokeLinejoin="round" />
+      <path d="m9 12 2.2 2.2L15.5 9.7" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

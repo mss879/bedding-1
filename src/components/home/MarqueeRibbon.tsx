@@ -1,11 +1,11 @@
 import { VelocityMarquee } from "@/components/anim/VelocityMarquee";
 
 const items = [
-  "365-night guarantee",
+  "365-day guarantee",
   "Free delivery over Rs 25,000",
   "Handmade in Sri Lanka",
-  "5-star hotel partners",
-  "OEKO-TEX certified fabrics",
+  "Hotel & villa partners",
+  "Responsibly sourced materials",
 ];
 
 /** Scroll-reactive promo strip under the hero — drifts, speeds up with scroll. */

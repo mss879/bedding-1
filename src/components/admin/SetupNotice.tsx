@@ -19,9 +19,9 @@ export function SetupNotice() {
       </p>
       <ol className="mt-5 list-decimal space-y-2.5 pl-5 text-sm leading-relaxed text-ink-soft">
         <li>
-          Create a Supabase project and run both migrations against it:{" "}
-          <Env>supabase/migrations/0001_init.sql</Env> and{" "}
-          <Env>supabase/migrations/0002_admin_ecommerce.sql</Env>.
+          Create a Supabase project and run the migrations in{" "}
+          <Env>supabase/migrations/</Env> against it, in order (0001 through
+          0005).
         </li>
         <li>
           Add <Env>NEXT_PUBLIC_SUPABASE_URL</Env> and <Env>NEXT_PUBLIC_SUPABASE_ANON_KEY</Env> to{" "}

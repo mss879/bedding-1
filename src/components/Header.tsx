@@ -55,7 +55,7 @@ export function Header({ categories }: { categories: Category[] }) {
   const subNav = [
     { href: "/shop", label: "Bestsellers" },
     ...categories.map((c) => ({ href: `/shop?category=${c.slug}`, label: c.name })),
-    { href: "/hotel-bulk", label: "Hotel & Bulk" },
+    { href: "/hotel-bulk", label: "Hotel & Trade" },
     { href: "/contact", label: "Contact" },
   ];
 

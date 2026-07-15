@@ -12,7 +12,7 @@ import { FilterPanel } from "@/components/shop/FilterPanel";
 export const metadata: Metadata = {
   title: "Shop",
   description:
-    "Browse premium kitchen textiles, bedding, lounge throws, bath essentials and utility organizers — ready to ship.",
+    "Browse handcrafted pieces for the kitchen, bedroom, lounge, bathroom, garden and garage — stoneware, textiles, lighting and storage, ready to ship.",
 };
 
 function sortProducts(products: Product[], sort?: string): Product[] {
@@ -59,12 +59,12 @@ function shopUrl(params: {
 }
 
 const relatedSearches = [
-  { label: "linen bedding", q: "linen" },
-  { label: "percale sheets", q: "percale" },
-  { label: "sateen details", q: "sateen" },
+  { label: "stonewashed linen", q: "linen" },
+  { label: "hand-thrown stoneware", q: "stoneware" },
+  { label: "teak accessories", q: "teak" },
+  { label: "rattan lighting", q: "rattan" },
   { label: "organic towels", q: "towels" },
   { label: "handloom throws", q: "handloom" },
-  { label: "waffle blankets", q: "waffle" },
 ];
 
 export default async function ShopPage({
@@ -188,7 +188,7 @@ export default async function ShopPage({
             <p className="mt-3 text-sm leading-relaxed text-ink-soft md:text-base">
               {activeCategory
                 ? activeCategory.description
-                : "Every piece is crafted, woven and finished by hand — in stock and ready for your home."}
+                : "Every piece is designed, made and finished by hand — in stock and ready for your home."}
             </p>
           </Reveal>
         </header>

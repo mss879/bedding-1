@@ -252,7 +252,7 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
               name="material"
               className="field"
               defaultValue={product?.material ?? ""}
-              placeholder="e.g. 100% long-staple cotton percale"
+              placeholder="e.g. 100% stonewashed linen / solid teak"
             />
           </div>
         </div>

@@ -44,7 +44,7 @@ export default function ContactPage() {
           />
           <Reveal delay={0.35}>
             <p className="mt-4 text-sm leading-relaxed text-ink-soft md:text-base">
-              Sizing, fabrics, delivery dates or a fully custom order — ask away.
+              Sizing, materials, delivery dates or a fully custom piece — ask away.
               A real person replies within one working day.
             </p>
           </Reveal>
@@ -125,7 +125,7 @@ export default function ContactPage() {
                   </span>
                   <span>
                     <span className="block text-[0.82rem] font-semibold text-ink-soft">
-                      Atelier
+                      Workshop
                     </span>
                     <span className="block text-[0.95rem] font-medium leading-snug text-ink">
                       {site.addressLines[0]}, {site.addressLines[1]}
@@ -138,7 +138,7 @@ export default function ContactPage() {
             <Reveal delay={0.2}>
               <ParallaxImage
                 src="https://images.unsplash.com/photo-1523301343968-6a6ebf63c672?w=1600&q=80&auto=format&fit=crop"
-                alt="Folded linens ready for delivery"
+                alt="Orders folded, wrapped and ready for delivery"
                 className="aspect-[16/10] w-full rounded-2xl"
                 strength={8}
               />

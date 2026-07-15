@@ -1,8 +1,8 @@
 export const site = {
   name: "Ivory Homez",
-  tagline: "Fine Bedding",
+  tagline: "Home & Living",
   description:
-    "Ivory Homez crafts premium bed linen, duvet covers and bedding sets — woven from the finest long-staple cotton and stonewashed linen. Retail, hotel and bulk bedding.",
+    "Ivory Homez is a holistic home store — handcrafted bedding, stoneware, lighting, storage and garden pieces for every room of the house. Retail, hotel and trade supply from our Colombo workshop.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.ivoryhomez.com",
   // Replace with the client's WhatsApp number (country code, no + or spaces).
   whatsappNumber: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "94771852522",

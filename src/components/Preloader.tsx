@@ -172,7 +172,7 @@ export function Preloader({ images }: PreloaderProps) {
           className="mt-4 font-sans text-xs tracking-widest uppercase text-ink-soft"
           style={{ opacity: 0, transform: "translateY(15px)" }}
         >
-          weaving comfort...
+          crafting home comfort...
         </p>
       </div>
     </div>

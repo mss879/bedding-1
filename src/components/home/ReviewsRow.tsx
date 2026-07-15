@@ -8,11 +8,11 @@ const reviews = [
     name: "Anushka",
     place: "Colombo",
     quote:
-      "The percale sheets survived a year of weekly washes and honestly feel softer now than the day they arrived. My bed finally looks like the photos.",
-    productName: "Cloud Percale Sheet Set",
-    productSlug: "cloud-percale-sheet-set",
+      "The stoneware set has survived a year of dinner parties and still looks handmade in the best way. Guests always turn a plate over to ask where it's from.",
+    productName: "Glazed Stoneware Dinner Set",
+    productSlug: "glazed-stoneware-dinner-set",
     image:
-      "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=200&q=80&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=200&q=80&auto=format&fit=crop",
   },
   {
     name: "Dinesh",
@@ -28,11 +28,11 @@ const reviews = [
     name: "Amara",
     place: "Galle",
     quote:
-      "Ordered the full signature set as a wedding gift. It arrived in a cotton keeper bag, beautifully folded — the couple thought it cost twice what it did.",
-    productName: "Ivory Homez Signature Bedding Set",
-    productSlug: "ivory-homez-signature-bedding-set",
+      "Ordered the planter trio and the pendant light as a housewarming gift. Everything arrived wrapped like presents — the whole room feels warmer now.",
+    productName: "Terracotta Planter Trio",
+    productSlug: "terracotta-planter-trio",
     image:
-      "https://images.unsplash.com/photo-1560185893-a55cbc8c57e8?w=200&q=80&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1485955900006-10f4d324d411?w=200&q=80&auto=format&fit=crop",
   },
 ];
 
@@ -42,7 +42,7 @@ export function ReviewsRow() {
     <section className="container-x py-12 md:py-16" aria-label="Customer reviews">
       <Reveal className="mb-8">
         <h2 className="font-display text-3xl md:text-4xl">
-          Recent reviews from happy sleepers
+          Recent reviews from happy homes
         </h2>
       </Reveal>
 

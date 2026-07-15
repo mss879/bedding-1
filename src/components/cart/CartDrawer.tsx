@@ -46,7 +46,7 @@ export function CartDrawer() {
               <div className="flex flex-1 flex-col items-center justify-center gap-5 px-6 text-center">
                 <p className="font-display text-2xl text-ink-soft">Your cart is empty</p>
                 <Link href="/shop" onClick={closeCart} className="btn btn-solid">
-                  Shop bedding
+                  Shop the collection
                 </Link>
               </div>
             ) : (

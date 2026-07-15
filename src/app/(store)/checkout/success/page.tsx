@@ -33,7 +33,7 @@ export default async function OrderSuccessPage({
             </span>
             <p className="mt-5 text-[0.82rem] font-semibold text-clay">Order confirmed</p>
             <h1 className="mt-2 font-display text-3xl leading-tight md:text-4xl">
-              Thank you — sleep is on the way.
+              Thank you — your pieces are on the way.
             </h1>
 
             {ref && (

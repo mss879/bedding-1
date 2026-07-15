@@ -33,7 +33,7 @@ export function HeaderSearch({ compact = false }: { compact?: boolean }) {
         name="q"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search for anything cosy"
+        placeholder="Search for anything homemade"
         aria-label="Search products"
       />
       <button
@@ -53,7 +53,7 @@ export function HeaderSearch({ compact = false }: { compact?: boolean }) {
 export function HeaderSearchFallback({ compact = false }: { compact?: boolean }) {
   return (
     <div className="search-pill flex w-full" aria-hidden>
-      <input type="search" placeholder="Search for anything cosy" disabled className="cursor-default" />
+      <input type="search" placeholder="Search for anything homemade" disabled className="cursor-default" />
       <span
         className={`flex shrink-0 items-center justify-center rounded-full bg-clay text-white ${
           compact ? "h-10 w-10" : "h-11 w-11"

@@ -10,7 +10,7 @@ export function Footer({ categories }: { categories: Category[] }) {
       <div className="bg-beeswax">
         <div className="container-x flex flex-col items-center gap-5 py-12 text-center">
           <p className="font-display text-2xl md:text-3xl">
-            Yes! Send me softness, care guides &amp; private offers.
+            Yes! Send me home ideas, care guides &amp; private offers.
           </p>
           <div className="w-full max-w-md">
             <NewsletterForm />
@@ -26,8 +26,8 @@ export function Footer({ categories }: { categories: Category[] }) {
               {site.tagline}
             </p>
             <p className="mt-5 max-w-xs text-sm leading-relaxed text-linen/70">
-              Ethically made bed linen for every room and occasion — woven, sewn and
-              finished by hand for a life well rested.
+              Honest, handmade goods for every room of the house — designed, made
+              and finished by hand in our Colombo workshop.
             </p>
           </div>
 
@@ -36,7 +36,7 @@ export function Footer({ categories }: { categories: Category[] }) {
             <ul className="space-y-3 text-sm">
               <li>
                 <Link href="/shop" className="text-linen/80 transition-colors hover:text-linen hover:underline">
-                  All bedding
+                  Everything
                 </Link>
               </li>
               {categories.map((c) => (
@@ -62,7 +62,7 @@ export function Footer({ categories }: { categories: Category[] }) {
               </li>
               <li>
                 <Link href="/hotel-bulk" className="text-linen/80 transition-colors hover:text-linen hover:underline">
-                  Hotel &amp; bulk orders
+                  Hotel &amp; trade orders
                 </Link>
               </li>
               <li>
@@ -125,7 +125,7 @@ export function Footer({ categories }: { categories: Category[] }) {
                 Built &amp; designed by Arcai Agency
               </a>
             </p>
-            <p>365-night guarantee · Oh so soft · Best price</p>
+            <p>365-day guarantee · Made by hand · Fair prices</p>
           </div>
         </div>
       </div>

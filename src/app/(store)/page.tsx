@@ -20,10 +20,10 @@ export default async function HomePage() {
   ]);
 
   const heroImages = [
+    img("1610701596007-11502861dcfa", 900),
+    img("1581783342308-f792dbdd27c5", 900),
+    img("1552321554-5fefe8c9ef14", 900),
     img("1616594039964-ae9021a400a0", 900),
-    img("1631049552057-403cdb8f0658", 900),
-    img("1522771739844-6a9f6d5f14af", 900),
-    img("1560185893-a55cbc8c57e8", 900),
   ];
 
   return (
@@ -31,10 +31,10 @@ export default async function HomePage() {
       <Preloader images={heroImages} />
       <Hero
         tiles={[
-          { src: heroImages[0], alt: "Terracotta linen duvet set" },
-          { src: heroImages[1], alt: "Linen pillowcases with hand-tied bows" },
-          { src: heroImages[2], alt: "Stonewashed linen sheets" },
-          { src: heroImages[3], alt: "Complete bedding set on a styled bed" },
+          { src: heroImages[0], alt: "Hand-thrown stoneware dinner set" },
+          { src: heroImages[1], alt: "Hand-thrown ceramic vase with dried stems" },
+          { src: heroImages[2], alt: "Teak bath caddy across a filled tub" },
+          { src: heroImages[3], alt: "Bed dressed in terracotta linen" },
         ]}
       />
       <MarqueeRibbon />
@@ -42,30 +42,30 @@ export default async function HomePage() {
         categories={categories}
         extra={{
           href: "/hotel-bulk",
-          name: "Hotel & Bulk",
+          name: "Hotel & Trade",
           image: img("1611892440504-42a792e24d32", 800),
         }}
       />
       <ProductRail
         products={featured}
-        title="Today's best deals on dreamy bedding"
-        subtitle="Fresh finds, all in stock and ready to ship."
+        title="Today's best finds for the home"
+        subtitle="Fresh from the workshop — in stock and ready to ship."
         moreHref="/shop"
         moreLabel="See more"
       />
       <EditorsPicks categories={categories} />
       <ScrollExpand
-        src={img("1505691938895-1758d7feb511", 2400)}
-        alt="Moody bedroom dressed in soft layered bedding"
+        src={img("1493809842364-78817add7ffb", 2400)}
+        alt="A warm living room layered with timber, clay and natural textiles"
         eyebrow="The Ivory Homez difference"
-        title="Fabric you can feel from here."
-        body="Long-staple fibres, small-batch dyeing and hand-finished seams. Scroll into the weave — this is what 400 washes later still feels like."
+        title="Craft you can feel from here."
+        body="Solid teak, hand-thrown clay and long-staple fibres — chosen for the hundredth use, not the first photo. Scroll in close: this is what well-made feels like."
         ctaLabel="Feel it yourself"
         ctaHref="/shop"
       />
       <PromoBanners
-        setsImage={img("1560185893-a55cbc8c57e8", 1200)}
-        hotelImage={img("1611892440504-42a792e24d32", 1200)}
+        roomImage={img("1505693416388-ac5ce068fe85", 1200)}
+        tradeImage={img("1611892440504-42a792e24d32", 1200)}
       />
       <ReviewsRow />
       <ValueProps />

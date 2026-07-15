@@ -23,7 +23,7 @@ export function NewsletterForm() {
           const result = await subscribeNewsletter(email);
           if (result.ok) {
             setStatus("done");
-            setMessage("Welcome in. Sleep well.");
+            setMessage("Welcome in. Make yourself at home.");
             setEmail("");
           } else {
             setStatus("error");

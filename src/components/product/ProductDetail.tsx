@@ -56,8 +56,8 @@ export function ProductDetail({ product }: { product: Product }) {
       items: [
         "Ships island-wide from our Colombo workshop in 2–4 working days",
         `FREE delivery on orders over ${formatPrice(25000)}`,
-        "365-night guarantee — sleep on it, then decide",
-        "Exchanges accepted within 30 days, unwashed and unused",
+        "365-day guarantee — live with it, then decide",
+        "Exchanges accepted within 30 days, unused and in original condition",
       ],
     },
   ];
@@ -262,7 +262,7 @@ export function ProductDetail({ product }: { product: Product }) {
           </p>
           <p className="flex items-start gap-2.5">
             <ReturnIcon className="mt-0.5 h-4.5 w-4.5 shrink-0 text-ink-soft" />
-            <span>365-night guarantee &amp; 30-day exchanges</span>
+            <span>365-day guarantee &amp; 30-day exchanges</span>
           </p>
           {size.price >= FREE_DELIVERY_FROM && (
             <p className="flex items-start gap-2.5 font-medium text-sale">

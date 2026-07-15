@@ -4,15 +4,15 @@ import { Reveal } from "@/components/anim/Reveal";
 const props = [
   {
     title: "Handmade, small batches",
-    body: "Every sheet is cut, sewn and finished by hand in our Colombo workshop — no factory line, no shortcuts.",
+    body: "Every piece — from bed linen to bath caddies — is cut, thrown, sewn or sanded by hand in our Colombo workshop. No factory line, no shortcuts.",
   },
   {
-    title: "Direct from the loom",
-    body: "There's no warehouse and no middlemen. What you order is woven for you and shipped the same week.",
+    title: "Direct from the workshop",
+    body: "There's no warehouse and no middlemen. What you order is made for you and shipped the same week.",
   },
   {
     title: "Peace of mind",
-    body: "365-night guarantee, OEKO-TEX certified fabrics and a real human on WhatsApp whenever you need us.",
+    body: "365-day guarantee, responsibly sourced materials and a real human on WhatsApp whenever you need us.",
   },
 ];
 
@@ -27,7 +27,7 @@ export function ValueProps() {
             href="/about"
             className="mt-2 inline-block text-sm font-medium text-ink underline underline-offset-4 hover:text-clay"
           >
-            Read our wonderfully soft story
+            Read our story, room by room
           </Link>
         </Reveal>
 
