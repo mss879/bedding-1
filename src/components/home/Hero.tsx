@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { gsap, SplitText, useGSAP, MOTION_OK, MOTION_REDUCE } from "@/lib/gsap";
@@ -10,26 +10,26 @@ import { Stars } from "@/components/Stars";
 export type HeroTile = { src: string; alt: string };
 
 /**
- * Etsy-style editorial hero banner — rounded container on the page, not a
- * full-bleed image. The pastel background is a live WebGL fabric shader,
- * the headline staggers in via SplitText, and the product-collage tiles
- * parallax at different speeds as you scroll away.
+ * The maison hero: a full-width silk band (live WebGL fabric shader) carrying
+ * the headline on the left and a parallaxing product collage on the right.
+ * The headline splits and rises char by char; the tiles drift at four speeds
+ * as the band scrolls away.
  */
 export function Hero({ tiles }: { tiles: HeroTile[] }) {
   const ref = useRef<HTMLElement>(null);
-  const [isPreloaded, setIsPreloaded] = useState(false);
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      if ((window as any).__preloaderComplete) {
-        setIsPreloaded(true);
-      } else {
-        const handleComplete = () => setIsPreloaded(true);
-        window.addEventListener("preloader-complete", handleComplete);
-        return () => window.removeEventListener("preloader-complete", handleComplete);
-      }
-    }
-  }, []);
+  // The preloader is an external store: it sets a window flag and fires an
+  // event. Subscribing with useSyncExternalStore (rather than an effect that
+  // calls setState) means a curtain that finished before this mounted is read
+  // correctly on the very first render, with no cascading re-render.
+  const isPreloaded = useSyncExternalStore(
+    (onChange) => {
+      window.addEventListener("preloader-complete", onChange);
+      return () => window.removeEventListener("preloader-complete", onChange);
+    },
+    () => Boolean((window as unknown as { __preloaderComplete?: boolean }).__preloaderComplete),
+    () => false
+  );
 
   useGSAP(
     () => {
@@ -42,16 +42,15 @@ export function Hero({ tiles }: { tiles: HeroTile[] }) {
       });
 
       mm.add(MOTION_OK, () => {
-        // Headline: crafted char-by-char rise. autoSplit re-runs after fonts load.
         const split = SplitText.create(q("[data-hero-heading]"), {
           type: "words,chars",
           autoSplit: true,
           onSplit(self) {
             return gsap.from(self.chars, {
-              yPercent: 105,
+              yPercent: 110,
               autoAlpha: 0,
-              duration: 0.9,
-              stagger: 0.016,
+              duration: 1,
+              stagger: 0.018,
               ease: "power4.out",
               delay: 0.15,
             });
@@ -60,24 +59,23 @@ export function Hero({ tiles }: { tiles: HeroTile[] }) {
 
         gsap.from(q("[data-hero-rest]"), {
           autoAlpha: 0,
-          y: 24,
-          duration: 0.8,
-          stagger: 0.12,
-          delay: 0.55,
+          y: 22,
+          duration: 0.9,
+          stagger: 0.11,
+          delay: 0.6,
           ease: "power3.out",
         });
 
         gsap.from(q("[data-tile]"), {
           autoAlpha: 0,
-          y: 44,
-          scale: 0.94,
-          duration: 0.95,
-          stagger: 0.09,
-          delay: 0.25,
+          y: 48,
+          scale: 0.95,
+          duration: 1.05,
+          stagger: 0.1,
+          delay: 0.28,
           ease: "power3.out",
         });
 
-        // Collage tiles drift at different speeds as the hero scrolls out.
         gsap.utils.toArray<HTMLElement>(q("[data-tile]")).forEach((tile) => {
           gsap.to(tile, {
             yPercent: Number(tile.dataset.speed ?? 0),
@@ -100,45 +98,47 @@ export function Hero({ tiles }: { tiles: HeroTile[] }) {
   const speeds = [-14, -26, -8, -20];
 
   return (
-    <section ref={ref} className="w-full p-[10px]" aria-label="Welcome">
-      <div className="relative overflow-hidden rounded-[24px] min-h-[calc(100vh-100px)] flex items-center py-8 md:py-12">
+    <section ref={ref} className="w-full" aria-label="Welcome">
+      <div className="relative flex min-h-[calc(100vh-9rem)] items-center overflow-hidden py-14 md:py-20">
         <FabricCanvas />
         <div className="container-x relative w-full">
-          <div 
+          <div
             style={{ opacity: isPreloaded ? 1 : 0 }}
-            className="relative grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-8"
+            className="relative grid items-center gap-12 lg:grid-cols-[1fr_1fr] lg:gap-14"
           >
             <div data-hero-copy>
-              <p
-                data-hero-rest
-                className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/70 px-4 py-1.5 text-[0.78rem] font-semibold text-clay backdrop-blur"
-              >
-                Handcrafted in Sri Lanka · Free delivery over Rs 25,000
+              <p data-hero-rest className="eyebrow">
+                Colombo · Est. 2024
               </p>
               <h1
                 data-hero-heading
-                className="font-display text-[2.6rem] font-medium leading-[1.04] tracking-tight text-ink sm:text-5xl md:text-6xl xl:text-[4.2rem]"
+                className="mt-5 font-display text-[3rem] leading-[1.02] tracking-tight text-ink sm:text-6xl md:text-7xl xl:text-[5.2rem]"
               >
-                A home you&rsquo;ll love, made by hand.
+                An intoxication of the senses.
               </h1>
-              <p data-hero-rest className="mt-5 max-w-md text-[0.98rem] leading-relaxed text-ink-soft">
-                Stoneware, teak, rattan and washed linen — designed and finished in
-                small batches, then delivered from our workshop to every room of
-                your home.
+              <p
+                data-hero-rest
+                className="mt-7 max-w-md text-[0.95rem] leading-relaxed text-ink-soft"
+              >
+                Fragrance, wellness rituals, fine pearls, quiet fashion and bedlinen
+                made for deep sleep — six collections, composed and finished by hand
+                in our Colombo atelier.
               </p>
-              <div data-hero-rest className="mt-8 flex flex-wrap items-center gap-3">
+              <div data-hero-rest className="mt-10 flex flex-wrap items-center gap-3">
                 <Link href="/shop" className="btn btn-solid">
-                  Shop bestsellers
+                  Explore the maison
                 </Link>
-                <Link href="/hotel-bulk" className="btn btn-outline">
-                  Hotel &amp; trade orders
+                <Link href="/shop?category=fragrances" className="btn btn-outline">
+                  Discover fragrance
                 </Link>
               </div>
-              <p data-hero-rest className="mt-6 flex items-center gap-2 text-[0.85rem] text-ink-soft">
-                <Stars rating={4.9} size={15} />
+              <p
+                data-hero-rest
+                className="mt-9 flex flex-wrap items-center gap-2.5 text-[0.82rem] text-ink-soft"
+              >
+                <Stars rating={4.9} size={14} />
                 <span>
-                  <strong className="font-semibold text-ink">4.9</strong> average from 12,000+
-                  happy homes
+                  <strong className="font-medium text-ink">4.9</strong> from 12,000+ collectors
                 </span>
               </p>
             </div>
@@ -149,7 +149,7 @@ export function Hero({ tiles }: { tiles: HeroTile[] }) {
                 <Tile tile={tiles[0]} speed={speeds[0]} className="aspect-[4/5]" />
                 <Tile tile={tiles[1]} speed={speeds[1]} className="aspect-square" />
               </div>
-              <div className="mt-8 flex flex-col gap-4 sm:gap-5">
+              <div className="mt-10 flex flex-col gap-4 sm:gap-5">
                 <Tile tile={tiles[2]} speed={speeds[2]} className="aspect-square" />
                 <Tile tile={tiles[3]} speed={speeds[3]} className="aspect-[4/5]" />
               </div>
@@ -175,15 +175,15 @@ function Tile({
     <div
       data-tile
       data-speed={speed}
-      className={`relative overflow-hidden rounded-2xl bg-white/60 shadow-pop will-change-transform ${className ?? ""}`}
+      className={`relative overflow-hidden rounded-sm bg-white/50 shadow-pop will-change-transform ${className ?? ""}`}
     >
       <Image
         src={tile.src}
         alt={tile.alt}
         fill
         preload
-        sizes="(max-width: 1024px) 45vw, 22vw"
-        className="object-cover transition-transform duration-700 ease-out hover:scale-[1.05]"
+        sizes="(max-width: 1024px) 45vw, 24vw"
+        className="object-cover transition-transform duration-[900ms] ease-out hover:scale-[1.04]"
       />
     </div>
   );

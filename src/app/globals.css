@@ -1,36 +1,38 @@
 @import "tailwindcss";
 
 /*
- * Ivory Homez design tokens — Etsy-marketplace direction (see DESIGN.md).
- * Legacy token names are kept but remapped to the warm "paper" palette so
- * every existing utility class stays valid.
+ * ENIVRANT design tokens — see DESIGN.md.
+ * A luxury maison skin (ivory paper, ink, antique gold, dusty blue) fitted over
+ * an Etsy-grade marketplace UX. Legacy token names are kept but remapped, so
+ * every existing utility class in the codebase stays valid.
  */
 @theme {
-  --color-cream: #faf8f5; /* page background — warm paper */
+  --color-cream: #fbf9f6; /* page background — ivory, matches the logo card */
   --color-parchment: #ffffff; /* white band sections */
-  --color-sand: #efecea; /* placeholders, soft fills */
-  --color-clay: #2b6580; /* brand accent (legible candy blue text/highlights) — never primary CTAs */
-  --color-clay-dark: #1f4b60;
-  --color-ink: #222222; /* primary text + primary button fill */
-  --color-ink-soft: #595959;
-  --color-taupe: #9f938e;
-  --color-linen: #ffffff;
-  --color-fog: #757575; /* tertiary text, unlit stars */
-  --color-board: #e0dad6; /* soft warm borders */
-  --color-accent-tint: #B2D5E5;
-  --color-beeswax: #d2e5ee;
-  --color-powder: #d5e8f2;
-  --color-star: #ffa300;
-  --color-sale: #1ba050;
+  --color-sand: #f1ece4; /* placeholders, soft fills, skeletons */
+  --color-clay: #8c6e43; /* ACCENT: antique gold — eyebrows, links, marks. Never the primary CTA */
+  --color-clay-dark: #6e5330; /* accent hover/pressed */
+  --color-ink: #1a1917; /* primary text AND primary button fill */
+  --color-ink-soft: #57534d; /* secondary text */
+  --color-taupe: #a79e92; /* tertiary warm gray (scrollbar, disabled) */
+  --color-linen: #ffffff; /* text/surfaces on dark */
+  --color-fog: #7c766e; /* tertiary text, unlit stars */
+  --color-board: #e4ddd2; /* hairlines and soft borders */
+  --color-accent-tint: #ede2d0; /* champagne tint fill */
+  --color-beeswax: #f2e9da; /* newsletter / promo band */
+  --color-powder: #e4eaee; /* dusty-blue band (value props) */
+  --color-mist: #9db2c0; /* dusty-blue secondary accent */
+  --color-star: #c9a227; /* lit rating stars */
+  --color-sale: #1f7a4d; /* sale price, "(20% off)", "FREE delivery" */
 
-  --shadow-card: 0 0 2px rgba(21, 10, 4, 0.18);
-  --shadow-lift: 0 2px 8px rgba(21, 10, 4, 0.06), 0 6px 16px 2px rgba(21, 10, 4, 0.08);
-  --shadow-pop: 0 4px 12px rgba(21, 10, 4, 0.06), 0 8px 20px 2px rgba(21, 10, 4, 0.1);
+  --shadow-card: 0 0 0 1px rgba(26, 25, 23, 0.05);
+  --shadow-lift: 0 1px 2px rgba(26, 25, 23, 0.03), 0 8px 28px rgba(26, 25, 23, 0.055);
+  --shadow-pop: 0 2px 6px rgba(26, 25, 23, 0.04), 0 14px 40px rgba(26, 25, 23, 0.08);
 }
 
 @theme inline {
-  --font-sans: var(--font-hanken), ui-sans-serif, system-ui, "Helvetica Neue", Arial, sans-serif;
-  --font-display: var(--font-fraunces), Charter, Cambria, Georgia, serif;
+  --font-sans: var(--font-jost), ui-sans-serif, system-ui, "Helvetica Neue", Arial, sans-serif;
+  --font-display: var(--font-cormorant), Cormorant Garamond, Didot, Georgia, serif;
 }
 
 html {
@@ -44,16 +46,23 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Display serif runs light and large; give it consistent optical treatment. */
 .font-display {
-  font-optical-sizing: auto;
+  font-weight: 400;
+  letter-spacing: -0.012em;
+}
+
+/* The maison's letterspaced small caps — eyebrows, nav, button labels. */
+@utility tracking-brand {
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
 }
 
 ::selection {
-  background: var(--color-clay);
+  background: var(--color-ink);
   color: #fff;
 }
 
-/* Candy blue thin scrollbar */
 ::-webkit-scrollbar {
   width: 10px;
 }
@@ -61,7 +70,7 @@ body {
   background: var(--color-cream);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-clay);
+  background: var(--color-taupe);
   border-radius: 8px;
   border: 2px solid var(--color-cream);
 }
@@ -69,48 +78,52 @@ body {
 :focus-visible {
   outline: 2px solid var(--color-ink);
   outline-offset: 2px;
-  border-radius: 4px;
+  border-radius: 2px;
 }
 
 @utility container-x {
   margin-inline: auto;
   width: 100%;
-  max-width: 80rem;
-  padding-inline: 1.25rem;
+  max-width: 88rem;
+  padding-inline: 1.5rem;
   @media (width >= 48rem) {
-    padding-inline: 3rem;
+    padding-inline: 3.5rem;
+  }
+  @media (width >= 90rem) {
+    padding-inline: 5rem;
   }
 }
 
 @layer components {
   /*
-   * Buttons — Etsy pills: sentence case, 500 weight, fully rounded,
-   * tactile squash-and-stretch on hover.
+   * Buttons — squared maison rectangles (2px radius) with fine letterspacing.
+   * Etsy's black primary CTA, ENIVRANT's restraint. No bounce; a calm lift.
    */
   .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
+    gap: 0.55rem;
     min-height: 3rem;
-    padding: 0.7rem 1.65rem;
-    border-radius: 9999px;
-    font-size: 0.95rem;
+    padding: 0.75rem 1.9rem;
+    border-radius: 2px;
+    font-size: 0.78rem;
     font-weight: 500;
-    letter-spacing: 0.005em;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
     cursor: pointer;
     transition:
-      background-color 200ms ease,
-      color 200ms ease,
-      border-color 200ms ease,
-      box-shadow 200ms ease,
-      transform 180ms ease;
+      background-color 240ms ease,
+      color 240ms ease,
+      border-color 240ms ease,
+      box-shadow 240ms ease,
+      transform 240ms ease;
   }
   .btn:hover {
-    transform: scaleX(1.015) scaleY(1.035) perspective(1px);
+    box-shadow: var(--shadow-lift);
   }
   .btn:active {
-    transform: scale(0.99);
+    transform: translateY(1px);
   }
   @media (prefers-reduced-motion: reduce) {
     .btn:hover,
@@ -124,32 +137,33 @@ body {
     color: #fff;
   }
   .btn-solid:hover {
-    background: #2f2f2f;
+    background: #333029;
   }
 
   .btn-clay {
-    background: var(--color-accent-tint);
-    color: var(--color-ink);
-  }
-  .btn-clay:hover {
     background: var(--color-clay);
     color: #fff;
   }
+  .btn-clay:hover {
+    background: var(--color-clay-dark);
+  }
 
   .btn-outline {
-    border: 2px solid currentColor;
+    border: 1px solid currentColor;
     background: transparent;
   }
   .btn-outline:hover {
-    background: rgba(14, 14, 14, 0.05);
+    background: var(--color-ink);
+    color: #fff;
+    border-color: var(--color-ink);
   }
 
   .btn-tint {
-    background: rgba(14, 14, 14, 0.09);
+    background: var(--color-accent-tint);
     color: var(--color-ink);
   }
   .btn-tint:hover {
-    background: rgba(14, 14, 14, 0.14);
+    background: #e3d4bc;
   }
 
   .btn-white {
@@ -163,29 +177,31 @@ body {
 
   .btn-sm {
     min-height: 2.5rem;
-    padding: 0.4rem 1.15rem;
-    font-size: 0.85rem;
+    padding: 0.5rem 1.25rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
   }
 
-  /* Filter / category chips */
+  /* Filter / category chips — pills, the one place Etsy's roundness survives */
   .chip {
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    min-height: 2.35rem;
-    padding: 0.35rem 1rem;
+    min-height: 2.4rem;
+    padding: 0.35rem 1.05rem;
     border-radius: 9999px;
     border: 1px solid var(--color-board);
     background: #fff;
-    font-size: 0.85rem;
-    font-weight: 500;
+    font-size: 0.8rem;
+    font-weight: 400;
+    letter-spacing: 0.03em;
     color: var(--color-ink);
     cursor: pointer;
     transition:
-      border-color 180ms ease,
-      background-color 180ms ease,
-      color 180ms ease,
-      box-shadow 180ms ease;
+      border-color 200ms ease,
+      background-color 200ms ease,
+      color 200ms ease,
+      box-shadow 200ms ease;
   }
   .chip:hover {
     border-color: var(--color-ink);
@@ -203,15 +219,15 @@ body {
   /* Raised card */
   .card-lift {
     background: #fff;
-    border-radius: 12px;
+    border-radius: 2px;
     box-shadow: var(--shadow-card);
     transition:
-      box-shadow 250ms ease,
-      transform 250ms ease;
+      box-shadow 500ms ease,
+      transform 500ms ease;
   }
   .card-lift:hover {
     box-shadow: var(--shadow-lift);
-    transform: translateY(-2px);
+    transform: translateY(-3px);
   }
   @media (prefers-reduced-motion: reduce) {
     .card-lift:hover {
@@ -223,60 +239,59 @@ body {
   .badge-img {
     display: inline-flex;
     align-items: center;
-    border-radius: 4px;
-    background: #fff;
-    padding: 0.2rem 0.45rem;
-    font-size: 0.72rem;
-    font-weight: 600;
+    border-radius: 1px;
+    background: rgba(255, 255, 255, 0.94);
+    padding: 0.28rem 0.6rem;
+    font-size: 0.6rem;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
     color: var(--color-ink);
-    box-shadow: var(--shadow-card);
+    backdrop-filter: blur(4px);
   }
 
-  /* Hairline dividers */
   .hairline {
     border-color: var(--color-board);
   }
 
-  /* Form fields — recessed, per Etsy: inset shadow, 8px radius */
+  /* Form fields — flat, squared, hairline. */
   .field {
     width: 100%;
-    border: 1px solid #949494;
-    border-radius: 8px;
+    border: 1px solid var(--color-board);
+    border-radius: 2px;
     background: #fff;
-    box-shadow: inset 0 1px 4px rgba(14, 14, 14, 0.09);
-    padding: 0.8rem 1rem;
-    font-size: 0.95rem;
+    padding: 0.85rem 1rem;
+    font-size: 0.92rem;
     color: var(--color-ink);
     outline: none;
     transition:
-      border-color 180ms ease,
-      box-shadow 180ms ease;
+      border-color 200ms ease,
+      box-shadow 200ms ease;
   }
   .field:focus {
     border-color: var(--color-ink);
-    box-shadow:
-      inset 0 1px 4px rgba(14, 14, 14, 0.09),
-      0 0 0 1px var(--color-ink);
+    box-shadow: 0 0 0 1px var(--color-ink);
   }
   .field::placeholder {
     color: var(--color-fog);
   }
 
-  /* Search pill — full-round group with nested circular orange submit */
+  /* Search — a flat underline field with a nested ink submit square. */
   .search-pill {
     display: flex;
     align-items: center;
-    border: 2px solid var(--color-ink);
-    border-radius: 9999px;
+    gap: 0.5rem;
+    border: 1px solid var(--color-board);
+    border-radius: 2px;
     background: #fff;
-    box-shadow: inset 1px 2px 4px rgba(14, 14, 14, 0.07);
-    padding: 0.25rem 0.3rem 0.25rem 1.25rem;
-    transition: box-shadow 180ms ease;
+    padding: 0.2rem 0.2rem 0.2rem 1rem;
+    transition:
+      border-color 200ms ease,
+      box-shadow 200ms ease;
   }
   .search-pill:focus-within {
-    box-shadow:
-      inset 1px 2px 4px rgba(14, 14, 14, 0.07),
-      var(--shadow-lift);
+    border-color: var(--color-ink);
+    box-shadow: var(--shadow-card);
   }
   .search-pill input {
     flex: 1;
@@ -284,11 +299,12 @@ body {
     border: none;
     outline: none;
     background: transparent;
-    font-size: 0.95rem;
+    font-size: 0.88rem;
+    letter-spacing: 0.02em;
     color: var(--color-ink);
   }
   .search-pill input::placeholder {
-    color: var(--color-ink-soft);
+    color: var(--color-fog);
   }
 
   /* Circular icon buttons (header, carousel arrows) */
@@ -301,38 +317,85 @@ body {
     border-radius: 9999px;
     color: var(--color-ink);
     transition:
-      background-color 180ms ease,
-      transform 180ms ease,
-      box-shadow 180ms ease;
+      background-color 200ms ease,
+      transform 200ms ease,
+      box-shadow 200ms ease;
   }
   .icon-btn:hover {
-    background: rgba(14, 14, 14, 0.07);
+    background: rgba(26, 25, 23, 0.06);
   }
 
   .arrow-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 3rem;
-    height: 3rem;
+    width: 2.75rem;
+    height: 2.75rem;
     border-radius: 9999px;
     background: #fff;
     border: 1px solid var(--color-board);
     color: var(--color-ink);
-    box-shadow: var(--shadow-pop);
+    box-shadow: var(--shadow-card);
     cursor: pointer;
     transition:
-      transform 180ms ease,
-      box-shadow 180ms ease,
-      opacity 180ms ease;
+      transform 200ms ease,
+      box-shadow 200ms ease,
+      opacity 200ms ease;
   }
   .arrow-btn:hover {
-    transform: scale(1.06);
+    box-shadow: var(--shadow-pop);
+    transform: scale(1.05);
   }
   .arrow-btn:disabled {
-    opacity: 0.35;
+    opacity: 0.3;
     cursor: default;
     transform: none;
+  }
+
+  /* Section eyebrow — gold, letterspaced, the maison's signature label */
+  .eyebrow {
+    font-size: 0.66rem;
+    font-weight: 500;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--color-clay);
+  }
+
+  /* Understated text link with a gold rule that draws in on hover */
+  .link-rule {
+    position: relative;
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    padding-bottom: 3px;
+    color: var(--color-ink);
+  }
+  .link-rule::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 1px;
+    width: 100%;
+    background: var(--color-clay);
+    transform: scaleX(1);
+    transform-origin: left;
+    transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .link-rule:hover::after {
+    transform: scaleX(0.35);
+  }
+}
+
+@utility section-y {
+  padding-block: 5.5rem;
+  @media (width >= 48rem) {
+    padding-block: 8rem;
+  }
+  @media (width >= 80rem) {
+    padding-block: 9.5rem;
   }
 }
 

@@ -70,9 +70,19 @@ function slugify(value: string): string {
 // Keep persisted data in lockstep with what next/image can actually render by
 // rejecting disallowed hosts here. Mirror next.config.ts remotePatterns exactly.
 const IMAGE_HOST_HELP =
-  "Images must be hosted on Unsplash (images.unsplash.com) or your Supabase Storage bucket.";
+  "Images must be a site path (/images/…), an Unsplash URL (images.unsplash.com), or a file in your Supabase Storage bucket.";
 
 function isAllowedImageUrl(url: string): boolean {
+  // Site-local assets — the Enivrant catalog photography ships in /public/images
+  // and next/image serves those without any host allowlist. Reject protocol-
+  // relative ("//evil.com") and traversal ("/images/../..") forms.
+  if (url.startsWith("/")) {
+    return (
+      !url.startsWith("//") &&
+      !url.includes("..") &&
+      (url.startsWith("/images/") || url.startsWith("/brand/"))
+    );
+  }
   let host: string;
   try {
     const parsed = new URL(url);

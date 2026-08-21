@@ -4,9 +4,8 @@ import { useState, useTransition } from "react";
 import { subscribeNewsletter } from "@/lib/actions";
 
 /**
- * Newsletter capture as an Etsy-style pill group: white rounded-full input
- * with a nested circular ink submit. The pill is self-contained (white bg,
- * 2px ink border) so it reads correctly on the beeswax footer band, the
+ * Newsletter capture as a self-contained field group: white flat input with a
+ * nested squared ink submit, so it reads correctly on the beeswax band, the
  * dark ink footer, or any other surface.
  */
 export function NewsletterForm() {
@@ -23,7 +22,7 @@ export function NewsletterForm() {
           const result = await subscribeNewsletter(email);
           if (result.ok) {
             setStatus("done");
-            setMessage("Welcome in. Make yourself at home.");
+            setMessage("Welcome in. Watch for the first letter.");
             setEmail("");
           } else {
             setStatus("error");
@@ -43,25 +42,21 @@ export function NewsletterForm() {
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="Your email"
+          placeholder="Your email address"
         />
         <button
           type="submit"
           disabled={pending}
-          aria-label="Sign up for emails"
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-ink text-white transition-colors hover:bg-[#2f2f2f] disabled:opacity-60"
+          aria-label="Sign up for the maison letter"
+          className="flex h-10 shrink-0 items-center justify-center rounded-sm bg-ink px-5 text-[0.66rem] font-medium tracking-[0.16em] uppercase text-white transition-colors hover:bg-clay disabled:opacity-50"
         >
-          {pending ? (
-            <span aria-hidden className="text-base leading-none">…</span>
-          ) : (
-            <ArrowIcon className="h-5 w-5" />
-          )}
+          {pending ? "Sending" : "Sign up"}
         </button>
       </div>
       {status !== "idle" && (
         <p
           role="status"
-          className={`mt-2.5 text-[0.85rem] font-semibold ${
+          className={`mt-3 text-[0.8rem] font-medium ${
             status === "done" ? "text-sale" : "text-red-700"
           }`}
         >
@@ -72,10 +67,3 @@ export function NewsletterForm() {
   );
 }
 
-function ArrowIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-      <path d="M4 12h15m0 0-6-6m6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}

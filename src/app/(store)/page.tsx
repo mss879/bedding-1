@@ -1,71 +1,103 @@
-import { getFeaturedProducts, getHomeCategories } from "@/lib/catalog";
-import { Hero } from "@/components/home/Hero";
+import { getFeaturedProducts, getHomeCategories, getProducts } from "@/lib/catalog";
+import { HeroVideo } from "@/components/home/HeroVideo";
 import { Preloader } from "@/components/Preloader";
 import { MarqueeRibbon } from "@/components/home/MarqueeRibbon";
-import { CategoryCircles } from "@/components/home/CategoryCircles";
+import { PinnedCollections } from "@/components/home/PinnedCollections";
 import { ProductRail } from "@/components/home/ProductRail";
 import { EditorsPicks } from "@/components/home/EditorsPicks";
 import { ScrollExpand } from "@/components/anim/ScrollExpand";
+import { StickySplit } from "@/components/home/StickySplit";
+import { StatBand } from "@/components/home/StatBand";
 import { PromoBanners } from "@/components/home/PromoBanners";
 import { ReviewsRow } from "@/components/home/ReviewsRow";
 import { ValueProps } from "@/components/home/ValueProps";
 
-const img = (id: string, w = 1600) =>
-  `https://images.unsplash.com/photo-${id}?w=${w}&q=80&auto=format&fit=crop`;
+// The curtain waits on the hero poster — the film itself streams in behind it.
+const heroImages = ["/video/hero-atelier-poster.webp"];
+
+const craftChapters = [
+  {
+    index: "I",
+    title: "The raw material comes first",
+    body: "Jasmine picked after dark, when the flower gives up the most of itself. Unheated sapphires from Ratnapura. Flax from a single European mill. We buy the input before we design the piece, which is the opposite of how most of this industry works.",
+  },
+  {
+    index: "II",
+    title: "One pair of hands, start to finish",
+    body: "A weaver takes a throw from warp to fringe. A jeweller knots every pearl on the strand. Nothing moves down a line between six people, so there is always someone who can tell you exactly how your piece was made.",
+  },
+  {
+    index: "III",
+    title: "Then it has to earn its place",
+    body: "Every piece is lived with by someone here before it is listed — worn, washed, burned down, slept on. If it does not survive that honestly, it does not go in the collection. Several things have not.",
+  },
+];
 
 export default async function HomePage() {
-  const [categories, featured] = await Promise.all([
+  const [categories, featured, fragrances] = await Promise.all([
     getHomeCategories(),
     getFeaturedProducts(),
+    getProducts("fragrances"),
   ]);
-
-  const heroImages = [
-    img("1610701596007-11502861dcfa", 900),
-    img("1581783342308-f792dbdd27c5", 900),
-    img("1552321554-5fefe8c9ef14", 900),
-    img("1616594039964-ae9021a400a0", 900),
-  ];
 
   return (
     <>
       <Preloader images={heroImages} />
-      <Hero
-        tiles={[
-          { src: heroImages[0], alt: "Hand-thrown stoneware dinner set" },
-          { src: heroImages[1], alt: "Hand-thrown ceramic vase with dried stems" },
-          { src: heroImages[2], alt: "Teak bath caddy across a filled tub" },
-          { src: heroImages[3], alt: "Bed dressed in terracotta linen" },
-        ]}
+      <HeroVideo
+        src="/video/hero-atelier.mp4"
+        poster="/video/hero-atelier-poster.webp"
       />
       <MarqueeRibbon />
-      <CategoryCircles
-        categories={categories}
-        extra={{
-          href: "/hotel-bulk",
-          name: "Hotel & Trade",
-          image: img("1611892440504-42a792e24d32", 800),
-        }}
-      />
+
+      {/* Set-piece: the collections travel sideways while the section is pinned. */}
+      <PinnedCollections categories={categories} />
+
       <ProductRail
         products={featured}
-        title="Today's best finds for the home"
-        subtitle="Fresh from the workshop — in stock and ready to ship."
+        eyebrow="In the vitrine"
+        title="This season's most wanted"
+        subtitle="The pieces leaving the atelier fastest — in stock and ready to send."
         moreHref="/shop"
-        moreLabel="See more"
+        moreLabel="Shop all"
       />
-      <EditorsPicks categories={categories} />
+
       <ScrollExpand
-        src={img("1493809842364-78817add7ffb", 2400)}
-        alt="A warm living room layered with timber, clay and natural textiles"
-        eyebrow="The Ivory Homez difference"
-        title="Craft you can feel from here."
-        body="Solid teak, hand-thrown clay and long-staple fibres — chosen for the hundredth use, not the first photo. Scroll in close: this is what well-made feels like."
-        ctaLabel="Feel it yourself"
+        src="/images/editorial/editorial-boudoir.webp"
+        alt="A sunlit dressing room with perfume bottles, pearls and linen"
+        eyebrow="The Enivrant difference"
+        title="Made to be lived with."
+        body="Unheated Ceylon sapphires, 22-momme silk, 800-fill down, jasmine picked after dark. Chosen for the hundredth wearing, not the first photograph."
+        ctaLabel="Explore the maison"
         ctaHref="/shop"
       />
+
+      {/* Editorial chapters scrolling past a pinned photograph. */}
+      <StickySplit
+        image="/images/editorial/about-atelier.webp"
+        alt="A perfumer's bench of glass vials, botanicals and a brass scale"
+        eyebrow="Inside the atelier"
+        title="Three rules we have never broken."
+        chapters={craftChapters}
+        ctaLabel="The maison"
+        ctaHref="/about"
+      />
+
+      <StatBand />
+
+      <ProductRail
+        products={fragrances}
+        eyebrow="Fragrance"
+        title="The scent library"
+        subtitle="Six compositions built on jasmine, Ceylon tea, cinnamon and oud. Undecided? Start with the discovery set."
+        moreHref="/shop?category=fragrances"
+        moreLabel="All fragrance"
+        tone="white"
+      />
+
+      <EditorsPicks categories={categories} />
       <PromoBanners
-        roomImage={img("1505693416388-ac5ce068fe85", 1200)}
-        tradeImage={img("1611892440504-42a792e24d32", 1200)}
+        giftImage="/images/editorial/promo-gift.webp"
+        tradeImage="/images/editorial/promo-trade.webp"
       />
       <ReviewsRow />
       <ValueProps />

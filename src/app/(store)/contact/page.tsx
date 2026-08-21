@@ -9,7 +9,7 @@ import { site, whatsappLink } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Contact",
   description:
-    "Get in touch with Ivory Homez — WhatsApp, email, phone or the contact form. We reply within one working day.",
+    "Speak to the Enivrant concierge — WhatsApp, email, phone or the contact form. A real person replies within one working day.",
 };
 
 export default function ContactPage() {
@@ -17,14 +17,14 @@ export default function ContactPage() {
     <div className="bg-cream pt-6 md:pt-8">
       <div className="container-x pb-20 md:pb-28">
         {/* Breadcrumb */}
-        <nav aria-label="Breadcrumb" className="mb-4 text-[0.8rem] text-ink-soft">
+        <nav aria-label="Breadcrumb" className="mb-8 text-[0.72rem] tracking-wide text-ink-soft">
           <ol className="flex flex-wrap items-center gap-1.5">
             <li>
-              <Link href="/" className="hover:text-ink hover:underline">
+              <Link href="/" className="transition-colors hover:text-clay">
                 Home
               </Link>
             </li>
-            <li aria-hidden>›</li>
+            <li aria-hidden>/</li>
             <li aria-current="page" className="text-ink">
               Contact
             </li>
@@ -33,19 +33,20 @@ export default function ContactPage() {
 
         <header className="mb-10 max-w-2xl md:mb-12">
           <Reveal>
-            <p className="mb-2 text-[0.82rem] font-semibold text-clay">Contact</p>
+            <p className="eyebrow">Concierge</p>
           </Reveal>
           <LineReveal
             as="h1"
             animateOnMount
             delay={0.08}
-            lines={["Questions? We've", "got answers."]}
-            className="font-display text-4xl leading-tight md:text-5xl"
+            lines={["However you", "prefer to reach us."]}
+            className="mt-5 font-display text-5xl leading-[1.05] md:text-6xl"
           />
           <Reveal delay={0.35}>
             <p className="mt-4 text-sm leading-relaxed text-ink-soft md:text-base">
-              Sizing, materials, delivery dates or a fully custom piece — ask away.
-              A real person replies within one working day.
+              Sizing, a scent you can&rsquo;t place, a gemstone certificate or a
+              commission of your own — ask away. A real person replies within one
+              working day.
             </p>
           </Reveal>
         </header>
@@ -53,10 +54,10 @@ export default function ContactPage() {
         <div className="grid items-start gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14">
           {/* Form card */}
           <Reveal>
-            <div className="card-lift p-6 sm:p-8 md:p-10">
-              <h2 className="font-display text-2xl">Or write to us here</h2>
+            <div className="card-lift p-7 sm:p-9 md:p-10">
+              <h2 className="font-display text-3xl">Write to us</h2>
               <p className="mt-1.5 text-sm text-ink-soft">
-                Tell us what you need and we&apos;ll take it from there.
+                Tell us what you are after and we will take it from there.
               </p>
               <div className="mt-7">
                 <ContactForm />
@@ -67,10 +68,11 @@ export default function ContactPage() {
           {/* Contact details */}
           <div className="space-y-8">
             <Reveal delay={0.1}>
-              <div className="rounded-2xl bg-beeswax p-7 md:p-8">
-                <h2 className="font-display text-2xl">In a hurry? WhatsApp us.</h2>
+              <div className="rounded-sm bg-beeswax p-8">
+                <h2 className="font-display text-3xl">In a hurry? WhatsApp.</h2>
                 <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-                  The fastest way to reach us — replies in minutes during shop hours.
+                  The fastest way to reach the atelier — replies in minutes during
+                  boutique hours.
                 </p>
                 <a
                   href={whatsappLink(`Hello ${site.name}!`)}
@@ -79,7 +81,7 @@ export default function ContactPage() {
                   className="btn btn-clay mt-5"
                 >
                   <WhatsAppGlyph className="h-5 w-5" />
-                  Chat with us now
+                  Message the concierge
                 </a>
               </div>
             </Reveal>
@@ -92,10 +94,8 @@ export default function ContactPage() {
                       <MailIcon className="h-5 w-5" />
                     </span>
                     <span>
-                      <span className="block text-[0.82rem] font-semibold text-ink-soft">
-                        Email
-                      </span>
-                      <span className="block text-[0.95rem] font-medium text-ink group-hover:underline">
+                      <span className="eyebrow block">Email</span>
+                      <span className="mt-1 block text-[0.95rem] text-ink transition-colors group-hover:text-clay">
                         {site.email}
                       </span>
                     </span>
@@ -110,10 +110,8 @@ export default function ContactPage() {
                       <PhoneIcon className="h-5 w-5" />
                     </span>
                     <span>
-                      <span className="block text-[0.82rem] font-semibold text-ink-soft">
-                        Phone
-                      </span>
-                      <span className="block text-[0.95rem] font-medium text-ink group-hover:underline">
+                      <span className="eyebrow block">Phone</span>
+                      <span className="mt-1 block text-[0.95rem] text-ink transition-colors group-hover:text-clay">
                         {site.phone}
                       </span>
                     </span>
@@ -124,10 +122,8 @@ export default function ContactPage() {
                     <PinIcon className="h-5 w-5" />
                   </span>
                   <span>
-                    <span className="block text-[0.82rem] font-semibold text-ink-soft">
-                      Workshop
-                    </span>
-                    <span className="block text-[0.95rem] font-medium leading-snug text-ink">
+                    <span className="eyebrow block">Atelier</span>
+                    <span className="mt-1 block text-[0.95rem] leading-snug text-ink">
                       {site.addressLines[0]}, {site.addressLines[1]}
                     </span>
                   </span>
@@ -137,9 +133,9 @@ export default function ContactPage() {
 
             <Reveal delay={0.2}>
               <ParallaxImage
-                src="https://images.unsplash.com/photo-1523301343968-6a6ebf63c672?w=1600&q=80&auto=format&fit=crop"
-                alt="Orders folded, wrapped and ready for delivery"
-                className="aspect-[16/10] w-full rounded-2xl"
+                src="/images/editorial/contact-boutique.webp"
+                alt="The interior of the Enivrant boutique in Colombo"
+                className="aspect-[4/5] w-full rounded-sm"
                 strength={8}
               />
             </Reveal>

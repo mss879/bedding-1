@@ -32,30 +32,34 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
   const [error, setError] = useState<string | null>(null);
   const [uploadingKey, setUploadingKey] = useState<number | null>(null);
 
-  // Keys for the dynamic rows so removals don't reshuffle React state.
-  const nextKey = useRef(0);
-  const makeKey = () => nextKey.current++;
-
   const [name, setName] = useState(product?.name ?? "");
   const [slug, setSlug] = useState(product?.slug ?? "");
   // While the slug hasn't been edited by hand, it live-follows the name.
   const [slugTouched, setSlugTouched] = useState(Boolean(product));
 
+  // Keys for the dynamic rows so removals don't reshuffle React state.
+  // The initial rows take their keys by index — a ref must not be *read* during
+  // render — and the counter then starts past them for rows added later.
+  const initialImages = product && product.images.length > 0 ? product.images : [""];
+  const initialSizes =
+    product && product.sizes.length > 0
+      ? product.sizes
+      : [{ name: "", dimensions: "", price: 0, compare_at_price: null }];
+
+  const nextKey = useRef(initialImages.length + initialSizes.length);
+  const makeKey = () => nextKey.current++;
+
   const [images, setImages] = useState<ImageRow[]>(() =>
-    product && product.images.length > 0
-      ? product.images.map((url) => ({ key: makeKey(), url }))
-      : [{ key: makeKey(), url: "" }]
+    initialImages.map((url, i) => ({ key: i, url }))
   );
   const [sizes, setSizes] = useState<SizeRow[]>(() =>
-    product && product.sizes.length > 0
-      ? product.sizes.map((s) => ({
-          key: makeKey(),
-          name: s.name,
-          dimensions: s.dimensions,
-          price: String(s.price),
-          compareAt: s.compare_at_price == null ? "" : String(s.compare_at_price),
-        }))
-      : [{ key: makeKey(), name: "", dimensions: "", price: "", compareAt: "" }]
+    initialSizes.map((s, i) => ({
+      key: initialImages.length + i,
+      name: s.name,
+      dimensions: s.dimensions,
+      price: product && product.sizes.length > 0 ? String(s.price) : "",
+      compareAt: s.compare_at_price == null ? "" : String(s.compare_at_price),
+    }))
   );
 
   function setImage(key: number, url: string) {

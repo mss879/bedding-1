@@ -25,7 +25,7 @@ type CartContextValue = {
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
-const STORAGE_KEY = "ivoryhomez-cart-v1";
+const STORAGE_KEY = "enivrant-cart-v1";
 
 type CartState = { items: CartItem[]; hydrated: boolean };
 

@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { getCategories, getNavCategories, getProducts } from "@/lib/catalog";
 import { productRating } from "@/lib/ratings";
+import { collectionBanner, collectionTagline } from "@/lib/collection-art";
 import type { Product } from "@/lib/types";
 import { ProductCard } from "@/components/ProductCard";
 import { Reveal, Stagger, StaggerItem } from "@/components/anim/Reveal";
@@ -12,7 +13,7 @@ import { FilterPanel } from "@/components/shop/FilterPanel";
 export const metadata: Metadata = {
   title: "Shop",
   description:
-    "Browse handcrafted pieces for the kitchen, bedroom, lounge, bathroom, garden and garage — stoneware, textiles, lighting and storage, ready to ship.",
+    "Browse the Enivrant maison — fragrance, wellness rituals, home pieces, pearls and fine jewellery, fashion accessories and bedlinen, ready to send from our Colombo atelier.",
 };
 
 function sortProducts(products: Product[], sort?: string): Product[] {
@@ -33,7 +34,7 @@ function sortProducts(products: Product[], sort?: string): Product[] {
   }
 }
 
-function shopUrl(params: {
+type ShopParams = {
   category?: string;
   q?: string;
   sale?: boolean;
@@ -43,7 +44,9 @@ function shopUrl(params: {
   materials?: string;
   colors?: string;
   inStock?: boolean;
-}) {
+};
+
+function shopUrl(params: ShopParams) {
   const p = new URLSearchParams();
   if (params.category) p.set("category", params.category);
   if (params.q) p.set("q", params.q);
@@ -59,12 +62,14 @@ function shopUrl(params: {
 }
 
 const relatedSearches = [
-  { label: "stonewashed linen", q: "linen" },
+  { label: "eau de parfum", q: "parfum" },
+  { label: "freshwater pearls", q: "pearl" },
+  { label: "mulberry silk", q: "silk" },
+  { label: "washed linen", q: "linen" },
   { label: "hand-thrown stoneware", q: "stoneware" },
-  { label: "teak accessories", q: "teak" },
-  { label: "rattan lighting", q: "rattan" },
-  { label: "organic towels", q: "towels" },
-  { label: "handloom throws", q: "handloom" },
+  { label: "gold vermeil", q: "vermeil" },
+  { label: "bath rituals", q: "bath" },
+  { label: "candles & diffusers", q: "candle" },
 ];
 
 export default async function ShopPage({
@@ -82,24 +87,15 @@ export default async function ShopPage({
     inStock?: string;
   }>;
 }) {
-  const {
-    category,
-    q,
-    sort,
-    sale,
-    minPrice,
-    maxPrice,
-    materials,
-    colors,
-    inStock,
-  } = await searchParams;
+  const { category, q, sort, sale, minPrice, maxPrice, materials, colors, inStock } =
+    await searchParams;
 
   const onSale = sale === "1";
   const isInStock = inStock === "1";
 
   // Chips/tiles honour the admin "Show in navigation" toggle; activeCategory is
   // resolved from ALL categories so a direct link to a hidden collection still
-  // renders its heading/description.
+  // renders its heading and description.
   const [navCategories, allCategories, fetched] = await Promise.all([
     getNavCategories(),
     getCategories(),
@@ -107,73 +103,93 @@ export default async function ShopPage({
   ]);
   const activeCategory = allCategories.find((c) => c.slug === category);
 
-  // Apply memory-based filters
   let filtered = fetched;
 
   if (onSale) {
     filtered = filtered.filter((p) => p.sizes.some((s) => s.compare_at_price !== null));
   }
-
   if (minPrice) {
     const minVal = parseFloat(minPrice);
-    if (!isNaN(minVal)) {
+    if (!Number.isNaN(minVal)) {
       filtered = filtered.filter((p) => p.sizes.some((s) => s.price >= minVal));
     }
   }
-
   if (maxPrice) {
     const maxVal = parseFloat(maxPrice);
-    if (!isNaN(maxVal)) {
+    if (!Number.isNaN(maxVal)) {
       filtered = filtered.filter((p) => p.sizes.some((s) => s.price <= maxVal));
     }
   }
-
   if (materials) {
     const selectedMats = materials.split(",").map((m) => m.trim().toLowerCase());
     filtered = filtered.filter((p) =>
       selectedMats.some((mat) => p.material.toLowerCase().includes(mat))
     );
   }
-
   if (colors) {
     const selectedCols = colors.split(",").map((c) => c.trim().toLowerCase());
-    filtered = filtered.filter((p) =>
-      p.colors.some((col) => selectedCols.includes(col.toLowerCase()))
-    );
+    filtered = filtered.filter((p) => p.colors.some((col) => selectedCols.includes(col.toLowerCase())));
   }
-
   if (isInStock) {
     filtered = filtered.filter((p) => p.in_stock);
   }
 
   const products = sortProducts(filtered, sort);
 
-  const heading = q
-    ? `Results for “${q}”`
+  const heading = q ? `“${q}”` : activeCategory ? activeCategory.name : "The full maison";
+  const blurb = q
+    ? `${products.length} ${products.length === 1 ? "piece" : "pieces"} matching your search.`
     : activeCategory
-      ? activeCategory.name
-      : "All collections";
+      ? activeCategory.description
+      : "Six collections — fragrance, wellness, home, jewellery, fashion and bedlinen — composed and finished by hand.";
+
+  // Carry the shopper's active filters through every chip and tile link.
+  const carry = { sort, minPrice, maxPrice, materials, colors, inStock: isInStock };
 
   return (
-    <div className="bg-cream pt-6 md:pt-8">
-      <div className="container-x pb-20 md:pb-28">
+    <div className="bg-cream">
+      {/* Collection banner */}
+      <section className="relative">
+        <div className="relative aspect-[21/9] max-h-[26rem] w-full overflow-hidden md:max-h-[30rem]">
+          <Image
+            src={collectionBanner(category, activeCategory?.image)}
+            alt=""
+            fill
+            preload
+            sizes="100vw"
+            className="object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-cream via-cream/70 to-transparent" />
+          <div className="absolute inset-0 flex items-center">
+            <div className="container-x">
+              <Reveal className="max-w-md">
+                <p className="eyebrow">{collectionTagline(category)}</p>
+                <h1 className="mt-4 font-display text-4xl leading-[1.05] md:text-6xl">{heading}</h1>
+                <p className="mt-4 max-w-sm text-sm leading-relaxed text-ink-soft">{blurb}</p>
+              </Reveal>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="container-x pb-24 pt-8 md:pb-32">
         {/* Breadcrumb */}
-        <nav aria-label="Breadcrumb" className="mb-4 text-[0.8rem] text-ink-soft">
+        <nav aria-label="Breadcrumb" className="mb-8 text-[0.72rem] tracking-wide text-ink-soft">
           <ol className="flex flex-wrap items-center gap-1.5">
             <li>
-              <Link href="/" className="hover:text-ink hover:underline">
+              <Link href="/" className="transition-colors hover:text-clay">
                 Home
               </Link>
             </li>
-            <li aria-hidden>›</li>
+            <li aria-hidden>/</li>
             <li>
-              <Link href="/shop" className="hover:text-ink hover:underline">
+              <Link href="/shop" className="transition-colors hover:text-clay">
                 Shop
               </Link>
             </li>
             {activeCategory && (
               <>
-                <li aria-hidden>›</li>
+                <li aria-hidden>/</li>
                 <li aria-current="page" className="text-ink">
                   {activeCategory.name}
                 </li>
@@ -182,44 +198,25 @@ export default async function ShopPage({
           </ol>
         </nav>
 
-        <header className="mb-7 max-w-2xl">
-          <Reveal>
-            <h1 className="font-display text-4xl md:text-5xl">{heading}</h1>
-            <p className="mt-3 text-sm leading-relaxed text-ink-soft md:text-base">
-              {activeCategory
-                ? activeCategory.description
-                : "Every piece is designed, made and finished by hand — in stock and ready for your home."}
-            </p>
-          </Reveal>
-        </header>
-
-        {/* Subcategory tiles (Etsy category-page pattern) */}
+        {/* Collection tiles (landing view only) */}
         {!activeCategory && !q && (
-          <Reveal className="no-scrollbar -mx-1 mb-8 flex gap-4 overflow-x-auto px-1 pb-2">
+          <Reveal className="no-scrollbar -mx-1 mb-12 flex gap-5 overflow-x-auto px-1 pb-2">
             {navCategories.map((c) => (
               <Link
                 key={c.slug}
-                href={shopUrl({
-                  category: c.slug,
-                  sort,
-                  minPrice,
-                  maxPrice,
-                  materials,
-                  colors,
-                  inStock: isInStock,
-                })}
-                className="group w-36 shrink-0"
+                href={shopUrl({ category: c.slug, ...carry })}
+                className="group w-40 shrink-0 sm:w-44"
               >
-                <span className="relative block aspect-[4/3] overflow-hidden rounded-xl bg-sand shadow-card transition-shadow group-hover:shadow-lift">
+                <span className="relative block aspect-[4/5] overflow-hidden rounded-sm bg-sand">
                   <Image
                     src={c.image}
                     alt=""
                     fill
-                    sizes="144px"
-                    className="object-cover transition-transform duration-500 group-hover:scale-[1.06]"
+                    sizes="176px"
+                    className="object-cover transition-transform duration-700 group-hover:scale-[1.06]"
                   />
                 </span>
-                <span className="mt-2 block text-center text-[0.82rem] font-medium leading-snug group-hover:underline">
+                <span className="mt-3 block font-display text-[0.98rem] leading-snug transition-colors group-hover:text-clay">
                   {c.name}
                 </span>
               </Link>
@@ -227,19 +224,11 @@ export default async function ShopPage({
           </Reveal>
         )}
 
-        {/* Filter pills + sort */}
-        <Reveal delay={0.05} className="mb-8 flex flex-wrap items-center gap-4">
-          <div className="flex flex-wrap items-center gap-2">
+        {/* Filter bar */}
+        <Reveal delay={0.05} className="mb-10">
+          <div className="flex flex-wrap items-center gap-2.5 border-b hairline pb-5">
             <Link
-              href={shopUrl({
-                q,
-                sort,
-                minPrice,
-                maxPrice,
-                materials,
-                colors,
-                inStock: isInStock,
-              })}
+              href={shopUrl({ q, ...carry })}
               className={`chip ${!category && !onSale ? "chip-active" : ""}`}
             >
               All
@@ -247,53 +236,21 @@ export default async function ShopPage({
             {navCategories.map((c) => (
               <Link
                 key={c.slug}
-                href={shopUrl({
-                  category: c.slug,
-                  q,
-                  sort,
-                  minPrice,
-                  maxPrice,
-                  materials,
-                  colors,
-                  inStock: isInStock,
-                })}
+                href={shopUrl({ category: c.slug, q, ...carry })}
                 className={`chip ${category === c.slug ? "chip-active" : ""}`}
               >
                 {c.name}
               </Link>
             ))}
             <Link
-              href={
-                onSale
-                  ? shopUrl({
-                      category,
-                      q,
-                      sort,
-                      minPrice,
-                      maxPrice,
-                      materials,
-                      colors,
-                      inStock: isInStock,
-                    })
-                  : shopUrl({
-                      category,
-                      q,
-                      sort,
-                      sale: true,
-                      minPrice,
-                      maxPrice,
-                      materials,
-                      colors,
-                      inStock: isInStock,
-                    })
-              }
+              href={shopUrl({ category, q, sale: !onSale, ...carry })}
               className={`chip ${onSale ? "chip-active" : ""}`}
             >
               On sale
             </Link>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5 sm:ml-auto">
+          <div className="mt-5 flex flex-wrap items-center gap-3">
             <FilterPanel
               category={category}
               q={q}
@@ -304,49 +261,57 @@ export default async function ShopPage({
               materials={materials}
               colors={colors}
               inStock={isInStock}
-              allCategories={allCategories}
             />
-            <SortSelect category={category} q={q} sale={onSale} sort={sort} />
+            <p className="text-[0.75rem] text-ink-soft">
+              {products.length} {products.length === 1 ? "piece" : "pieces"}
+            </p>
+            <div className="ml-auto">
+              <SortSelect
+                category={category}
+                q={q}
+                sale={onSale}
+                sort={sort}
+                minPrice={minPrice}
+                maxPrice={maxPrice}
+                materials={materials}
+                colors={colors}
+                inStock={isInStock}
+              />
+            </div>
           </div>
         </Reveal>
 
         {products.length === 0 ? (
-          <div className="py-20 text-center">
-            <p className="font-display text-2xl text-ink">Nothing matched those filters.</p>
-            <p className="mt-2 text-sm text-ink-soft">
-              Try adjusting your price range, materials or colors, or browse everything.
+          <div className="py-24 text-center">
+            <p className="font-display text-3xl text-ink">Nothing matched those filters.</p>
+            <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-ink-soft">
+              Try widening the price range, or clearing a material or colour — the
+              atelier makes fewer things than most shops.
             </p>
-            <Link href="/shop" className="btn btn-solid mt-6">
-              Browse all products
+            <Link href="/shop" className="btn btn-solid mt-8">
+              Browse everything
             </Link>
           </div>
         ) : (
-          <div className="flex flex-col gap-4">
-            <div className="flex justify-between items-center text-sm text-ink-soft mb-2 lg:hidden">
-              <span>
-                Showing {products.length} item{products.length === 1 ? "" : "s"}
-              </span>
-            </div>
-            <Stagger
-              className="grid grid-cols-2 gap-x-4 gap-y-8 md:gap-x-5 lg:grid-cols-4"
-              stagger={0.06}
-            >
-              {products.map((product) => (
-                <StaggerItem key={product.slug}>
-                  <ProductCard product={product} />
-                </StaggerItem>
-              ))}
-            </Stagger>
-          </div>
+          <Stagger
+            className="grid grid-cols-2 gap-x-4 gap-y-12 md:gap-x-6 lg:grid-cols-4"
+            stagger={0.06}
+          >
+            {products.map((product) => (
+              <StaggerItem key={product.slug}>
+                <ProductCard product={product} />
+              </StaggerItem>
+            ))}
+          </Stagger>
         )}
 
         {/* Related searches */}
-        <Reveal className="mt-16 border-t hairline pt-10">
-          <h2 className="mb-5 font-display text-2xl">Explore related searches</h2>
+        <Reveal className="mt-20 border-t hairline pt-12">
+          <h2 className="eyebrow mb-6">Explore further</h2>
           <div className="flex flex-wrap gap-2.5">
             {relatedSearches.map((s) => (
               <Link key={s.q} href={shopUrl({ q: s.q })} className="chip">
-                <SearchGlyph className="h-3.5 w-3.5 text-ink-soft" />
+                <SearchGlyph className="h-3 w-3 text-ink-soft" />
                 {s.label}
               </Link>
             ))}

@@ -9,7 +9,7 @@ import type { InquiryInput, OrderInput, PaymentMethod, ProductSize } from "./typ
 function orderReference() {
   const stamp = Date.now().toString(36).toUpperCase().slice(-4);
   const rand = Math.random().toString(36).toUpperCase().slice(2, 6);
-  return `IH-${stamp}${rand}`;
+  return `EN-${stamp}${rand}`;
 }
 
 export type PlaceOrderResult =

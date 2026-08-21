@@ -12,8 +12,8 @@ const VERT = /* glsl */ `
 `;
 
 /*
- * Flowing silk: layered value-noise folds drifting slowly across a warm
- * paper → beeswax → candy-blue-tint palette, with a soft moving sheen band.
+ * Flowing silk: layered value-noise folds drifting slowly across an ivory →
+ * champagne → dusty-blue palette, with a soft moving satin sheen band.
  */
 const FRAG = /* glsl */ `
   precision highp float;
@@ -58,11 +58,11 @@ const FRAG = /* glsl */ `
     folds += 0.5 * fbm(p * 4.4 - vec2(t * 0.4, t * 0.25));
     folds /= 1.5;
 
-    // Warm paper base -> candy blue cream in the folds
-    vec3 paper = vec3(0.980, 0.972, 0.961);   // #FAF8F5
-    vec3 cream = vec3(0.824, 0.898, 0.933);   // #D2E5EE (beeswax)
-    vec3 tint  = vec3(0.698, 0.835, 0.898);   // #B2D5E5 (accent-tint)
-    vec3 candyBlue = vec3(0.169, 0.396, 0.502); // #2B6580 (legible accent)
+    // Ivory paper base -> champagne in the folds, dusty blue in the shadow
+    vec3 paper = vec3(0.984, 0.976, 0.965);   // #FBF9F6 (cream)
+    vec3 cream = vec3(0.949, 0.914, 0.855);   // #F2E9DA (beeswax)
+    vec3 tint  = vec3(0.929, 0.886, 0.816);   // #EDE2D0 (accent-tint)
+    vec3 mist = vec3(0.616, 0.698, 0.753); // #9DB2C0 (mist)
 
     vec3 col = mix(paper, cream, smoothstep(0.25, 0.85, folds));
     col = mix(col, tint, smoothstep(0.55, 0.95, fbm(p * 1.3 + vec2(-t, t * 0.5))));
@@ -71,9 +71,9 @@ const FRAG = /* glsl */ `
     float sheen = sin((uv.x + uv.y) * 4.5 - uTime * 0.22 + folds * 3.0);
     col += vec3(0.035) * smoothstep(0.55, 1.0, sheen);
 
-    // Whisper of brand candy blue along fold ridges, strongest lower-right
+    // Whisper of dusty blue along fold ridges, strongest lower-right
     float ridge = smoothstep(0.62, 0.78, folds) * (1.0 - smoothstep(0.78, 0.94, folds));
-    col = mix(col, candyBlue, ridge * 0.16 * smoothstep(0.2, 1.0, uv.x + (1.0 - uv.y)));
+    col = mix(col, mist, ridge * 0.22 * smoothstep(0.2, 1.0, uv.x + (1.0 - uv.y)));
 
     // Gentle vignette keeps edges calm behind text
     float vig = smoothstep(1.25, 0.45, distance(uv, vec2(0.42, 0.55)));
@@ -179,7 +179,7 @@ export function FabricCanvas({ className }: { className?: string }) {
       className={`absolute inset-0 overflow-hidden ${className ?? ""}`}
       style={{
         background:
-          "linear-gradient(120deg, #B2D5E5 0%, #D2E5EE 50%, #B2D5E5 100%)",
+          "linear-gradient(120deg, #F2E9DA 0%, #FBF9F6 45%, #EDE2D0 100%)",
       }}
     />
   );

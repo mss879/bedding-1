@@ -2,31 +2,61 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import type { Category } from "@/lib/types";
 
-const MATERIALS = ["Linen", "Cotton", "Stoneware", "Teak", "Rattan", "Brass", "Canvas"];
+/**
+ * Materials are matched as case-insensitive SUBSTRINGS of `product.material`,
+ * and colours as exact (lowercased) matches against `product.colors`. Both
+ * lists are derived from the catalog in lib/seed-data.ts — keep them in step
+ * when products change, or a filter will quietly return nothing.
+ */
+const MATERIALS = [
+  "Parfum",
+  "Silk",
+  "Linen",
+  "Cotton",
+  "Pearls",
+  "Gold",
+  "Sapphire",
+  "Stoneware",
+  "Teak",
+  "Rattan",
+  "Leather",
+  "Travertine",
+  "Down",
+];
 
 const COLOR_MAP: Record<string, { hex: string; border?: boolean }> = {
-  "cloud white": { hex: "#F8F8F8", border: true },
-  "cream": { hex: "#F3EDDF", border: true },
-  "speckled cream": { hex: "#EFE9DC", border: true },
-  "oat": { hex: "#E8E2D9" },
-  "oatmeal": { hex: "#E2D9CF" },
-  "sand": { hex: "#DCCDB2" },
-  "natural": { hex: "#D8CFCA" },
-  "whitewash": { hex: "#EDEAE4", border: true },
-  "stone": { hex: "#8E8A85" },
-  "sage": { hex: "#9CA998" },
-  "olive": { hex: "#707A60" },
-  "terracotta": { hex: "#C27C65" },
-  "clay": { hex: "#A9705A" },
-  "ochre": { hex: "#CFA055" },
-  "honey": { hex: "#C89B5F" },
-  "tan": { hex: "#B58A60" },
-  "natural teak": { hex: "#8B5E3C" },
-  "charcoal": { hex: "#3A3A3A" },
-  "default": { hex: "#EFECEA" },
+  ivory: { hex: "#F7F3EC", border: true },
+  cream: { hex: "#F0E8DA", border: true },
+  "pearl white": { hex: "#F6F2EA", border: true },
+  champagne: { hex: "#E4D2B4" },
+  oat: { hex: "#DFD4C3" },
+  natural: { hex: "#D6C8B2" },
+  blush: { hex: "#E7CFC7" },
+  gold: { hex: "#B8912F" },
+  tan: { hex: "#B08256" },
+  sage: { hex: "#A2AC97" },
+  "dusty blue": { hex: "#9DB2C0" },
+  "sapphire blue": { hex: "#2F5C8F" },
+  moonstone: { hex: "#CBD6DC" },
+  default: { hex: "#EFECEA" },
 };
+
+const AVAILABLE_COLORS = [
+  "Ivory",
+  "Cream",
+  "Pearl White",
+  "Champagne",
+  "Oat",
+  "Natural",
+  "Blush",
+  "Gold",
+  "Tan",
+  "Sage",
+  "Dusty Blue",
+  "Sapphire Blue",
+  "Moonstone",
+];
 
 export function FilterPanel({
   category,
@@ -38,7 +68,6 @@ export function FilterPanel({
   materials,
   colors,
   inStock,
-  allCategories,
 }: {
   category?: string;
   q?: string;
@@ -49,23 +78,16 @@ export function FilterPanel({
   materials?: string;
   colors?: string;
   inStock?: boolean;
-  allCategories: Category[];
 }) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
 
-  // Filter states
   const [localMin, setLocalMin] = useState(minPrice || "");
   const [localMax, setLocalMax] = useState(maxPrice || "");
   const [localInStock, setLocalInStock] = useState(!!inStock);
-  const [selectedMats, setSelectedMats] = useState<string[]>(
-    materials ? materials.split(",") : []
-  );
-  const [selectedColors, setSelectedColors] = useState<string[]>(
-    colors ? colors.split(",") : []
-  );
+  const [selectedMats, setSelectedMats] = useState<string[]>(materials ? materials.split(",") : []);
+  const [selectedColors, setSelectedColors] = useState<string[]>(colors ? colors.split(",") : []);
 
-  // Compute active filters count
   let activeCount = 0;
   if (minPrice) activeCount++;
   if (maxPrice) activeCount++;
@@ -73,31 +95,25 @@ export function FilterPanel({
   if (materials) activeCount += materials.split(",").length;
   if (colors) activeCount += colors.split(",").length;
 
-  const toggleMaterial = (mat: string) => {
-    setSelectedMats((prev) =>
-      prev.includes(mat) ? prev.filter((m) => m !== mat) : [...prev, mat]
-    );
-  };
+  const toggle = (list: string[], set: (v: string[]) => void, value: string) =>
+    set(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
 
-  const toggleColor = (colorName: string) => {
-    setSelectedColors((prev) =>
-      prev.includes(colorName) ? prev.filter((c) => c !== colorName) : [...prev, colorName]
-    );
-  };
-
-  const handleApply = () => {
+  const baseParams = () => {
     const params = new URLSearchParams();
     if (category) params.set("category", category);
     if (q) params.set("q", q);
     if (sort) params.set("sort", sort);
     if (sale) params.set("sale", "1");
+    return params;
+  };
 
+  const handleApply = () => {
+    const params = baseParams();
     if (localMin.trim()) params.set("minPrice", localMin.trim());
     if (localMax.trim()) params.set("maxPrice", localMax.trim());
     if (localInStock) params.set("inStock", "1");
-    if (selectedMats.length > 0) params.set("materials", selectedMats.join(","));
-    if (selectedColors.length > 0) params.set("colors", selectedColors.join(","));
-
+    if (selectedMats.length) params.set("materials", selectedMats.join(","));
+    if (selectedColors.length) params.set("colors", selectedColors.join(","));
     const qs = params.toString();
     router.push(qs ? `/shop?${qs}` : "/shop");
     setIsOpen(false);
@@ -109,91 +125,72 @@ export function FilterPanel({
     setLocalInStock(false);
     setSelectedMats([]);
     setSelectedColors([]);
-
-    const params = new URLSearchParams();
-    if (category) params.set("category", category);
-    if (q) params.set("q", q);
-    if (sort) params.set("sort", sort);
-    if (sale) params.set("sale", "1");
-
-    const qs = params.toString();
+    const qs = baseParams().toString();
     router.push(qs ? `/shop?${qs}` : "/shop");
     setIsOpen(false);
   };
 
-  const availableColors = [
-    "Cloud White", "Cream", "Speckled Cream", "Oat", "Oatmeal", "Sand",
-    "Natural", "Whitewash", "Stone", "Sage", "Olive", "Terracotta",
-    "Clay", "Ochre", "Honey", "Tan", "Natural Teak", "Charcoal",
-  ];
-
   return (
-    <div className="relative z-10 w-full">
+    <div className="relative z-20 w-full sm:w-auto">
       <button
         onClick={() => setIsOpen((prev) => !prev)}
-        className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-all duration-200 hover:scale-[1.02] ${
-          isOpen || activeCount > 0
-            ? "border-ink bg-ink text-white"
-            : "border-board bg-white text-ink hover:border-ink"
-        }`}
+        aria-expanded={isOpen}
+        className={`chip ${isOpen || activeCount > 0 ? "chip-active" : ""}`}
       >
-        <FilterIcon className="h-4 w-4" />
+        <FilterIcon className="h-3.5 w-3.5" />
         Filters
         {activeCount > 0 && (
-          <span className={`ml-1 flex h-5 min-w-5 items-center justify-center rounded-full text-[0.7rem] font-bold ${
-            isOpen || activeCount > 0 ? "bg-white text-ink" : "bg-ink text-white"
-          } px-1.5`}>
+          <span className="ml-1 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-white px-1 text-[0.65rem] font-semibold text-ink">
             {activeCount}
           </span>
         )}
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 right-0 mt-3 rounded-2xl border border-board bg-parchment p-6 shadow-lift transition-all duration-300 md:p-8 animate-in fade-in slide-in-from-top-2">
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-4">
-            
-            {/* Price Filter */}
-            <div className="flex flex-col gap-3">
-              <h3 className="font-display text-base text-ink">Price Range</h3>
-              <div className="flex items-center gap-2">
+        <div className="absolute left-0 right-0 mt-3 w-[min(46rem,calc(100vw-2.5rem))] rounded-sm border hairline bg-white p-6 shadow-pop md:p-8">
+          <div className="grid grid-cols-1 gap-9 sm:grid-cols-2">
+            <div className="flex flex-col gap-4">
+              <h3 className="eyebrow">Price</h3>
+              <div className="flex items-center gap-3">
                 <div className="relative flex-1">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-ink-soft">Rs.</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-ink-soft">Rs</span>
                   <input
                     type="number"
+                    inputMode="numeric"
                     placeholder="Min"
+                    aria-label="Minimum price"
                     value={localMin}
                     onChange={(e) => setLocalMin(e.target.value)}
-                    className="w-full rounded-lg border border-board py-2 pl-9 pr-3 text-sm focus:border-ink focus:outline-none"
+                    className="field pl-9"
                   />
                 </div>
-                <span className="text-ink-soft text-sm">—</span>
+                <span className="text-sm text-ink-soft">—</span>
                 <div className="relative flex-1">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-ink-soft">Rs.</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-ink-soft">Rs</span>
                   <input
                     type="number"
+                    inputMode="numeric"
                     placeholder="Max"
+                    aria-label="Maximum price"
                     value={localMax}
                     onChange={(e) => setLocalMax(e.target.value)}
-                    className="w-full rounded-lg border border-board py-2 pl-9 pr-3 text-sm focus:border-ink focus:outline-none"
+                    className="field pl-9"
                   />
                 </div>
               </div>
-            </div>
 
-            {/* Material Filter */}
-            <div className="flex flex-col gap-3">
-              <h3 className="font-display text-base text-ink">Material</h3>
+              <h3 className="eyebrow mt-4">Material</h3>
               <div className="flex flex-wrap gap-2">
                 {MATERIALS.map((mat) => {
-                  const active = selectedMats.includes(mat.toLowerCase());
+                  const key = mat.toLowerCase();
+                  const active = selectedMats.includes(key);
                   return (
                     <button
                       key={mat}
-                      onClick={() => toggleMaterial(mat.toLowerCase())}
-                      className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition-all ${
-                        active
-                          ? "bg-ink text-white"
-                          : "bg-sand hover:bg-board text-ink"
+                      onClick={() => toggle(selectedMats, setSelectedMats, key)}
+                      aria-pressed={active}
+                      className={`rounded-full px-3.5 py-1.5 text-[0.72rem] tracking-wide transition-colors ${
+                        active ? "bg-ink text-white" : "bg-sand text-ink hover:bg-board"
                       }`}
                     >
                       {mat}
@@ -203,27 +200,27 @@ export function FilterPanel({
               </div>
             </div>
 
-            {/* Color Filter */}
-            <div className="sm:col-span-2 flex flex-col gap-3">
-              <h3 className="font-display text-base text-ink">Colors</h3>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3">
-                {availableColors.map((colorName) => {
+            <div className="flex flex-col gap-4">
+              <h3 className="eyebrow">Colour</h3>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-2.5">
+                {AVAILABLE_COLORS.map((colorName) => {
                   const key = colorName.toLowerCase();
-                  const colorConfig = COLOR_MAP[key] || COLOR_MAP.default;
+                  const cfg = COLOR_MAP[key] || COLOR_MAP.default;
                   const active = selectedColors.includes(key);
                   return (
                     <button
                       key={colorName}
-                      onClick={() => toggleColor(key)}
-                      className="flex items-center gap-2 text-left text-xs font-medium text-ink group"
+                      onClick={() => toggle(selectedColors, setSelectedColors, key)}
+                      aria-pressed={active}
+                      className="group flex items-center gap-2.5 text-left text-[0.78rem]"
                     >
                       <span
-                        className={`h-4.5 w-4.5 rounded-full border transition-all ${
-                          colorConfig.border ? "border-board" : "border-transparent"
-                        } ${active ? "ring-2 ring-ink ring-offset-2 scale-110" : "group-hover:scale-105"}`}
-                        style={{ backgroundColor: colorConfig.hex }}
+                        className={`h-4 w-4 rounded-full border transition-all ${
+                          cfg.border ? "border-board" : "border-transparent"
+                        } ${active ? "ring-1 ring-ink ring-offset-2" : "group-hover:scale-110"}`}
+                        style={{ backgroundColor: cfg.hex }}
                       />
-                      <span className={active ? "font-bold text-ink" : "text-ink-soft group-hover:text-ink"}>
+                      <span className={active ? "font-medium text-ink" : "text-ink-soft group-hover:text-ink"}>
                         {colorName}
                       </span>
                     </button>
@@ -233,28 +230,22 @@ export function FilterPanel({
             </div>
           </div>
 
-          <div className="mt-8 flex items-center justify-between border-t border-board pt-4.5">
-            <label className="flex items-center gap-2.5 cursor-pointer text-sm font-medium text-ink">
+          <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t hairline pt-5">
+            <label className="flex cursor-pointer items-center gap-2.5 text-sm text-ink">
               <input
                 type="checkbox"
                 checked={localInStock}
                 onChange={(e) => setLocalInStock(e.target.checked)}
-                className="h-4 w-4 rounded border-board text-clay focus:ring-clay cursor-pointer"
+                className="h-4 w-4 cursor-pointer accent-[var(--color-ink)]"
               />
-              In Stock Only
+              In stock only
             </label>
             <div className="flex gap-2">
-              <button
-                onClick={handleReset}
-                className="rounded-full px-5 py-2 text-sm font-medium text-ink hover:bg-sand transition-colors"
-              >
-                Clear All
+              <button onClick={handleReset} className="btn btn-sm btn-tint">
+                Clear all
               </button>
-              <button
-                onClick={handleApply}
-                className="rounded-full bg-ink px-6 py-2 text-sm font-medium text-white hover:bg-clay transition-colors"
-              >
-                Apply Filters
+              <button onClick={handleApply} className="btn btn-sm btn-solid">
+                Apply
               </button>
             </div>
           </div>
@@ -266,7 +257,7 @@ export function FilterPanel({
 
 function FilterIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
       <path d="M4 6h16M4 12h10M4 18h16" strokeLinecap="round" />
       <circle cx="17" cy="12" r="2" fill="currentColor" />
     </svg>

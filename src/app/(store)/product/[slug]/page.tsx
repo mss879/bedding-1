@@ -44,25 +44,25 @@ const reviewPool = [
     name: "Nadia",
     place: "Colombo",
     quote:
-      "Exactly as pictured, beautifully packed, and even nicer in person. You can feel the hand-finishing in every detail.",
+      "Beautifully boxed and even better in person. You can feel the hand-finishing in every detail — this is not something a machine made in a hurry.",
   },
   {
     name: "Ruwan",
     place: "Negombo",
     quote:
-      "Second order from Ivory Homez. Quality is better than the imported brands I used to buy, at a fraction of the price.",
+      "Second order from Enivrant. The quality is past the imported names I used to buy, at a fraction of what the boutiques here charge for them.",
   },
   {
     name: "Ishara",
     place: "Kandy",
     quote:
-      "Arrived in three days with a handwritten note. It's the first thing guests comment on — worth every rupee.",
+      "Arrived in three days with a handwritten note. It's the first thing guests comment on, and I've now bought it twice as a gift.",
   },
   {
     name: "Tharindu",
     place: "Galle",
     quote:
-      "Bought this for our guest room and guests keep asking where it's from. Will be back for the matching pieces.",
+      "I bought this on a whim and it's become the thing I reach for daily. The concierge answered my sizing question on WhatsApp in ten minutes.",
   },
 ];
 
@@ -105,37 +105,39 @@ export default async function ProductPage({
   const reviews = Array.from({ length: 3 }, (_, i) => reviewPool[(start + i) % reviewPool.length]);
 
   return (
-    <div className="bg-cream pt-5 md:pt-7">
+    <div className="bg-cream pt-6 md:pt-8">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd(product)) }}
       />
 
-      {/* Breadcrumb */}
-      <nav aria-label="Breadcrumb" className="container-x mb-5 text-[0.8rem] text-ink-soft">
+      <nav aria-label="Breadcrumb" className="container-x mb-8 text-[0.72rem] tracking-wide text-ink-soft">
         <ol className="flex flex-wrap items-center gap-1.5">
           <li>
-            <Link href="/" className="hover:text-ink hover:underline">
+            <Link href="/" className="transition-colors hover:text-clay">
               Home
             </Link>
           </li>
-          <li aria-hidden>›</li>
+          <li aria-hidden>/</li>
           <li>
-            <Link href="/shop" className="hover:text-ink hover:underline">
+            <Link href="/shop" className="transition-colors hover:text-clay">
               Shop
             </Link>
           </li>
           {category && (
             <>
-              <li aria-hidden>›</li>
+              <li aria-hidden>/</li>
               <li>
-                <Link href={`/shop?category=${category.slug}`} className="hover:text-ink hover:underline">
+                <Link
+                  href={`/shop?category=${category.slug}`}
+                  className="transition-colors hover:text-clay"
+                >
                   {category.name}
                 </Link>
               </li>
             </>
           )}
-          <li aria-hidden>›</li>
+          <li aria-hidden>/</li>
           <li aria-current="page" className="truncate text-ink">
             {product.name}
           </li>
@@ -145,26 +147,22 @@ export default async function ProductPage({
       <ProductDetail product={product} />
 
       {/* Reviews */}
-      <section className="border-t hairline bg-parchment py-14 md:py-16" aria-label="Reviews">
+      <section id="reviews" className="scroll-mt-40 border-t hairline bg-parchment py-20 md:py-28" aria-label="Reviews">
         <div className="container-x">
-          <Reveal className="mb-8 flex flex-wrap items-center gap-x-4 gap-y-2">
-            <h2 className="font-display text-2xl md:text-3xl">
-              {formatCount(count)} reviews
-            </h2>
-            <Stars rating={rating} size={18} />
-            <span className="rounded-full bg-cream px-3.5 py-1.5 text-[0.8rem] font-medium">
-              Reviews for this shop
-            </span>
+          <Reveal className="mb-10 flex flex-wrap items-center gap-x-5 gap-y-3">
+            <h2 className="font-display text-3xl md:text-4xl">{formatCount(count)} reviews</h2>
+            <Stars rating={rating} size={17} />
+            <span className="chip cursor-default">Verified purchases</span>
           </Reveal>
           <div className="grid gap-5 md:grid-cols-3">
             {reviews.map((review, i) => (
               <Reveal key={review.name} delay={i * 0.08}>
-                <article className="card-lift flex h-full flex-col gap-3.5 p-6">
-                  <Stars rating={5} size={14} />
-                  <blockquote className="flex-1 text-sm leading-relaxed">
+                <article className="card-lift flex h-full flex-col gap-4 p-7">
+                  <Stars rating={5} size={13} />
+                  <blockquote className="flex-1 font-display text-[1.2rem] leading-[1.55]">
                     “{review.quote}”
                   </blockquote>
-                  <p className="flex items-center gap-2.5 text-sm">
+                  <p className="flex items-center gap-3 text-sm">
                     <span className="flex h-9 w-9 items-center justify-center rounded-full bg-accent-tint font-display text-clay">
                       {review.name[0]}
                     </span>
@@ -183,8 +181,8 @@ export default async function ProductPage({
       {related.length > 0 && (
         <ProductRail
           products={related}
-          title={`More from ${site.name}`}
-          subtitle="From the same workshop shelves."
+          eyebrow="You may also like"
+          title="From the same atelier"
           moreHref="/shop"
           moreLabel="Shop everything"
         />

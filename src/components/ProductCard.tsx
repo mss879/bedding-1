@@ -5,23 +5,22 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Product } from "@/lib/types";
 import { formatPrice } from "@/lib/site";
-import { productRating } from "@/lib/ratings";
-import { Stars } from "./Stars";
 import { useCart } from "./cart/CartContext";
 
-const FREE_DELIVERY_FROM = 15000;
-
 /**
- * Etsy-anatomy listing card: landscape rounded image with hover heart +
- * quick-add, badge chip, truncated title, gold stars, bold price with
- * green sale treatment, green FREE delivery line.
+ * The listing card, composed like a lookbook plate rather than a marketplace
+ * tile: a tall 4:5 photograph that cross-fades to its lifestyle shot, a
+ * hairline "Add to basket" rule that draws in on hover, then name and price.
+ *
+ * Deliberately quiet — no star ratings, review counts, urgency or delivery
+ * shouts. Those live on the product page and in the reviews section, where a
+ * shopper is actually deciding, instead of decorating every plate in the grid.
  */
 export function ProductCard({ product }: { product: Product }) {
   const { addItem } = useCart();
   const [liked, setLiked] = useState(false);
   const fromSize = product.sizes[0];
   const [primary, secondary] = product.images;
-  const { rating, count } = productRating(product.slug);
   const discount = fromSize.compare_at_price
     ? Math.round((1 - fromSize.price / fromSize.compare_at_price) * 100)
     : 0;
@@ -29,13 +28,13 @@ export function ProductCard({ product }: { product: Product }) {
   return (
     <div className="group relative">
       <Link href={`/product/${product.slug}`} className="block">
-        <div className="relative aspect-[4/3] overflow-hidden rounded-lg bg-sand shadow-card transition-shadow duration-300 group-hover:shadow-lift">
+        <div className="relative aspect-[4/5] overflow-hidden bg-sand">
           <Image
             src={primary}
             alt={product.name}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className={`object-cover transition-all duration-700 ease-out group-hover:scale-[1.04] ${
+            className={`object-cover transition-all duration-[1400ms] ease-out group-hover:scale-[1.04] ${
               secondary ? "group-hover:opacity-0" : ""
             }`}
           />
@@ -45,70 +44,81 @@ export function ProductCard({ product }: { product: Product }) {
               alt={`${product.name} — alternate view`}
               fill
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              className="scale-[1.04] object-cover opacity-0 transition-opacity duration-700 group-hover:opacity-100"
+              className="scale-[1.04] object-cover opacity-0 transition-opacity duration-[1400ms] group-hover:opacity-100"
             />
           )}
-          {product.badge && (
-            <span className="badge-img absolute bottom-2.5 left-2.5">{product.badge}</span>
+
+          {product.badge && product.in_stock && (
+            <span className="absolute left-0 top-5 bg-cream/95 px-3.5 py-1.5 text-[0.56rem] font-medium tracking-[0.2em] uppercase text-clay backdrop-blur">
+              {product.badge}
+            </span>
           )}
+          {!product.in_stock && (
+            <span className="absolute left-0 top-5 bg-ink/90 px-3.5 py-1.5 text-[0.56rem] font-medium tracking-[0.2em] uppercase text-white backdrop-blur">
+              Sold out
+            </span>
+          )}
+
           <button
             onClick={(e) => {
               e.preventDefault();
               setLiked((v) => !v);
             }}
-            aria-label={liked ? `Remove ${product.name} from favourites` : `Add ${product.name} to favourites`}
+            aria-label={
+              liked ? `Remove ${product.name} from favourites` : `Add ${product.name} to favourites`
+            }
             aria-pressed={liked}
-            className={`absolute right-2.5 top-2.5 flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-pop transition-all duration-300 hover:scale-110 ${
-              liked ? "opacity-100" : "opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
+            className={`absolute right-4 top-4 flex h-9 w-9 items-center justify-center transition-all duration-500 ${
+              liked
+                ? "opacity-100"
+                : "opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
             }`}
           >
-            <HeartIcon className={`h-4.5 w-4.5 ${liked ? "fill-clay stroke-clay" : "fill-none stroke-ink"}`} />
+            <HeartIcon
+              className={`h-[1.15rem] w-[1.15rem] transition-colors ${
+                liked ? "fill-clay stroke-clay" : "fill-none stroke-ink"
+              }`}
+            />
           </button>
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              addItem(
-                {
-                  productSlug: product.slug,
-                  name: product.name,
-                  image: primary,
-                  sizeName: fromSize.name,
-                  unitPrice: fromSize.price,
-                },
-                1
-              );
-            }}
-            aria-label={`Add ${product.name} to cart`}
-            className="absolute inset-x-2.5 bottom-2.5 translate-y-2 rounded-full bg-white/95 py-2.5 text-[0.8rem] font-semibold text-ink opacity-0 shadow-pop backdrop-blur transition-all duration-300 hover:bg-ink hover:text-white group-hover:translate-y-0 group-hover:opacity-100"
-          >
-            Quick add — {fromSize.name}
-          </button>
+
+          {product.in_stock && (
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                addItem(
+                  {
+                    productSlug: product.slug,
+                    name: product.name,
+                    image: primary,
+                    sizeName: fromSize.name,
+                    unitPrice: fromSize.price,
+                  },
+                  1
+                );
+              }}
+              aria-label={`Add ${product.name} to basket`}
+              className="absolute inset-x-0 bottom-0 bg-cream/95 py-4 text-[0.6rem] font-medium tracking-[0.2em] uppercase text-ink opacity-0 backdrop-blur transition-all duration-500 hover:bg-ink hover:text-white group-hover:opacity-100"
+            >
+              Add to basket
+            </button>
+          )}
         </div>
 
-        <div className="mt-2.5">
-          <h3 className="truncate text-[0.92rem] leading-snug text-ink" title={product.name}>
+        <div className="mt-5">
+          <h3 className="font-display text-[1.15rem] leading-snug text-ink" title={product.name}>
             {product.name}
           </h3>
-          <div className="mt-0.5">
-            <Stars rating={rating} count={count} />
-          </div>
-          <div className="mt-1 flex flex-wrap items-baseline gap-x-1.5 text-[0.95rem]">
-            <span className={`font-semibold ${discount > 0 ? "text-sale" : "text-ink"}`}>
+          <div className="mt-2 flex flex-wrap items-baseline gap-x-2.5 text-[0.82rem]">
+            <span className={discount > 0 ? "text-clay" : "text-ink-soft"}>
               {product.sizes.length > 1 ? "From " : ""}
               {formatPrice(fromSize.price)}
             </span>
             {fromSize.compare_at_price && (
-              <>
-                <span className="text-[0.82rem] text-fog line-through">
-                  {formatPrice(fromSize.compare_at_price)}
-                </span>
-                <span className="text-[0.82rem] font-medium text-sale">({discount}% off)</span>
-              </>
+              <span className="text-[0.76rem] text-taupe line-through">
+                {formatPrice(fromSize.compare_at_price)}
+              </span>
             )}
           </div>
-          {fromSize.price >= FREE_DELIVERY_FROM && (
-            <p className="mt-0.5 text-[0.78rem] font-medium text-sale">FREE delivery</p>
-          )}
         </div>
       </Link>
     </div>
@@ -117,7 +127,7 @@ export function ProductCard({ product }: { product: Product }) {
 
 function HeartIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" strokeWidth="1.8" aria-hidden>
+    <svg className={className} viewBox="0 0 24 24" strokeWidth="1.3" aria-hidden>
       <path
         strokeLinecap="round"
         strokeLinejoin="round"

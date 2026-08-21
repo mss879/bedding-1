@@ -1,51 +1,53 @@
 import Link from "next/link";
 import { Reveal } from "@/components/anim/Reveal";
+import { site } from "@/lib/site";
 
 const props = [
   {
-    title: "Handmade, small batches",
-    body: "Every piece — from bed linen to bath caddies — is cut, thrown, sewn or sanded by hand in our Colombo workshop. No factory line, no shortcuts.",
+    title: "Composed by hand",
+    body: "Every fragrance is blended, every pearl knotted and every hem finished by a person in our Colombo atelier. Small batches, signed work, no production line.",
   },
   {
-    title: "Direct from the workshop",
-    body: "There's no warehouse and no middlemen. What you order is made for you and shipped the same week.",
+    title: "Direct from the atelier",
+    body: "No distributors, no department-store margin. What you order is made for you and leaves our door the same week.",
   },
   {
-    title: "Peace of mind",
-    body: "365-day guarantee, responsibly sourced materials and a real human on WhatsApp whenever you need us.",
+    title: "Kept, not replaced",
+    body: "A 365-day guarantee, refillable vessels, free resizing on rings and a real person on WhatsApp whenever you need one.",
   },
 ];
 
-/** Etsy's "What is Etsy?" band — powder blue, three columns with dividers. */
+/** The maison promise — a calm dusty-blue band in three columns. */
 export function ValueProps() {
   return (
-    <section className="bg-powder" aria-label={`What is Ivory Homez?`}>
-      <div className="container-x py-14 text-center md:py-20">
+    <section className="bg-powder" aria-label={`What is ${site.name}?`}>
+      <div className="container-x section-y text-center">
         <Reveal>
-          <h2 className="font-display text-3xl md:text-4xl">What is Ivory Homez?</h2>
-          <Link
-            href="/about"
-            className="mt-2 inline-block text-sm font-medium text-ink underline underline-offset-4 hover:text-clay"
-          >
-            Read our story, room by room
-          </Link>
+          <p className="eyebrow">The maison promise</p>
+          <h2 className="mx-auto mt-5 max-w-3xl font-display text-[2.6rem] leading-[1.03] md:text-6xl">
+            What makes something worth keeping.
+          </h2>
         </Reveal>
 
-        <Reveal delay={0.1} className="mt-10 grid gap-10 text-left md:grid-cols-3 md:gap-0 md:divide-x md:divide-ink/10">
-          {props.map((item) => (
-            <div key={item.title} className="md:px-8">
-              <h3 className="font-display text-xl">{item.title}</h3>
-              <p className="mt-2.5 text-sm leading-relaxed text-ink-soft">{item.body}</p>
+        <Reveal
+          delay={0.1}
+          className="mt-14 grid gap-12 text-left md:grid-cols-3 md:gap-0 md:divide-x md:divide-ink/10"
+        >
+          {props.map((item, i) => (
+            <div key={item.title} className="md:px-9">
+              <p className="font-display text-2xl italic text-clay">0{i + 1}</p>
+              <h3 className="mt-3 font-display text-2xl">{item.title}</h3>
+              <p className="mt-3 text-sm leading-relaxed text-ink-soft">{item.body}</p>
             </div>
           ))}
         </Reveal>
 
-        <Reveal delay={0.15} className="mt-12 flex flex-col items-center gap-4">
+        <Reveal delay={0.15} className="mt-16 flex flex-col items-center gap-5">
           <p className="text-sm text-ink-soft">
-            Have a question? Well, we&rsquo;ve got some answers.
+            Questions about a piece, a size or a scent?
           </p>
           <Link href="/contact" className="btn btn-outline">
-            Go to the help corner
+            Speak to the concierge
           </Link>
         </Reveal>
       </div>

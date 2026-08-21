@@ -1,17 +1,19 @@
 import type { Metadata } from "next";
-import { Fraunces, Hanken_Grotesk } from "next/font/google";
+import { Cormorant_Garamond, Jost } from "next/font/google";
 import "./globals.css";
 import { site } from "@/lib/site";
 
-const fraunces = Fraunces({
-  variable: "--font-fraunces",
+// Display: a high-contrast garalde that echoes the ENIVRANT wordmark.
+const cormorant = Cormorant_Garamond({
+  variable: "--font-cormorant",
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600"],
   style: ["normal", "italic"],
-  axes: ["opsz", "SOFT", "WONK"],
 });
 
-const hanken = Hanken_Grotesk({
-  variable: "--font-hanken",
+// UI: a geometric grotesque that takes wide tracking without falling apart.
+const jost = Jost({
+  variable: "--font-jost",
   subsets: ["latin"],
 });
 
@@ -37,6 +39,7 @@ const organizationJsonLd = {
   url: site.url,
   email: site.email,
   telephone: site.phone,
+  logo: `${site.url}/brand/enivrant-lockup.png`,
 };
 
 // Storefront chrome (header, footer, cart) lives in (store)/layout.tsx; the
@@ -47,7 +50,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${fraunces.variable} ${hanken.variable} h-full antialiased`}>
+    <html lang="en" className={`${cormorant.variable} ${jost.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">
         <script
           type="application/ld+json"

@@ -10,7 +10,7 @@ export function LoginForm({ configured, from }: { configured: boolean; from?: st
 
   return (
     <div className="w-full max-w-sm rounded-xl bg-white p-6 shadow-card md:p-8">
-      <h1 className="font-display text-3xl text-clay">Ivory Homez admin</h1>
+      <h1 className="font-display text-3xl text-clay">Enivrant admin</h1>
       <p className="mt-1.5 text-sm text-ink-soft">Sign in to manage the store.</p>
 
       <form action={formAction} className="mt-6 space-y-4">

@@ -4,8 +4,10 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 /**
- * The Etsy-style search pill. Uses useSearchParams (to stay in sync with
- * /shop?q=…), so the parent wraps it in <Suspense> per Next.js requirements.
+ * The dominant marketplace search — Etsy's centrepiece, at Etsy's proportions
+ * (48px tall, 16px input, a nested square submit at the right end). Uses
+ * useSearchParams to stay in sync with /shop?q=…, so the parent wraps it in
+ * <Suspense> per Next.js requirements.
  */
 export function HeaderSearch({ compact = false }: { compact?: boolean }) {
   const router = useRouter();
@@ -27,23 +29,24 @@ export function HeaderSearch({ compact = false }: { compact?: boolean }) {
   };
 
   return (
-    <form onSubmit={submit} role="search" className="search-pill flex w-full">
+    <form onSubmit={submit} role="search" className={`search-pill w-full ${compact ? "" : "h-12"}`}>
       <input
         type="search"
         name="q"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search for anything homemade"
+        placeholder="Search fragrance, pearls, linen…"
         aria-label="Search products"
+        className="text-[0.95rem]"
       />
       <button
         type="submit"
         aria-label="Search"
-        className={`flex shrink-0 items-center justify-center rounded-full bg-clay text-white transition-colors hover:bg-clay-dark ${
-          compact ? "h-10 w-10" : "h-11 w-11"
+        className={`flex shrink-0 items-center justify-center rounded-sm bg-ink text-white transition-colors hover:bg-clay ${
+          compact ? "h-9 w-9" : "h-10 w-10"
         }`}
       >
-        <SearchIcon className={compact ? "h-4.5 w-4.5" : "h-5 w-5"} />
+        <SearchIcon className="h-4 w-4" />
       </button>
     </form>
   );
@@ -52,14 +55,19 @@ export function HeaderSearch({ compact = false }: { compact?: boolean }) {
 /** Non-interactive placeholder rendered while the live search hydrates. */
 export function HeaderSearchFallback({ compact = false }: { compact?: boolean }) {
   return (
-    <div className="search-pill flex w-full" aria-hidden>
-      <input type="search" placeholder="Search for anything homemade" disabled className="cursor-default" />
+    <div className={`search-pill w-full ${compact ? "" : "h-12"}`} aria-hidden>
+      <input
+        type="search"
+        placeholder="Search fragrance, pearls, linen…"
+        disabled
+        className="cursor-default text-[0.95rem]"
+      />
       <span
-        className={`flex shrink-0 items-center justify-center rounded-full bg-clay text-white ${
-          compact ? "h-10 w-10" : "h-11 w-11"
+        className={`flex shrink-0 items-center justify-center rounded-sm bg-ink text-white ${
+          compact ? "h-9 w-9" : "h-10 w-10"
         }`}
       >
-        <SearchIcon className={compact ? "h-4.5 w-4.5" : "h-5 w-5"} />
+        <SearchIcon className="h-4 w-4" />
       </span>
     </div>
   );

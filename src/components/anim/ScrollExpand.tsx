@@ -89,16 +89,22 @@ export function ScrollExpand({
           <div data-zoom className="absolute inset-0 will-change-transform">
             <Image src={src} alt={alt} fill sizes="100vw" className="object-cover" />
           </div>
-          <div className="absolute inset-0 bg-ink/40" />
+          {/* Enivrant's photography is near-ivory, so white caption text needs a
+              deep scrim: a flat wash plus a vertical gradient that concentrates
+              contrast behind the headline and body. */}
+          <div className="absolute inset-0 bg-ink/45" />
+          <div className="absolute inset-0 bg-gradient-to-b from-ink/40 via-ink/25 to-ink/55" />
           <div
             data-caption
             className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center text-linen"
           >
-            <p className="mb-5 text-xs font-semibold uppercase tracking-[0.35em]">{eyebrow}</p>
-            <p className="max-w-3xl font-display text-4xl leading-tight md:text-6xl">{title}</p>
-            <p className="mt-6 max-w-xl text-sm leading-relaxed text-linen/85 md:text-base">{body}</p>
+            <p className="mb-6 text-[0.66rem] font-medium uppercase tracking-[0.3em] text-linen/85">
+              {eyebrow}
+            </p>
+            <p className="max-w-3xl font-display text-5xl leading-[1.05] md:text-7xl">{title}</p>
+            <p className="mt-7 max-w-xl text-[0.95rem] leading-relaxed text-linen/85">{body}</p>
             {ctaLabel && ctaHref && (
-              <a href={ctaHref} className="btn btn-white mt-9">
+              <a href={ctaHref} className="btn btn-white mt-10">
                 {ctaLabel}
               </a>
             )}
@@ -113,13 +119,13 @@ export function ScrollExpand({
           >
             <span
               data-title-left
-              className="whitespace-nowrap font-display text-[clamp(1.15rem,3.2vw,3.1rem)] leading-none text-linen [text-shadow:0_1px_18px_rgba(14,14,14,0.45)] will-change-transform"
+              className="whitespace-nowrap font-display text-[clamp(1.15rem,3.2vw,3.1rem)] leading-none text-linen [text-shadow:0_1px_20px_rgba(26,25,23,0.6)] will-change-transform"
             >
               {titleLeft}
             </span>
             <span
               data-title-right
-              className="whitespace-nowrap font-display text-[clamp(1.15rem,3.2vw,3.1rem)] leading-none text-linen [text-shadow:0_1px_18px_rgba(14,14,14,0.45)] will-change-transform"
+              className="whitespace-nowrap font-display text-[clamp(1.15rem,3.2vw,3.1rem)] leading-none text-linen [text-shadow:0_1px_20px_rgba(26,25,23,0.6)] will-change-transform"
             >
               {titleRight}
             </span>
@@ -130,7 +136,7 @@ export function ScrollExpand({
         <p
           data-eyebrow-float
           aria-hidden
-          className="absolute inset-x-0 top-[29%] text-center text-[0.82rem] font-semibold text-clay"
+          className="absolute inset-x-0 top-[29%] text-center text-[0.66rem] font-medium uppercase tracking-[0.28em] text-clay"
         >
           {eyebrow}
         </p>
