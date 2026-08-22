@@ -18,15 +18,18 @@ const MIN_DURATION_MS = 2200;
  *
  * Build: six ivory panels stand as a curtain; a gold hairline draws across the
  * centre; the ENIVRANT lockup is wiped in behind a moving satin sheen; the six
- * collection names cycle on a loop while assets load; a counter and progress
- * rule track real progress. On completion the sheen sweeps once more, the
- * content lifts, and the six panels rise in a stagger to reveal the page —
- * then `preloader-complete` fires so the hero can start its own entrance.
+ * collection names cycle on a loop while assets load; a quiet counter tracks
+ * real progress. On completion the sheen sweeps once more, the content lifts,
+ * and the six panels rise in a stagger to reveal the page — then
+ * `preloader-complete` fires so the hero can start its own entrance.
+ *
+ * The curtain waits on the hero's own assets (poster, film and fonts), so the
+ * hero is fully painted and ready to animate the instant it is revealed.
  *
  * Reduced motion gets the same sequence with no transforms: a static mark, a
  * fade, and a straight cut to the page.
  */
-export function Preloader({ images }: { images: string[] }) {
+export function Preloader({ images, videos = [] }: { images: string[]; videos?: string[] }) {
   const [progress, setProgress] = useState(0);
   const [minElapsed, setMinElapsed] = useState(false);
   const [isMounted, setIsMounted] = useState(true);
@@ -40,10 +43,9 @@ export function Preloader({ images }: { images: string[] }) {
   // Load tracking — never let a failed asset hold the curtain shut.
   useEffect(() => {
     let loaded = 0;
-    const total = images.length + 1; // images + fonts
+    const total = images.length + videos.length + 1; // images + films + fonts
     const state = { val: 0 };
     const percentEl = rootRef.current?.querySelector<HTMLElement>("[data-percent]");
-    const barEl = rootRef.current?.querySelector<HTMLElement>("[data-bar]");
 
     if (typeof window !== "undefined") {
       (window as unknown as { __preloaderComplete?: boolean }).__preloaderComplete = false;
@@ -59,7 +61,6 @@ export function Preloader({ images }: { images: string[] }) {
         onUpdate: () => {
           const v = Math.round(state.val);
           if (percentEl) percentEl.textContent = String(v).padStart(2, "0");
-          if (barEl) gsap.set(barEl, { scaleX: v / 100 });
           if (v >= 100) setProgress(100);
         },
       });
@@ -72,12 +73,34 @@ export function Preloader({ images }: { images: string[] }) {
       img.onerror = bump;
     });
 
+    // Films count once they have real frames decoded (`loadeddata`), not once
+    // metadata arrives — otherwise the hero reveals to an empty black box.
+    const filmEls = videos.map((src) => {
+      const v = document.createElement("video");
+      v.muted = true;
+      v.preload = "auto";
+      v.playsInline = true;
+      v.addEventListener("loadeddata", bump, { once: true });
+      v.addEventListener("error", bump, { once: true });
+      v.src = src;
+      v.load();
+      return v;
+    });
+
     if (typeof document !== "undefined" && document.fonts) {
       document.fonts.ready.then(bump).catch(bump);
     } else {
       setTimeout(bump, 500);
     }
-  }, [images]);
+
+    return () => {
+      // Release the probe elements; the browser keeps the bytes cached.
+      filmEls.forEach((v) => {
+        v.removeAttribute("src");
+        v.load();
+      });
+    };
+  }, [images, videos]);
 
   // Intro timeline
   useEffect(() => {
@@ -151,11 +174,18 @@ export function Preloader({ images }: { images: string[] }) {
     const root = rootRef.current;
     if (!root) return;
 
-    const finish = () => {
+    // Announcing and unmounting are deliberately separate. The hero is told to
+    // start the moment the panels BEGIN to rise, so its headline animates in
+    // behind the lifting curtain; the overlay itself is only torn down once the
+    // panels have finished travelling.
+    const announce = () => {
       if (typeof window !== "undefined") {
         (window as unknown as { __preloaderComplete?: boolean }).__preloaderComplete = true;
         window.dispatchEvent(new CustomEvent("preloader-complete"));
       }
+    };
+    const finish = () => {
+      announce(); // no-op if the panel tween already fired it
       setIsMounted(false);
     };
 
@@ -186,7 +216,13 @@ export function Preloader({ images }: { images: string[] }) {
           // …and the curtain rises, panel by panel.
           .to(
             q("[data-panel]"),
-            { yPercent: -100, duration: 1.05, ease: "power4.inOut", stagger: 0.07 },
+            {
+              yPercent: -100,
+              duration: 1.05,
+              ease: "power4.inOut",
+              stagger: 0.07,
+              onStart: announce,
+            },
             "-=0.25"
           );
       });
@@ -255,14 +291,9 @@ export function Preloader({ images }: { images: string[] }) {
           <span className="font-display text-base italic text-clay">%</span>
         </div>
 
-        {/* Progress rule */}
-        <div data-meta className="mt-5 h-px w-56 overflow-hidden bg-board">
-          <div data-bar className="h-full w-full origin-left bg-clay" style={{ transform: "scaleX(0)" }} />
-        </div>
-
         <p
           data-meta
-          className="mt-6 text-[0.58rem] font-medium tracking-[0.3em] uppercase text-taupe"
+          className="mt-8 text-[0.58rem] font-medium tracking-[0.3em] uppercase text-taupe"
         >
           Maison de Luxe · Colombo
         </p>

@@ -73,38 +73,46 @@ export function HeroVideo({
 
   useGSAP(
     () => {
-      if (!isPreloaded) return;
       const q = gsap.utils.selector(ref);
       const mm = gsap.matchMedia();
 
       mm.add(MOTION_REDUCE, () => {
-        gsap.set(q("[data-hero-copy] > *"), { clearProps: "all" });
+        gsap.set(q("[data-hero-heading], [data-hero-rest]"), { clearProps: "all", autoAlpha: 1 });
       });
 
       mm.add(MOTION_OK, () => {
-        const split = SplitText.create(q("[data-hero-heading]"), {
+        const heading = q("[data-hero-heading]")[0];
+        const rest = q("[data-hero-rest]");
+
+        // The from-state is established here, in useGSAP's layout effect, so it
+        // lands BEFORE the browser paints — while the curtain still covers the
+        // page. Previously the copy was painted in its final position and the
+        // animation only set the start state afterwards, which read as the text
+        // appearing and then re-animating.
+        gsap.set(rest, { autoAlpha: 0, y: 24 });
+        const split = SplitText.create(heading, {
           type: "lines,words",
           linesClass: "overflow-hidden pb-[0.1em] -mb-[0.1em]",
-          autoSplit: true,
-          onSplit(self) {
-            return gsap.from(self.words, {
-              yPercent: 115,
+        });
+        gsap.set(split.words, { yPercent: 115 });
+        gsap.set(heading, { autoAlpha: 1 }); // container shown; words still masked
+
+        // Plays the moment the curtain starts lifting, not after it has gone.
+        if (isPreloaded) {
+          gsap
+            .timeline()
+            .to(split.words, {
+              yPercent: 0,
               duration: 1.35,
               stagger: 0.08,
               ease: "power4.out",
-              delay: 0.2,
-            });
-          },
-        });
-
-        gsap.from(q("[data-hero-rest]"), {
-          autoAlpha: 0,
-          y: 24,
-          duration: 1,
-          stagger: 0.12,
-          delay: 0.7,
-          ease: "power3.out",
-        });
+            })
+            .to(
+              rest,
+              { autoAlpha: 1, y: 0, duration: 1, stagger: 0.12, ease: "power3.out" },
+              0.35
+            );
+        }
 
         // The film drifts up fractionally as the hero scrolls away.
         gsap.to(q("[data-hero-media]"), {

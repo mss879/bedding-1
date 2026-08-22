@@ -12,8 +12,14 @@ import { PromoBanners } from "@/components/home/PromoBanners";
 import { ReviewsRow } from "@/components/home/ReviewsRow";
 import { ValueProps } from "@/components/home/ValueProps";
 
-// The curtain waits on the hero poster — the film itself streams in behind it.
-const heroImages = ["/video/hero-atelier-poster.webp"];
+// The curtain holds until the hero's own assets are ready — poster, film and
+// fonts — so the hero is fully painted and can animate the instant it shows.
+const heroPoster = "/video/hero-atelier-poster.webp";
+const heroFilm = "/video/hero-atelier.mp4";
+// Module scope keeps these array identities stable, so the curtain's load
+// effect can never re-run and restart the count.
+const heroImages = [heroPoster];
+const heroFilms = [heroFilm];
 
 const craftChapters = [
   {
@@ -42,11 +48,8 @@ export default async function HomePage() {
 
   return (
     <>
-      <Preloader images={heroImages} />
-      <HeroVideo
-        src="/video/hero-atelier.mp4"
-        poster="/video/hero-atelier-poster.webp"
-      />
+      <Preloader images={heroImages} videos={heroFilms} />
+      <HeroVideo src={heroFilm} poster={heroPoster} />
       <MarqueeRibbon />
 
       {/* Set-piece: the collections travel sideways while the section is pinned. */}
