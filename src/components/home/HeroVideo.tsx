@@ -170,22 +170,26 @@ export function HeroVideo({
       {/* svh, not vh: on iOS/Android the URL bar makes 100vh taller than the
           visible viewport, which pushed the CTAs under the fold on first paint. */}
       <div className="container-x relative flex min-h-[calc(100svh-11rem)] items-center py-16 sm:py-24 md:min-h-[calc(100svh-9rem)] md:py-32">
-        <div data-hero-copy className="max-w-2xl">
+        <div data-hero-copy className="max-w-3xl">
           {/* Set in the wordmark's own face, so the headline reads as the logo
-              grown large rather than a second serif beside it. */}
+              grown large rather than a second serif beside it.
+
+              The two halves are their own blocks rather than one wrapping
+              string: left to the browser it broke after "An" and left a single
+              word stranded on the first line. Sizes are tuned so each half
+              clears its line at every width, down to a 320px phone. */}
           <h1
             data-hero-heading
-            className="font-wordmark text-[2.7rem] font-normal leading-[1.02] tracking-[-0.01em] text-ink xs:text-[3.1rem] sm:text-[4.2rem] md:text-[5.2rem] md:leading-[0.98] xl:text-[6.2rem]"
+            className="font-wordmark text-[2.35rem] font-normal leading-[1.04] tracking-[-0.01em] text-ink xs:text-[2.9rem] sm:text-[4.2rem] md:text-[5.2rem] md:leading-[0.98] xl:text-[6.2rem]"
           >
-            An intoxication of the senses.
+            <span className="block">An intoxication</span>
+            <span className="block">of the senses.</span>
           </h1>
           <p
             data-hero-rest
-            className="mt-6 max-w-md text-[0.92rem] leading-[1.75] text-ink-soft sm:mt-8 sm:text-[0.98rem] sm:leading-[1.85]"
+            className="mt-6 max-w-lg text-balance text-[0.92rem] leading-[1.75] text-ink-soft sm:mt-8 sm:text-[0.98rem] sm:leading-[1.85]"
           >
-            Fragrance, wellness rituals, fine pearls, quiet fashion and bedlinen
-            made for deep sleep — six collections, composed and finished by hand
-            in our Colombo atelier.
+            Quiet luxury from Colombo, for people who notice the difference.
           </p>
           {/* Stacked and full-bleed on a phone — two half-width buttons of
               different lengths read as a mistake at this size. */}
