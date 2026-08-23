@@ -56,7 +56,8 @@ export function SortSelect({
         value={sort && OPTIONS.some((o) => o.value === sort) ? sort : "relevance"}
         onChange={(e) => onChange(e.target.value)}
         aria-label="Sort products"
-        className="cursor-pointer rounded-full border border-board bg-white py-2 pl-3.5 pr-8 text-[0.78rem] text-ink transition-colors hover:border-ink"
+        /* 16px on phones so iOS does not zoom the page when the select opens. */
+        className="cursor-pointer rounded-full border border-board bg-white py-2 pl-3.5 pr-8 text-base text-ink transition-colors hover:border-ink md:text-[0.78rem]"
       >
         {OPTIONS.map((o) => (
           <option key={o.value} value={o.value}>

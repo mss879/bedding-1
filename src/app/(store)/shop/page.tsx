@@ -150,7 +150,10 @@ export default async function ShopPage({
     <div className="bg-cream">
       {/* Collection banner */}
       <section className="relative">
-        <div className="relative aspect-[21/9] max-h-[26rem] w-full overflow-hidden md:max-h-[30rem]">
+        {/* 21:9 is only 160px tall on a phone — far too short for the eyebrow,
+            headline and blurb sitting on top of it, which used to spill out of
+            the frame. The banner deepens as the screen narrows. */}
+        <div className="relative aspect-[4/3] max-h-[26rem] w-full overflow-hidden xs:aspect-[3/2] sm:aspect-[16/9] md:aspect-[21/9] md:max-h-[30rem]">
           <Image
             src={collectionBanner(category, activeCategory?.image)}
             alt=""
@@ -159,13 +162,19 @@ export default async function ShopPage({
             sizes="100vw"
             className="object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-cream via-cream/70 to-transparent" />
+          {/* On a phone the copy spans the full width, so the wash has to carry
+              all the way across rather than fading out at the halfway mark. */}
+          <div className="absolute inset-0 bg-gradient-to-r from-cream via-cream/85 to-cream/40 sm:via-cream/70 sm:to-transparent" />
           <div className="absolute inset-0 flex items-center">
             <div className="container-x">
               <Reveal className="max-w-md">
                 <p className="eyebrow">{collectionTagline(category)}</p>
-                <h1 className="mt-4 font-display text-4xl leading-[1.05] md:text-6xl">{heading}</h1>
-                <p className="mt-4 max-w-sm text-sm leading-relaxed text-ink-soft">{blurb}</p>
+                <h1 className="mt-3 font-display text-[2.1rem] leading-[1.05] xs:text-4xl md:mt-4 md:text-6xl">
+                  {heading}
+                </h1>
+                <p className="mt-3 line-clamp-3 max-w-sm text-[0.82rem] leading-relaxed text-ink-soft xs:text-sm md:mt-4 md:line-clamp-none">
+                  {blurb}
+                </p>
               </Reveal>
             </div>
           </div>
@@ -200,12 +209,12 @@ export default async function ShopPage({
 
         {/* Collection tiles (landing view only) */}
         {!activeCategory && !q && (
-          <Reveal className="no-scrollbar -mx-1 mb-12 flex gap-5 overflow-x-auto px-1 pb-2">
+          <Reveal className="no-scrollbar -mx-6 mb-12 flex snap-x gap-4 overflow-x-auto px-6 scroll-pl-6 pb-2 md:-mx-14 md:gap-5 md:px-14 md:scroll-pl-14">
             {navCategories.map((c) => (
               <Link
                 key={c.slug}
                 href={shopUrl({ category: c.slug, ...carry })}
-                className="group w-40 shrink-0 sm:w-44"
+                className="group w-36 shrink-0 snap-start xs:w-40 sm:w-44"
               >
                 <span className="relative block aspect-[4/5] overflow-hidden rounded-sm bg-sand">
                   <Image

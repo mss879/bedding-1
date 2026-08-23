@@ -101,10 +101,14 @@ export function ScrollExpand({
             <p className="mb-6 text-[0.66rem] font-medium uppercase tracking-[0.3em] text-linen/85">
               {eyebrow}
             </p>
-            <p className="max-w-3xl font-display text-5xl leading-[1.05] md:text-7xl">{title}</p>
-            <p className="mt-7 max-w-xl text-[0.95rem] leading-relaxed text-linen/85">{body}</p>
+            <p className="max-w-3xl font-display text-[2.4rem] leading-[1.05] xs:text-5xl md:text-7xl">
+              {title}
+            </p>
+            <p className="mt-5 max-w-xl text-[0.88rem] leading-relaxed text-linen/85 sm:mt-7 sm:text-[0.95rem]">
+              {body}
+            </p>
             {ctaLabel && ctaHref && (
-              <a href={ctaHref} className="btn btn-white mt-10">
+              <a href={ctaHref} className="btn btn-white mt-8 sm:mt-10">
                 {ctaLabel}
               </a>
             )}

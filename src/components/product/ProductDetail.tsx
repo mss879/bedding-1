@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
@@ -27,6 +27,29 @@ export function ProductDetail({ product }: { product: Product }) {
   const [colorIndex, setColorIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [openSection, setOpenSection] = useState<"details" | "care" | "shipping" | null>("details");
+  // Phones scroll the buy button away within a screen or two of the gallery,
+  // so it comes back as a docked bar once it has left the viewport.
+  const actionsEndRef = useRef<HTMLDivElement>(null);
+  const [showStickyBuy, setShowStickyBuy] = useState(false);
+
+  useEffect(() => {
+    const sentinel = actionsEndRef.current;
+    if (!sentinel) return;
+    const io = new IntersectionObserver(
+      ([entry]) => setShowStickyBuy(!entry.isIntersecting && entry.boundingClientRect.top < 0),
+      { threshold: 0 }
+    );
+    io.observe(sentinel);
+    return () => io.disconnect();
+  }, []);
+
+  // Tell the layout the bar is docked, so the WhatsApp bubble steps aside.
+  useEffect(() => {
+    document.body.dataset.stickyBuy = showStickyBuy ? "on" : "off";
+    return () => {
+      delete document.body.dataset.stickyBuy;
+    };
+  }, [showStickyBuy]);
 
   const size = product.sizes[sizeIndex];
   const { rating, count } = productRating(product.slug);
@@ -246,6 +269,7 @@ export function ProductDetail({ product }: { product: Product }) {
               >
                 Buy it now
               </button>
+              <div ref={actionsEndRef} aria-hidden className="h-px w-full" />
             </>
           ) : (
             <>
@@ -336,6 +360,36 @@ export function ProductDetail({ product }: { product: Product }) {
           ))}
         </Reveal>
       </div>
+
+      {/* Docked buy bar — phones and tablets only. It appears once the real
+          buttons have scrolled past, so there is never a second call to action
+          competing with the first one on screen. */}
+      <AnimatePresence>
+        {showStickyBuy && product.in_stock && (
+          <motion.div
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ type: "tween", duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+            className="fixed inset-x-0 bottom-0 z-30 border-t hairline bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
+          >
+            <div className="container-x flex items-center gap-4 py-3">
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-display text-[1.05rem] leading-tight">{product.name}</p>
+                <p className="text-[0.78rem] text-ink-soft">
+                  {size.name} · {formatPrice(size.price * quantity)}
+                </p>
+              </div>
+              <button
+                onClick={() => addItem(cartItem(), quantity)}
+                className="btn btn-solid btn-sm shrink-0"
+              >
+                Add to basket
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

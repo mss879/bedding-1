@@ -34,7 +34,7 @@ export function BasketView({ suggestions }: { suggestions: Product[] }) {
               className="object-cover"
             />
           </div>
-          <p className="mt-10 font-display text-4xl leading-tight md:text-5xl">
+          <p className="mt-10 font-display text-[2.1rem] leading-tight xs:text-4xl md:text-5xl">
             Nothing chosen yet.
           </p>
           <p className="mx-auto mt-4 max-w-sm text-sm leading-relaxed text-ink-soft">

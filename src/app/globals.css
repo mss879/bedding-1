@@ -25,6 +25,10 @@
   --color-star: #c9a227; /* lit rating stars */
   --color-sale: #1f7a4d; /* sale price, "(20% off)", "FREE delivery" */
 
+  /* An extra step below Tailwind's sm, for the 360–400px phones that make up
+     most of the Sri Lankan traffic — type and grids need one more notch. */
+  --breakpoint-xs: 26rem;
+
   --shadow-card: 0 0 0 1px rgba(26, 25, 23, 0.05);
   --shadow-lift: 0 1px 2px rgba(26, 25, 23, 0.03), 0 8px 28px rgba(26, 25, 23, 0.055);
   --shadow-pop: 0 2px 6px rgba(26, 25, 23, 0.04), 0 14px 40px rgba(26, 25, 23, 0.08);
@@ -33,6 +37,8 @@
 @theme inline {
   --font-sans: var(--font-jost), ui-sans-serif, system-ui, "Helvetica Neue", Arial, sans-serif;
   --font-display: var(--font-cormorant), Cormorant Garamond, Didot, Georgia, serif;
+  /* The logo face — reserved for the hero headline so it echoes the wordmark. */
+  --font-wordmark: var(--font-bodoni), Bodoni Moda, Didot, "Didot LT STD", Georgia, serif;
 }
 
 html {
@@ -91,6 +97,28 @@ body {
   }
   @media (width >= 90rem) {
     padding-inline: 5rem;
+  }
+}
+
+/*
+ * container-x for a horizontally scrolling rail. Same gutters, plus matching
+ * scroll-padding: without it, `snap-start` aligns the first card to the
+ * container's border box and drags the whole rail flush to the screen edge,
+ * so the gutter silently disappears on phones.
+ */
+@utility rail-x {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 88rem;
+  padding-inline: 1.5rem;
+  scroll-padding-inline: 1.5rem;
+  @media (width >= 48rem) {
+    padding-inline: 3.5rem;
+    scroll-padding-inline: 3.5rem;
+  }
+  @media (width >= 90rem) {
+    padding-inline: 5rem;
+    scroll-padding-inline: 5rem;
   }
 }
 
@@ -254,14 +282,20 @@ body {
     border-color: var(--color-board);
   }
 
-  /* Form fields — flat, squared, hairline. */
+  /*
+   * Form fields — flat, squared, hairline.
+   *
+   * 16px on phones is not a style choice: iOS Safari zooms the whole page in
+   * when a focused input is set smaller than that, and never zooms back out.
+   * The design size returns from the tablet breakpoint up.
+   */
   .field {
     width: 100%;
     border: 1px solid var(--color-board);
     border-radius: 2px;
     background: #fff;
     padding: 0.85rem 1rem;
-    font-size: 0.92rem;
+    font-size: 1rem;
     color: var(--color-ink);
     outline: none;
     transition:
@@ -274,6 +308,11 @@ body {
   }
   .field::placeholder {
     color: var(--color-fog);
+  }
+  @media (width >= 48rem) {
+    .field {
+      font-size: 0.92rem;
+    }
   }
 
   /* Search — a flat underline field with a nested ink submit square. */
@@ -299,9 +338,15 @@ body {
     border: none;
     outline: none;
     background: transparent;
-    font-size: 0.88rem;
+    /* 16px on phones — see .field for why. */
+    font-size: 1rem;
     letter-spacing: 0.02em;
     color: var(--color-ink);
+  }
+  @media (width >= 48rem) {
+    .search-pill input {
+      font-size: 0.88rem;
+    }
   }
   .search-pill input::placeholder {
     color: var(--color-fog);
@@ -386,6 +431,25 @@ body {
   }
   .link-rule:hover::after {
     transform: scaleX(0.35);
+  }
+}
+
+/*
+ * The product page docks a buy bar at the bottom of the screen on phones; the
+ * WhatsApp bubble lives in the same corner, so it steps up out of the way for
+ * as long as the bar is there.
+ */
+.whatsapp-float {
+  /* `bottom`, not a transform: Motion owns this element's transform for its
+     hover/tap springs and would overwrite anything set here. */
+  transition: bottom 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+body[data-sticky-buy="on"] .whatsapp-float {
+  bottom: 6.25rem;
+}
+@media (width >= 64rem) {
+  body[data-sticky-buy="on"] .whatsapp-float {
+    bottom: 1.5rem;
   }
 }
 

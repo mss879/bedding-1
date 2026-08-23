@@ -83,7 +83,7 @@ export default function HotelBulkPage() {
             className="object-cover"
           />
           <div className="absolute inset-0 bg-ink/40" />
-          <div className="relative flex min-h-[24rem] flex-col items-start justify-center px-6 py-14 text-linen md:min-h-[28rem] md:px-14">
+          <div className="relative flex min-h-[22rem] flex-col items-start justify-center px-6 py-12 text-linen sm:min-h-[24rem] md:min-h-[28rem] md:px-14 md:py-14">
             <Reveal>
               <p className="text-[0.66rem] font-medium tracking-[0.24em] uppercase text-linen/85">
                 For hospitality &amp; trade
@@ -94,7 +94,7 @@ export default function HotelBulkPage() {
               animateOnMount
               delay={0.15}
               lines={["Properties your guests", "will remember by scent."]}
-              className="mt-5 font-display text-5xl leading-[1.05] md:text-7xl"
+              className="mt-5 font-display text-[2.5rem] leading-[1.05] xs:text-5xl md:text-7xl"
             />
             <Reveal delay={0.5} className="mt-6 max-w-xl text-sm leading-relaxed text-linen/90 md:text-base">
               <p>
@@ -103,7 +103,7 @@ export default function HotelBulkPage() {
                 this goes straight to a human, on WhatsApp.
               </p>
             </Reveal>
-            <Reveal delay={0.65} className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Reveal delay={0.65} className="mt-8 flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
               <a
                 href={whatsappLink(`Hello ${site.name}! I'd like to discuss a hotel/trade order.`)}
                 target="_blank"
@@ -125,7 +125,9 @@ export default function HotelBulkPage() {
         <div className="container-x">
           <Reveal className="mb-8 md:mb-10">
             <p className="eyebrow">Who we supply</p>
-            <h2 className="mt-4 font-display text-4xl leading-tight md:text-5xl">Built for busy properties</h2>
+            <h2 className="mt-4 font-display text-[2.1rem] leading-tight xs:text-4xl md:text-5xl">
+              Built for busy properties
+            </h2>
           </Reveal>
           <Stagger className="grid grid-cols-2 gap-4 md:gap-5 lg:grid-cols-4" stagger={0.08}>
             {segments.map((segment) => (

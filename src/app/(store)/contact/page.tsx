@@ -40,7 +40,7 @@ export default function ContactPage() {
             animateOnMount
             delay={0.08}
             lines={["However you", "prefer to reach us."]}
-            className="mt-5 font-display text-5xl leading-[1.05] md:text-6xl"
+            className="mt-5 font-display text-[2.5rem] leading-[1.05] xs:text-5xl md:text-6xl"
           />
           <Reveal delay={0.35}>
             <p className="mt-4 text-sm leading-relaxed text-ink-soft md:text-base">

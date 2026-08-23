@@ -18,7 +18,7 @@ export const seedCategories: Category[] = [
   {
     id: "c1",
     slug: "wellness",
-    name: "Luxury Wellness & Self-Care",
+    name: "Luxury Wellness",
     description:
       "Bath rituals, botanical oils and slow-evening essentials — the art of taking your time.",
     image: "/images/categories/wellness-self-care.webp",
@@ -27,7 +27,7 @@ export const seedCategories: Category[] = [
   {
     id: "c2",
     slug: "fragrances",
-    name: "Fragrances & Perfume",
+    name: "Fragrance",
     description:
       "Eaux de parfum, diffusers and candles composed around jasmine, Ceylon tea, oud and sandalwood.",
     image: "/images/categories/fragrances-perfume.webp",
@@ -36,7 +36,7 @@ export const seedCategories: Category[] = [
   {
     id: "c3",
     slug: "home-living",
-    name: "Home & Living Elegance",
+    name: "Home & Living",
     description:
       "Hand-thrown stoneware, rattan light, solid teak and travertine — quiet luxury for every room.",
     image: "/images/categories/home-living.webp",
@@ -72,7 +72,7 @@ export const seedCategories: Category[] = [
 ];
 
 export const seedProducts: Product[] = [
-  // ── Luxury Wellness & Self-Care ────────────────────────────────────────
+  // ── Luxury Wellness ────────────────────────────────────────────────────
   {
     id: "p1",
     slug: "ceylon-bath-soak-ritual-set",
@@ -221,7 +221,7 @@ export const seedProducts: Product[] = [
     in_stock: true,
   },
 
-  // ── Fragrances & Perfume ───────────────────────────────────────────────
+  // ── Fragrance ──────────────────────────────────────────────────────────
   {
     id: "p7",
     slug: "enivrant-no-1-eau-de-parfum",
@@ -374,7 +374,7 @@ export const seedProducts: Product[] = [
     in_stock: true,
   },
 
-  // ── Home & Living Elegance ─────────────────────────────────────────────
+  // ── Home & Living ──────────────────────────────────────────────────────
   {
     id: "p13",
     slug: "glazed-stoneware-dinner-set",

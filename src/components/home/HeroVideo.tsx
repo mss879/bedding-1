@@ -167,26 +167,32 @@ export function HeroVideo({
       />
       <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-t from-cream/70 via-transparent to-cream/25" />
 
-      <div className="container-x relative flex min-h-[calc(100vh-9rem)] items-center py-24 md:py-32">
+      {/* svh, not vh: on iOS/Android the URL bar makes 100vh taller than the
+          visible viewport, which pushed the CTAs under the fold on first paint. */}
+      <div className="container-x relative flex min-h-[calc(100svh-11rem)] items-center py-16 sm:py-24 md:min-h-[calc(100svh-9rem)] md:py-32">
         <div data-hero-copy className="max-w-2xl">
-          <p data-hero-rest className="eyebrow">
-            Colombo · Est. 2024
-          </p>
+          {/* Set in the wordmark's own face, so the headline reads as the logo
+              grown large rather than a second serif beside it. */}
           <h1
             data-hero-heading
-            className="mt-6 font-display text-[3.2rem] leading-[0.98] tracking-tight text-ink sm:text-7xl md:text-8xl xl:text-[6.5rem]"
+            className="font-wordmark text-[2.7rem] font-normal leading-[1.02] tracking-[-0.01em] text-ink xs:text-[3.1rem] sm:text-[4.2rem] md:text-[5.2rem] md:leading-[0.98] xl:text-[6.2rem]"
           >
             An intoxication of the senses.
           </h1>
           <p
             data-hero-rest
-            className="mt-8 max-w-md text-[0.98rem] leading-[1.85] text-ink-soft"
+            className="mt-6 max-w-md text-[0.92rem] leading-[1.75] text-ink-soft sm:mt-8 sm:text-[0.98rem] sm:leading-[1.85]"
           >
             Fragrance, wellness rituals, fine pearls, quiet fashion and bedlinen
             made for deep sleep — six collections, composed and finished by hand
             in our Colombo atelier.
           </p>
-          <div data-hero-rest className="mt-11 flex flex-wrap items-center gap-3">
+          {/* Stacked and full-bleed on a phone — two half-width buttons of
+              different lengths read as a mistake at this size. */}
+          <div
+            data-hero-rest
+            className="mt-8 flex flex-col items-stretch gap-3 xs:flex-row xs:flex-wrap xs:items-center sm:mt-11"
+          >
             <Link href="/shop" className="btn btn-solid">
               Explore the maison
             </Link>
@@ -196,7 +202,7 @@ export function HeroVideo({
           </div>
           <p
             data-hero-rest
-            className="mt-10 flex flex-wrap items-center gap-2.5 text-[0.82rem] text-ink-soft"
+            className="mt-8 flex flex-wrap items-center gap-2.5 text-[0.82rem] text-ink-soft sm:mt-10"
           >
             <Stars rating={4.9} size={14} />
             <span>

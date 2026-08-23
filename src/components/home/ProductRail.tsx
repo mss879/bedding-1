@@ -69,10 +69,12 @@ export function ProductRail({
       className={`section-y ${tone === "white" ? "bg-parchment" : ""}`}
       aria-label={title}
     >
-      <div className="container-x mb-12 flex items-end justify-between gap-6">
+      <div className="container-x mb-8 flex items-end justify-between gap-6 md:mb-12">
         <div>
           {eyebrow && <p className="eyebrow mb-4">{eyebrow}</p>}
-          <h2 className="font-display text-[2.4rem] leading-[1.05] md:text-[3.2rem]">{title}</h2>
+          <h2 className="font-display text-[2rem] leading-[1.05] xs:text-[2.4rem] md:text-[3.2rem]">
+            {title}
+          </h2>
           {subtitle && <p className="mt-4 max-w-lg text-[0.92rem] leading-relaxed text-ink-soft">{subtitle}</p>}
         </div>
         <div className="flex shrink-0 items-center gap-5">
@@ -93,7 +95,7 @@ export function ProductRail({
       <div
         ref={trackRef}
         onScroll={updateEnds}
-        className="no-scrollbar container-x flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 md:gap-6"
+        className="no-scrollbar rail-x flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 md:gap-6"
       >
         {products.map((product) => (
           <div

@@ -32,7 +32,7 @@ export default async function BasketPage() {
 
         <Reveal className="mb-10 md:mb-12">
           <p className="eyebrow">Your selection</p>
-          <h1 className="mt-3 font-display text-4xl leading-tight md:text-[3.4rem]">
+          <h1 className="mt-3 font-display text-[2.2rem] leading-tight xs:text-4xl md:text-[3.4rem]">
             The basket
           </h1>
         </Reveal>

@@ -7,15 +7,15 @@ import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import type { Category, Product } from "@/lib/types";
 import { site, whatsappLink, formatPrice } from "@/lib/site";
-import { collectionNavLabel } from "@/lib/collection-art";
 import { HeaderSearch, HeaderSearchFallback } from "./HeaderSearch";
 import { useCart } from "./cart/CartContext";
 
 /**
  * Etsy's header structure in Enivrant dress (measured from etsy.com):
- * one row — logo far left, a "Collections" button beside it, a DOMINANT search
- * field taking ~64% of the width, then icons far right — over a second row of
- * centred collection links, each opening a mega panel on hover.
+ * one row — logo far left, a DOMINANT search field taking ~64% of the width,
+ * then icons far right — over a second row of centred collection links, each
+ * opening a mega panel on hover. The six collections ARE the navigation: no
+ * dropdown button stands in front of them (client request, Aug 2026).
  */
 export function Header({
   categories,
@@ -29,9 +29,7 @@ export function Header({
   const { count } = useCart();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [catsOpen, setCatsOpen] = useState(false);
   const [megaSlug, setMegaSlug] = useState<string | null>(null);
-  const catsRef = useRef<HTMLDivElement>(null);
   const megaTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -46,23 +44,8 @@ export function Header({
   if (lastPath !== pathname) {
     setLastPath(pathname);
     setMenuOpen(false);
-    setCatsOpen(false);
     setMegaSlug(null);
   }
-
-  useEffect(() => {
-    if (!catsOpen) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setCatsOpen(false);
-    const onClick = (e: MouseEvent) => {
-      if (catsRef.current && !catsRef.current.contains(e.target as Node)) setCatsOpen(false);
-    };
-    document.addEventListener("keydown", onKey);
-    document.addEventListener("mousedown", onClick);
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.removeEventListener("mousedown", onClick);
-    };
-  }, [catsOpen]);
 
   useEffect(() => () => {
     if (megaTimer.current) clearTimeout(megaTimer.current);
@@ -83,14 +66,23 @@ export function Header({
 
   return (
     <header className="sticky top-0 z-40" onMouseLeave={closeMega}>
-      {/* Announcement rail */}
-      <div className="bg-ink text-linen">
-        <p className="container-x py-2 text-center text-[0.62rem] font-medium tracking-[0.22em] uppercase">
-          Complimentary island-wide delivery over Rs 25,000
-          <span aria-hidden className="mx-3 text-linen/40">
-            ·
+      {/* Announcement rail. On a phone the sticky header is already eating a
+          fifth of the screen, so the rail carries a short line and rolls itself
+          up the moment the page is scrolled; on desktop it always stays. */}
+      <div
+        className={`overflow-hidden bg-ink text-linen transition-[max-height] duration-300 ease-out ${
+          scrolled ? "max-h-0 lg:max-h-12" : "max-h-12"
+        }`}
+      >
+        <p className="container-x py-2 text-center text-[0.56rem] font-medium tracking-[0.16em] uppercase xs:text-[0.62rem] xs:tracking-[0.22em]">
+          <span className="sm:hidden">Free delivery over Rs 25,000</span>
+          <span className="hidden sm:inline">
+            Complimentary island-wide delivery over Rs 25,000
+            <span aria-hidden className="mx-3 text-linen/40">
+              ·
+            </span>
+            Gift wrapping on every order
           </span>
-          <span className="hidden sm:inline">Gift wrapping on every order</span>
         </p>
       </div>
 
@@ -99,9 +91,13 @@ export function Header({
           scrolled ? "shadow-lift" : "shadow-[0_1px_0_var(--color-board)]"
         }`}
       >
-        {/* Row 1 — logo · collections · dominant search · icons */}
-        <div className="container-x flex items-center gap-3 py-3.5 lg:gap-5">
-          <Link href="/" className="shrink-0" aria-label={`${site.name} home`}>
+        {/* Row 1 — logo · dominant search · icons */}
+        <div className="container-x flex items-center gap-3 py-2.5 md:py-3.5 lg:gap-5">
+          <Link
+            href="/"
+            className="flex shrink-0 items-center py-2.5"
+            aria-label={`${site.name} home`}
+          >
             <Image
               src="/brand/enivrant-wordmark.png"
               alt={site.nameUpper}
@@ -112,65 +108,6 @@ export function Header({
             />
           </Link>
 
-          {/* Collections button (desktop) */}
-          <div ref={catsRef} className="relative hidden shrink-0 lg:block">
-            <button
-              onClick={() => setCatsOpen((v) => !v)}
-              aria-expanded={catsOpen}
-              aria-haspopup="true"
-              className={`flex items-center gap-2 rounded-sm px-3 py-2.5 text-[0.66rem] font-medium tracking-[0.14em] uppercase transition-colors ${
-                catsOpen ? "bg-ink text-white" : "hover:bg-ink/5"
-              }`}
-            >
-              <BurgerIcon className="h-3.5 w-3.5" />
-              Collections
-            </button>
-            <AnimatePresence>
-              {catsOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 8 }}
-                  transition={{ duration: 0.2, ease: "easeOut" }}
-                  className="absolute left-0 top-[calc(100%+12px)] w-[620px] rounded-sm border hairline bg-white p-4 shadow-pop"
-                >
-                  <div className="grid grid-cols-2 gap-1">
-                    {categories.map((c) => (
-                      <Link
-                        key={c.slug}
-                        href={`/shop?category=${c.slug}`}
-                        onClick={() => setCatsOpen(false)}
-                        className="flex items-center gap-3.5 rounded-sm p-2.5 transition-colors hover:bg-cream"
-                      >
-                        <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-sm bg-sand">
-                          <Image src={c.image} alt="" fill sizes="56px" className="object-cover" />
-                        </span>
-                        <span className="min-w-0">
-                          <span className="block font-display text-[1.05rem] leading-tight">
-                            {c.name}
-                          </span>
-                          <span className="mt-1 line-clamp-1 block text-xs text-ink-soft">
-                            {c.description}
-                          </span>
-                        </span>
-                      </Link>
-                    ))}
-                    <Link
-                      href="/shop"
-                      onClick={() => setCatsOpen(false)}
-                      className="flex items-center gap-3.5 rounded-sm p-2.5 transition-colors hover:bg-cream"
-                    >
-                      <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-sm bg-accent-tint text-clay">
-                        →
-                      </span>
-                      <span className="link-rule">Shop everything</span>
-                    </Link>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
           {/* Dominant search — Etsy's centrepiece (~64% of the row) */}
           <div className="hidden min-w-0 flex-1 md:block">
             <Suspense fallback={<HeaderSearchFallback />}>
@@ -179,6 +116,12 @@ export function Header({
           </div>
 
           <div className="ml-auto flex shrink-0 items-center gap-0.5 md:ml-0">
+            <Link
+              href="/hotel-bulk"
+              className="mr-4 hidden text-[0.66rem] font-medium tracking-[0.14em] uppercase transition-colors hover:text-clay lg:inline"
+            >
+              Hotel &amp; Trade
+            </Link>
             <Link
               href="/contact"
               className="mr-1.5 hidden text-[0.66rem] font-medium tracking-[0.14em] uppercase transition-colors hover:text-clay lg:inline"
@@ -222,16 +165,18 @@ export function Header({
         </div>
 
         {/* Search on its own row below the logo (mobile) */}
-        <div className="container-x pb-3 md:hidden">
+        <div className="container-x pb-2.5 md:hidden">
           <Suspense fallback={<HeaderSearchFallback compact />}>
             <HeaderSearch compact />
           </Suspense>
         </div>
 
-        {/* Row 2 — centred collection links, each with a mega panel on hover */}
+        {/* Row 2 — the six collections under their full names, each with a
+            mega panel on hover. Long names, so the type tightens at lg and
+            opens back up at xl where there is room. */}
         <nav
           aria-label="Collections"
-          className="relative hidden items-center justify-center gap-1 border-t hairline lg:flex"
+          className="relative hidden items-center justify-center gap-0 border-t hairline lg:flex"
         >
           {categories.map((c) => (
             <Link
@@ -239,20 +184,13 @@ export function Header({
               href={`/shop?category=${c.slug}`}
               onMouseEnter={() => openMega(c.slug)}
               onFocus={() => openMega(c.slug)}
-              className={`whitespace-nowrap px-3.5 py-3 text-[0.68rem] font-medium tracking-[0.16em] uppercase transition-colors ${
+              className={`whitespace-nowrap px-2.5 py-3 text-[0.62rem] font-medium tracking-[0.1em] uppercase transition-colors xl:px-3.5 xl:text-[0.68rem] xl:tracking-[0.14em] ${
                 megaSlug === c.slug ? "text-clay" : "text-ink-soft hover:text-clay"
               }`}
             >
-              {collectionNavLabel(c.slug, c.name)}
+              {c.name}
             </Link>
           ))}
-          <Link
-            href="/hotel-bulk"
-            onMouseEnter={closeMega}
-            className="whitespace-nowrap px-3.5 py-3 text-[0.68rem] font-medium tracking-[0.16em] uppercase text-ink-soft transition-colors hover:text-clay"
-          >
-            Hotel &amp; Trade
-          </Link>
         </nav>
       </div>
 
@@ -317,7 +255,9 @@ export function Header({
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
           >
-            <div className="container-x flex flex-col gap-0.5 py-4">
+            {/* Capped and scrollable so the drawer still works on a short
+                phone in landscape, where 10 items overflow the viewport. */}
+            <div className="container-x flex max-h-[calc(100svh-8rem)] flex-col gap-0.5 overflow-y-auto py-4">
               {[
                 { href: "/shop", label: "Shop everything" },
                 ...categories.map((c) => ({
@@ -348,14 +288,6 @@ export function Header({
         )}
       </AnimatePresence>
     </header>
-  );
-}
-
-function BurgerIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-      <path d="M4 6h16M4 12h16M4 18h16" strokeLinecap="round" />
-    </svg>
   );
 }
 

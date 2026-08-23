@@ -37,22 +37,3 @@ export function collectionTagline(slug?: string): string {
   if (!slug) return "Six collections, one atelier";
   return TAGLINES[slug] ?? "From the atelier";
 }
-
-/**
- * Short labels for the horizontal nav row. Full collection names ("Luxury
- * Wellness & Self-Care") are right for headings and the dropdown, but they wrap
- * the nav onto two lines — so the bar uses these instead, falling back to the
- * full name for any collection created in /admin.
- */
-const NAV_LABELS: Record<string, string> = {
-  wellness: "Wellness",
-  fragrances: "Fragrance",
-  "home-living": "Home & Living",
-  jewelry: "Pearls & Jewelry",
-  fashion: "Fashion",
-  bedlinen: "Bedlinen",
-};
-
-export function collectionNavLabel(slug: string, name: string): string {
-  return NAV_LABELS[slug] ?? name;
-}

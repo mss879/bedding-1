@@ -71,7 +71,7 @@ export function PinnedCollections({ categories }: { categories: Category[] }) {
         <div className="container-x mb-12 flex flex-wrap items-end justify-between gap-5 lg:mb-10">
           <div>
             <p className="eyebrow">Six collections</p>
-            <h2 className="mt-4 font-display text-[2.6rem] leading-[1.02] md:text-6xl">
+            <h2 className="mt-4 font-display text-[2.1rem] leading-[1.02] xs:text-[2.6rem] md:text-6xl">
               Everything the <span className="italic text-clay">senses</span> ask for.
             </h2>
           </div>
@@ -82,13 +82,13 @@ export function PinnedCollections({ categories }: { categories: Category[] }) {
 
         <div
           ref={trackRef}
-          className="no-scrollbar flex gap-5 overflow-x-auto px-5 md:px-12 lg:overflow-visible lg:will-change-transform"
+          className="no-scrollbar flex gap-4 overflow-x-auto px-6 scroll-pl-6 md:gap-5 md:px-14 md:scroll-pl-14 lg:overflow-visible lg:will-change-transform"
         >
           {categories.map((c, i) => (
             <Link
               key={c.slug}
               href={`/shop?category=${c.slug}`}
-              className="group w-[76vw] shrink-0 sm:w-[46vw] lg:w-[40.5vh]"
+              className="group w-[72vw] shrink-0 xs:w-[66vw] sm:w-[46vw] lg:w-[40.5vh]"
             >
               <span className="relative block aspect-[4/5] overflow-hidden rounded-sm bg-sand lg:aspect-[3/4]">
                 <span data-panel-img className="absolute -inset-x-[10%] inset-y-0 will-change-transform">

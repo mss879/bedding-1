@@ -53,7 +53,7 @@ export default function AboutPage() {
           animateOnMount
           delay={0.15}
           lines={["A house built", "around the senses."]}
-          className="mt-5 max-w-4xl font-display text-5xl leading-[1.04] md:text-7xl"
+          className="mt-5 max-w-4xl font-display text-[2.5rem] leading-[1.04] xs:text-5xl md:text-7xl"
         />
 
         <div className="mt-16 grid gap-10 md:mt-20 lg:grid-cols-[1fr_1fr] lg:gap-14">
@@ -103,7 +103,7 @@ export default function AboutPage() {
         <div className="container-x">
           <Reveal className="mb-12 max-w-xl">
             <p className="eyebrow">Our promise</p>
-            <h2 className="mt-4 font-display text-4xl leading-tight md:text-5xl">
+            <h2 className="mt-4 font-display text-[2.1rem] leading-tight xs:text-4xl md:text-5xl">
               What we stand on
             </h2>
           </Reveal>
@@ -144,7 +144,7 @@ export default function AboutPage() {
           </div>
 
           <Reveal className="mx-auto mt-20 max-w-xl text-center">
-            <h2 className="font-display text-4xl leading-tight md:text-5xl">
+            <h2 className="font-display text-[2.1rem] leading-tight xs:text-4xl md:text-5xl">
               Come and live with it
             </h2>
             <p className="mt-4 text-[0.95rem] leading-relaxed text-ink-soft">

@@ -98,7 +98,7 @@ export function CartDrawer() {
                         <div className="mt-auto flex items-center justify-between">
                           <div className="flex items-center rounded-sm border hairline bg-white">
                             <button
-                              className="flex h-8 w-8 items-center justify-center text-base leading-none transition-colors hover:bg-ink/5"
+                              className="flex h-9 w-9 items-center justify-center text-base leading-none transition-colors hover:bg-ink/5"
                               onClick={() =>
                                 updateQuantity(item.productSlug, item.sizeName, item.quantity - 1)
                               }
@@ -108,7 +108,7 @@ export function CartDrawer() {
                             </button>
                             <span className="w-7 text-center text-sm">{item.quantity}</span>
                             <button
-                              className="flex h-8 w-8 items-center justify-center text-base leading-none transition-colors hover:bg-ink/5"
+                              className="flex h-9 w-9 items-center justify-center text-base leading-none transition-colors hover:bg-ink/5"
                               onClick={() =>
                                 updateQuantity(item.productSlug, item.sizeName, item.quantity + 1)
                               }
@@ -130,7 +130,7 @@ export function CartDrawer() {
                   ))}
                 </ul>
 
-                <div className="border-t hairline bg-white px-6 py-6">
+                <div className="border-t hairline bg-white px-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-6">
                   <div className="mb-1.5 flex items-baseline justify-between">
                     <span className="text-[0.7rem] font-medium tracking-[0.18em] uppercase">
                       Subtotal

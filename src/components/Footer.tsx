@@ -9,9 +9,9 @@ export function Footer({ categories }: { categories: Category[] }) {
     <footer>
       {/* Newsletter band */}
       <div className="bg-beeswax">
-        <div className="container-x flex flex-col items-center gap-6 py-16 text-center md:py-20">
+        <div className="container-x flex flex-col items-center gap-5 py-14 text-center md:gap-6 md:py-20">
           <p className="eyebrow">The maison letter</p>
-          <p className="max-w-xl font-display text-3xl leading-tight md:text-[2.6rem]">
+          <p className="max-w-xl font-display text-[1.75rem] leading-tight xs:text-3xl md:text-[2.6rem]">
             New compositions, private previews and the occasional invitation.
           </p>
           <div className="w-full max-w-md">
@@ -61,19 +61,24 @@ export function Footer({ categories }: { categories: Category[] }) {
             <p className="mb-6 text-[0.62rem] font-medium tracking-[0.22em] uppercase text-linen/60">
               Collections
             </p>
-            <ul className="space-y-3.5 text-sm">
+            {/* py-1.5 rather than a list gap: the padding is part of each
+                link, so a thumb has ~34px to land on instead of 21px. */}
+            <ul className="-my-1.5 space-y-0.5 text-sm">
               {categories.map((c) => (
                 <li key={c.slug}>
                   <Link
                     href={`/shop?category=${c.slug}`}
-                    className="text-linen/80 transition-colors hover:text-clay"
+                    className="block py-1.5 text-linen/80 transition-colors hover:text-clay"
                   >
                     {c.name}
                   </Link>
                 </li>
               ))}
               <li>
-                <Link href="/shop" className="text-linen/80 transition-colors hover:text-clay">
+                <Link
+                  href="/shop"
+                  className="block py-1.5 text-linen/80 transition-colors hover:text-clay"
+                >
                   Shop everything
                 </Link>
               </li>
@@ -84,27 +89,22 @@ export function Footer({ categories }: { categories: Category[] }) {
             <p className="mb-6 text-[0.62rem] font-medium tracking-[0.22em] uppercase text-linen/60">
               The maison
             </p>
-            <ul className="space-y-3.5 text-sm">
-              <li>
-                <Link href="/about" className="text-linen/80 transition-colors hover:text-clay">
-                  Our story
-                </Link>
-              </li>
-              <li>
-                <Link href="/hotel-bulk" className="text-linen/80 transition-colors hover:text-clay">
-                  Hotel &amp; trade
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" className="text-linen/80 transition-colors hover:text-clay">
-                  Contact &amp; concierge
-                </Link>
-              </li>
-              <li>
-                <Link href="/basket" className="text-linen/80 transition-colors hover:text-clay">
-                  Your basket
-                </Link>
-              </li>
+            <ul className="-my-1.5 space-y-0.5 text-sm">
+              {[
+                { href: "/about", label: "Our story" },
+                { href: "/hotel-bulk", label: "Hotel & trade" },
+                { href: "/contact", label: "Contact & concierge" },
+                { href: "/basket", label: "Your basket" },
+              ].map((item) => (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    className="block py-1.5 text-linen/80 transition-colors hover:text-clay"
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
@@ -112,19 +112,22 @@ export function Footer({ categories }: { categories: Category[] }) {
             <p className="mb-6 text-[0.62rem] font-medium tracking-[0.22em] uppercase text-linen/60">
               Reach us
             </p>
-            <ul className="space-y-3.5 text-sm text-linen/80">
+            <ul className="space-y-2 text-sm break-words text-linen/80">
               {site.addressLines.map((line) => (
                 <li key={line}>{line}</li>
               ))}
               <li>
-                <a href={`mailto:${site.email}`} className="transition-colors hover:text-clay">
+                <a
+                  href={`mailto:${site.email}`}
+                  className="inline-block py-1.5 transition-colors hover:text-clay"
+                >
                   {site.email}
                 </a>
               </li>
               <li>
                 <a
                   href={`tel:${site.phone.replace(/\s/g, "")}`}
-                  className="transition-colors hover:text-clay"
+                  className="inline-block py-1.5 transition-colors hover:text-clay"
                 >
                   {site.phone}
                 </a>
@@ -134,7 +137,7 @@ export function Footer({ categories }: { categories: Category[] }) {
                   href={whatsappLink(`Hello ${site.name}!`)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 font-medium text-clay transition-colors hover:text-linen"
+                  className="inline-flex items-center gap-2 py-1.5 font-medium text-clay transition-colors hover:text-linen"
                 >
                   Chat on WhatsApp
                 </a>
@@ -144,7 +147,7 @@ export function Footer({ categories }: { categories: Category[] }) {
         </div>
 
         <div className="border-t border-linen/10">
-          <div className="container-x flex flex-col items-center justify-between gap-3 py-6 text-[0.7rem] text-linen/55 md:flex-row">
+          <div className="container-x flex flex-col items-center justify-between gap-3 py-6 text-center text-[0.7rem] leading-relaxed text-linen/55 md:flex-row md:text-left">
             <p className="flex items-center gap-2">
               <GlobeIcon className="h-3.5 w-3.5" />
               Sri Lanka&ensp;|&ensp;English (UK)&ensp;|&ensp;Rs (LKR)

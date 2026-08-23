@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Jost } from "next/font/google";
+import { Bodoni_Moda, Cormorant_Garamond, Jost } from "next/font/google";
 import "./globals.css";
 import { site } from "@/lib/site";
 
@@ -8,6 +8,17 @@ const cormorant = Cormorant_Garamond({
   variable: "--font-cormorant",
   subsets: ["latin"],
   weight: ["300", "400", "500", "600"],
+  style: ["normal", "italic"],
+});
+
+// Wordmark: the ENIVRANT lockup is a high-contrast didone with hairline
+// strokes and flat, unbracketed serifs — Cormorant is a garalde and reads
+// noticeably softer beside it. Bodoni Moda is the closest web face, so the
+// hero headline is set in it and reads as an extension of the logo.
+const bodoni = Bodoni_Moda({
+  variable: "--font-bodoni",
+  subsets: ["latin"],
+  weight: ["400", "500"],
   style: ["normal", "italic"],
 });
 
@@ -50,7 +61,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${cormorant.variable} ${jost.variable} h-full antialiased`}>
+    <html lang="en" className={`${cormorant.variable} ${bodoni.variable} ${jost.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">
         <script
           type="application/ld+json"
