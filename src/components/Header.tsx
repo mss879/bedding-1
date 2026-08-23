@@ -117,12 +117,6 @@ export function Header({
 
           <div className="ml-auto flex shrink-0 items-center gap-0.5 md:ml-0">
             <Link
-              href="/hotel-bulk"
-              className="mr-4 hidden text-[0.66rem] font-medium tracking-[0.14em] uppercase transition-colors hover:text-clay lg:inline"
-            >
-              Hotel &amp; Trade
-            </Link>
-            <Link
               href="/contact"
               className="mr-1.5 hidden text-[0.66rem] font-medium tracking-[0.14em] uppercase transition-colors hover:text-clay lg:inline"
             >
