@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Bodoni_Moda, Cormorant_Garamond, Jost } from "next/font/google";
 import "./globals.css";
-import { site } from "@/lib/site";
+import { robotsFor, site } from "@/lib/site";
 
 // Display: a high-contrast garalde that echoes the ENIVRANT wordmark.
 const cormorant = Cormorant_Garamond({
@@ -31,26 +31,87 @@ const jost = Jost({
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
   title: {
-    default: `${site.name} — ${site.tagline}`,
+    // The default carries the categories a stranger would actually search for;
+    // the brand line does the emotive work on the share card instead.
+    default: `${site.name} — Luxury Fragrance, Pearls, Fashion & Fine Bedlinen`,
     template: `%s — ${site.name}`,
   },
   description: site.description,
+  keywords: site.keywords,
+  applicationName: site.name,
+  category: "shopping",
+  alternates: { canonical: "/" },
   openGraph: {
-    title: `${site.name} — ${site.tagline}`,
-    description: site.description,
+    title: `${site.name} — ${site.headline}`,
+    description: site.shareDescription,
+    url: site.url,
+    siteName: site.name,
+    locale: "en_GB",
     type: "website",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: `${site.name} — ${site.headline}`,
+    description: site.shareDescription,
+  },
+  robots: robotsFor(true),
+  formatDetection: { telephone: false },
 };
 
-const organizationJsonLd = {
+// One graph rather than three loose blobs, so the Organization can be
+// referenced by @id from the store and the site instead of being repeated.
+const jsonLd = {
   "@context": "https://schema.org",
-  "@type": "Organization",
-  name: site.name,
-  description: site.description,
-  url: site.url,
-  email: site.email,
-  telephone: site.phone,
-  logo: `${site.url}/brand/enivrant-lockup.png`,
+  "@graph": [
+    {
+      "@type": ["Organization", "OnlineStore"],
+      "@id": `${site.url}/#organization`,
+      name: site.name,
+      alternateName: site.nameUpper,
+      slogan: site.headline,
+      description: site.description,
+      url: site.url,
+      email: site.email,
+      telephone: site.phone,
+      logo: {
+        "@type": "ImageObject",
+        url: `${site.url}/brand/enivrant-lockup.png`,
+        width: 1034,
+        height: 459,
+      },
+      image: `${site.url}/opengraph-image.png`,
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: "Colombo",
+        addressCountry: "LK",
+      },
+      contactPoint: {
+        "@type": "ContactPoint",
+        contactType: "customer service",
+        email: site.email,
+        telephone: site.phone,
+        availableLanguage: ["en"],
+      },
+      sameAs: [site.instagram, site.facebook, site.pinterest],
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${site.url}/#website`,
+      name: site.name,
+      url: site.url,
+      description: site.description,
+      inLanguage: "en-GB",
+      publisher: { "@id": `${site.url}/#organization` },
+      potentialAction: {
+        "@type": "SearchAction",
+        target: {
+          "@type": "EntryPoint",
+          urlTemplate: `${site.url}/shop?q={search_term_string}`,
+        },
+        "query-input": "required name=search_term_string",
+      },
+    },
+  ],
 };
 
 // Storefront chrome (header, footer, cart) lives in (store)/layout.tsx; the
@@ -65,7 +126,7 @@ export default function RootLayout({
       <body className="flex min-h-full flex-col">
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
         {children}
       </body>

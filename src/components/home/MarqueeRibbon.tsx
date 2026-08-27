@@ -1,12 +1,13 @@
 import { VelocityMarquee } from "@/components/anim/VelocityMarquee";
+import { formatPrice, FREE_DELIVERY_FROM } from "@/lib/site";
 
 const items = [
   "Complimentary gift wrapping",
   "365-day guarantee",
-  "Free delivery over Rs 25,000",
-  "Made by hand in Colombo",
+  `Free delivery over ${formatPrice(FREE_DELIVERY_FROM)}`,
+  "Curated, never mass-produced",
   "Hotel & villa partners",
-  "Responsibly sourced materials",
+  "Authenticity assured on every piece",
 ];
 
 /** Scroll-reactive promo strip — drifts on its own, speeds up with scroll. */

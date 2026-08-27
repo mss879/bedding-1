@@ -4,10 +4,9 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { gsap, SplitText, useGSAP, MOTION_OK, MOTION_REDUCE } from "@/lib/gsap";
-import { Stars } from "@/components/Stars";
 
 /**
- * The maison hero: a full-bleed cinematic loop of the atelier with the headline
+ * The maison hero: a full-bleed cinematic loop of the maison with the headline
  * set over an ivory scrim.
  *
  * The film is a boomerang (forward + reversed), so it loops with no cut at all.
@@ -170,26 +169,31 @@ export function HeroVideo({
       {/* svh, not vh: on iOS/Android the URL bar makes 100vh taller than the
           visible viewport, which pushed the CTAs under the fold on first paint. */}
       <div className="container-x relative flex min-h-[calc(100svh-11rem)] items-center py-16 sm:py-24 md:min-h-[calc(100svh-9rem)] md:py-32">
-        <div data-hero-copy className="max-w-3xl">
+        <div data-hero-copy className="max-w-4xl">
           {/* Set in the wordmark's own face, so the headline reads as the logo
               grown large rather than a second serif beside it.
 
               The two halves are their own blocks rather than one wrapping
-              string: left to the browser it broke after "An" and left a single
-              word stranded on the first line. Sizes are tuned so each half
-              clears its line at every width, down to a 320px phone. */}
+              string: left to the browser it broke mid-phrase and stranded a
+              word on its own line. Sizes are tuned so the longer half —
+              "Becomes a Lifestyle" — clears its line at every width. Below the
+              xs breakpoint the size is fluid rather than fixed: at a flat
+              2.05rem the second half wrapped on a 320px phone and stranded
+              "Lifestyle" on a third line. */}
           <h1
             data-hero-heading
-            className="font-wordmark text-[2.35rem] font-normal leading-[1.04] tracking-[-0.01em] text-ink xs:text-[2.9rem] sm:text-[4.2rem] md:text-[5.2rem] md:leading-[0.98] xl:text-[6.2rem]"
+            className="font-wordmark text-[clamp(1.55rem,8.4vw,2.05rem)] font-normal leading-[1.06] tracking-[-0.01em] text-ink xs:text-[2.55rem] sm:text-[3.6rem] md:text-[4.6rem] md:leading-[1] xl:text-[5.4rem]"
           >
-            <span className="block">An intoxication</span>
-            <span className="block">of the senses.</span>
+            <span className="block">Where Elegance</span>
+            <span className="block">Becomes a Lifestyle</span>
           </h1>
           <p
             data-hero-rest
-            className="mt-6 max-w-lg text-balance text-[0.92rem] leading-[1.75] text-ink-soft sm:mt-8 sm:text-[0.98rem] sm:leading-[1.85]"
+            className="mt-6 max-w-xl text-balance text-[0.92rem] leading-[1.75] text-ink-soft sm:mt-8 sm:text-[0.98rem] sm:leading-[1.85]"
           >
-            Quiet luxury from Colombo, for people who notice the difference.
+            Indulge in a curated universe of refinement — from the art of
+            self-care and rare fragrances to timeless pearls, Luxury Fashion
+            Designer Selects, and the serenity of fine bedlinen.
           </p>
           {/* Stacked and full-bleed on a phone — two half-width buttons of
               different lengths read as a mistake at this size. */}
@@ -204,31 +208,26 @@ export function HeroVideo({
               Discover fragrance
             </Link>
           </div>
-          <p
+          <ul
             data-hero-rest
-            className="mt-8 flex flex-wrap items-center gap-2.5 text-[0.82rem] text-ink-soft sm:mt-10"
+            className="mt-8 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-[0.78rem] text-ink-soft sm:mt-10 sm:text-[0.82rem]"
           >
-            <Stars rating={4.9} size={14} />
-            <span>
-              <strong className="font-medium text-ink">4.9</strong> from 12,000+ collectors
-            </span>
-          </p>
+            {["Curated, never mass-produced", "Authenticity assured"].map(
+              (item, i) => (
+                <li key={item} className="flex items-center gap-2.5">
+                  {i > 0 && (
+                    <span aria-hidden className="text-clay/50">
+                      ✦
+                    </span>
+                  )}
+                  {item}
+                </li>
+              )
+            )}
+          </ul>
         </div>
       </div>
 
-      {/* Scroll cue */}
-      <div
-        data-hero-rest
-        aria-hidden
-        className="absolute inset-x-0 bottom-8 hidden justify-center md:flex"
-      >
-        <span className="flex flex-col items-center gap-3">
-          <span className="text-[0.58rem] font-medium tracking-[0.3em] uppercase text-ink-soft">
-            Scroll
-          </span>
-          <span className="h-12 w-px bg-gradient-to-b from-clay to-transparent" />
-        </span>
-      </div>
     </section>
   );
 }

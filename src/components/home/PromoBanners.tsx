@@ -46,11 +46,11 @@ export function PromoBanners({
           <div className="flex flex-1 flex-col items-start justify-center gap-4 p-9 md:p-11">
             <span className="eyebrow">Hospitality &amp; trade</span>
             <h3 className="font-display text-[2.1rem] leading-tight md:text-[2.5rem]">
-              Whole properties, one atelier.
+              Whole properties, one house.
             </h3>
             <p className="max-w-xs text-sm leading-relaxed text-ink-soft">
-              Guest rooms, spas and amenity programmes supplied to spec — priced by
-              volume, sampled before you commit.
+              Guest rooms, spas and amenity programmes supplied to spec through our
+              partner makers — priced by volume, sampled before you commit.
             </p>
             <Link href="/hotel-bulk" className="btn btn-solid btn-sm mt-1">
               Request a trade quote

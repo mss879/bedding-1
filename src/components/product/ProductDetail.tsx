@@ -75,7 +75,7 @@ export function ProductDetail({ product }: { product: Product }) {
       key: "shipping" as const,
       label: "Delivery & returns",
       items: [
-        "Dispatched from our Colombo atelier within 2–4 working days",
+        "Dispatched from our Colombo boutique within 2–4 working days",
         `Complimentary island-wide delivery over ${formatPrice(FREE_DELIVERY_FROM)}`,
         "365-day guarantee — live with it, then decide",
         "Exchanges within 30 days, unworn and in original packaging",

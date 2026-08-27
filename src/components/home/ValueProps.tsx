@@ -4,16 +4,16 @@ import { site } from "@/lib/site";
 
 const props = [
   {
-    title: "Composed by hand",
-    body: "Every fragrance is blended, every pearl knotted and every hem finished by a person in our Colombo atelier. Small batches, signed work, no production line.",
+    title: "Carefully curated",
+    body: "Luxury is not mass-produced. Every piece is chosen for authenticity, craftsmanship and exclusivity — the finest expressions of elegance across fragrance, wellness, fashion, home and jewellery.",
   },
   {
-    title: "Direct from the atelier",
-    body: "No distributors, no department-store margin. What you order is made for you and leaves our door the same week.",
+    title: "Sourced through relationships",
+    body: "We work in close partnership with select manufacturers and suppliers, so we can tell you where a piece came from and who made it — not simply that it arrived.",
   },
   {
-    title: "Kept, not replaced",
-    body: "A 365-day guarantee, refillable vessels, free resizing on rings and a real person on WhatsApp whenever you need one.",
+    title: "Customer excellence, always",
+    body: "A 365-day guarantee, complimentary wrapping and a real person on WhatsApp. Every client is treated as an opportunity to deliver excellence, not a ticket number.",
   },
 ];
 

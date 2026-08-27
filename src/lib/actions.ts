@@ -3,7 +3,7 @@
 import { randomUUID } from "node:crypto";
 import { getSupabaseAdmin } from "./supabase-admin";
 import { getProduct } from "./catalog";
-import { paymentMethodLabel, site } from "./site";
+import { formatPrice, paymentMethodLabel, site } from "./site";
 import type { InquiryInput, OrderInput, PaymentMethod, ProductSize } from "./types";
 
 function orderReference() {
@@ -123,7 +123,7 @@ export async function placeOrder(input: OrderInput): Promise<PlaceOrderResult> {
   const summary = lines
     .map((l) => `• ${l.product_name} (${l.size_name}) × ${l.quantity}`)
     .join("\n");
-  const message = `Hello ${site.name}! I just placed order ${reference}.\n\n${summary}\n\nTotal: Rs ${total.toLocaleString("en-US")}\nPayment: ${paymentMethodLabel(input.paymentMethod)}\nName: ${input.customerName}\nDelivery: ${input.address}, ${input.city}`;
+  const message = `Hello ${site.name}! I just placed order ${reference}.\n\n${summary}\n\nTotal: ${formatPrice(total)}\nPayment: ${paymentMethodLabel(input.paymentMethod)}\nName: ${input.customerName}\nDelivery: ${input.address}, ${input.city}`;
   const whatsappUrl = `https://wa.me/${site.whatsappNumber}?text=${encodeURIComponent(message)}`;
 
   return { ok: true, reference, total, whatsappUrl, paymentMethod: input.paymentMethod };

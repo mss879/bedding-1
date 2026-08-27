@@ -4,17 +4,65 @@ import Link from "next/link";
 import { getCategories, getNavCategories, getProducts } from "@/lib/catalog";
 import { productRating } from "@/lib/ratings";
 import { collectionBanner, collectionTagline } from "@/lib/collection-art";
+import { robotsFor, site } from "@/lib/site";
 import type { Product } from "@/lib/types";
 import { ProductCard } from "@/components/ProductCard";
 import { Reveal, Stagger, StaggerItem } from "@/components/anim/Reveal";
 import { SortSelect } from "@/components/shop/SortSelect";
 import { FilterPanel } from "@/components/shop/FilterPanel";
 
-export const metadata: Metadata = {
-  title: "Shop",
-  description:
-    "Browse the Enivrant maison — fragrance, wellness rituals, home pieces, pearls and fine jewellery, fashion accessories and bedlinen, ready to send from our Colombo atelier.",
-};
+const SHOP_DESCRIPTION =
+  "Shop the Enivrant maison — rare fragrance, wellness rituals, home pieces, pearls and fine jewellery, designer fashion selects and hotel-grade bedlinen. Curated, never mass-produced.";
+
+/**
+ * Every collection, filter, sort and search on the storefront is a query string
+ * on this one route, so the head has to say which of those are real pages.
+ *
+ * A collection view is: it is what a shopper lands on from search, so it gets
+ * its own title, description and self-referencing canonical. Everything else —
+ * a text search, a price band, a material tick — is a slice of the same
+ * inventory, so it canonicalises back to its collection and is kept out of the
+ * index rather than competing with it.
+ */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    category?: string;
+    q?: string;
+    sort?: string;
+    sale?: string;
+    minPrice?: string;
+    maxPrice?: string;
+    materials?: string;
+    colors?: string;
+    inStock?: string;
+  }>;
+}): Promise<Metadata> {
+  const { category: slug, q, sale, sort, minPrice, maxPrice, materials, colors, inStock } =
+    await searchParams;
+  const category = slug
+    ? (await getCategories()).find((c) => c.slug === slug)
+    : undefined;
+
+  const filtered = Boolean(q || sale || sort || minPrice || maxPrice || materials || colors || inStock);
+  const canonical = category ? `/shop?category=${category.slug}` : "/shop";
+
+  return {
+    title: category ? category.name : "Shop",
+    description: category
+      ? `${category.description} Curated by ${site.name} — authenticity assured, delivered across Sri Lanka.`
+      : SHOP_DESCRIPTION,
+    alternates: { canonical },
+    openGraph: {
+      title: category ? `${category.name} — ${site.name}` : `Shop — ${site.name}`,
+      description: category ? category.description : SHOP_DESCRIPTION,
+      url: `${site.url}${canonical}`,
+      images: category ? [{ url: category.image, alt: category.name }] : undefined,
+    },
+    robots: robotsFor(!filtered),
+  };
+}
 
 function sortProducts(products: Product[], sort?: string): Product[] {
   const byPrice = (p: Product) => p.sizes[0]?.price ?? 0;
@@ -141,7 +189,7 @@ export default async function ShopPage({
     ? `${products.length} ${products.length === 1 ? "piece" : "pieces"} matching your search.`
     : activeCategory
       ? activeCategory.description
-      : "Six collections — fragrance, wellness, home, jewellery, fashion and bedlinen — composed and finished by hand.";
+      : "Six collections — fragrance, wellness, home, jewellery, fashion and bedlinen — curated piece by piece.";
 
   // Carry the shopper's active filters through every chip and tile link.
   const carry = { sort, minPrice, maxPrice, materials, colors, inStock: isInStock };
@@ -294,8 +342,8 @@ export default async function ShopPage({
           <div className="py-24 text-center">
             <p className="font-display text-3xl text-ink">Nothing matched those filters.</p>
             <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-ink-soft">
-              Try widening the price range, or clearing a material or colour — the
-              atelier makes fewer things than most shops.
+              Try widening the price range, or clearing a material or colour — a
+              curated house keeps fewer things than most shops.
             </p>
             <Link href="/shop" className="btn btn-solid mt-8">
               Browse everything

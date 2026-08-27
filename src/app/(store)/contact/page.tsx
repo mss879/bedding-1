@@ -10,6 +10,7 @@ export const metadata: Metadata = {
   title: "Contact",
   description:
     "Speak to the Enivrant concierge — WhatsApp, email, phone or the contact form. A real person replies within one working day.",
+  alternates: { canonical: "/contact" },
 };
 
 export default function ContactPage() {
@@ -71,8 +72,8 @@ export default function ContactPage() {
               <div className="rounded-sm bg-beeswax p-8">
                 <h2 className="font-display text-3xl">In a hurry? WhatsApp.</h2>
                 <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-                  The fastest way to reach the atelier — replies in minutes during
-                  boutique hours.
+                  The fastest way to reach the concierge — replies in minutes
+                  during boutique hours.
                 </p>
                 <a
                   href={whatsappLink(`Hello ${site.name}!`)}
@@ -117,17 +118,6 @@ export default function ContactPage() {
                     </span>
                   </a>
                 </li>
-                <li className="flex items-center gap-4">
-                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent-tint text-clay">
-                    <PinIcon className="h-5 w-5" />
-                  </span>
-                  <span>
-                    <span className="eyebrow block">Atelier</span>
-                    <span className="mt-1 block text-[0.95rem] leading-snug text-ink">
-                      {site.addressLines[0]}, {site.addressLines[1]}
-                    </span>
-                  </span>
-                </li>
               </ul>
             </Reveal>
 
@@ -163,15 +153,6 @@ function PhoneIcon({ className }: { className?: string }) {
         strokeLinejoin="round"
         d="M5 4.5h3.2l1.6 4-2 1.5a12.5 12.5 0 0 0 6.2 6.2l1.5-2 4 1.6V19a1.5 1.5 0 0 1-1.5 1.5A15.5 15.5 0 0 1 3.5 6 1.5 1.5 0 0 1 5 4.5Z"
       />
-    </svg>
-  );
-}
-
-function PinIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden>
-      <path d="M12 21s-6.8-5.7-6.8-10.3a6.8 6.8 0 1 1 13.6 0C18.8 15.3 12 21 12 21Z" />
-      <circle cx="12" cy="10.5" r="2.4" />
     </svg>
   );
 }

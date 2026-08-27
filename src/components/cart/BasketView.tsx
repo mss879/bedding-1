@@ -38,7 +38,7 @@ export function BasketView({ suggestions }: { suggestions: Product[] }) {
             Nothing chosen yet.
           </p>
           <p className="mx-auto mt-4 max-w-sm text-sm leading-relaxed text-ink-soft">
-            Your basket is empty. The atelier keeps six collections — start
+            Your basket is empty. The maison keeps six collections — start
             wherever your senses take you.
           </p>
           <div className="mt-9 flex flex-wrap items-center justify-center gap-3">

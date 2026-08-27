@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import { useCart } from "@/components/cart/CartContext";
 import { placeOrder } from "@/lib/actions";
-import { formatPrice, paymentMethodLabel, paymentMethods } from "@/lib/site";
+import { formatPrice, paymentMethodLabel, paymentMethods, FREE_DELIVERY_FROM } from "@/lib/site";
 import type { PaymentMethod } from "@/lib/types";
 
 const labelClass = "mb-1.5 block text-[0.82rem] font-semibold text-ink";
@@ -394,7 +394,7 @@ export function CheckoutForm() {
           </li>
           <li className="flex items-center gap-2.5">
             <TruckIcon className="h-4.5 w-4.5 shrink-0 text-ink" />
-            Free delivery on orders over Rs 25,000
+            Free delivery on orders over {formatPrice(FREE_DELIVERY_FROM)}
           </li>
           <li className="flex items-center gap-2.5">
             <ChatIcon className="h-4.5 w-4.5 shrink-0 text-ink" />

@@ -4,19 +4,27 @@ import { useRef } from "react";
 import { gsap, useGSAP, MOTION_OK, MOTION_REDUCE } from "@/lib/gsap";
 import { CountUp } from "@/components/anim/CountUp";
 
-const STATS = [
-  { value: 6, suffix: "", label: "Collections" },
-  { value: 12000, suffix: "+", label: "Collectors" },
-  { value: 365, suffix: "", label: "Day guarantee" },
-  { value: 100, suffix: "%", label: "Made by hand" },
-];
-
 /**
  * A quiet band of figures that count up on entry, separated by gold hairlines
  * that draw down from nothing as the band arrives.
+ *
+ * The two catalogue figures are passed in from the page rather than hardcoded,
+ * so the band cannot drift out of step with what the maison actually stocks.
  */
-export function StatBand() {
+export function StatBand({
+  collectionCount,
+  pieceCount,
+}: {
+  collectionCount: number;
+  pieceCount: number;
+}) {
   const ref = useRef<HTMLElement>(null);
+  const stats = [
+    { value: collectionCount, suffix: "", label: "Collections" },
+    { value: pieceCount, suffix: "", label: "Pieces in the maison" },
+    { value: 100, suffix: "%", label: "Curated selection" },
+    { value: 365, suffix: "", label: "Day guarantee" },
+  ];
 
   useGSAP(
     () => {
@@ -54,7 +62,7 @@ export function StatBand() {
   return (
     <section ref={ref} className="border-y hairline bg-cream" aria-label="The maison in figures">
       <div className="container-x grid grid-cols-2 gap-y-12 py-16 md:grid-cols-4 md:gap-y-14 md:py-24">
-        {STATS.map((stat, i) => (
+        {stats.map((stat, i) => (
           <div key={stat.label} className="relative px-2 text-center xs:px-4 md:px-8">
             {i > 0 && (
               <span

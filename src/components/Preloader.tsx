@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { gsap } from "@/lib/gsap";
+import { site } from "@/lib/site";
 
 const COLLECTIONS = ["Fragrance", "Wellness", "Pearls", "Fashion", "Home", "Sleep"];
 const PANELS = 6;
@@ -18,8 +19,8 @@ const MIN_DURATION_MS = 2200;
  *
  * Build: six ivory panels stand as a curtain; a gold hairline draws across the
  * centre; the ENIVRANT lockup is wiped in behind a moving satin sheen; the six
- * collection names cycle on a loop while assets load; a quiet counter tracks
- * real progress. On completion the sheen sweeps once more, the content lifts,
+ * collection names cycle on a loop while assets load, tracking real progress
+ * silently. On completion the sheen sweeps once more, the content lifts,
  * and the six panels rise in a stagger to reveal the page — then
  * `preloader-complete` fires so the hero can start its own entrance.
  *
@@ -45,7 +46,6 @@ export function Preloader({ images, videos = [] }: { images: string[]; videos?: 
     let loaded = 0;
     const total = images.length + videos.length + 1; // images + films + fonts
     const state = { val: 0 };
-    const percentEl = rootRef.current?.querySelector<HTMLElement>("[data-percent]");
 
     if (typeof window !== "undefined") {
       (window as unknown as { __preloaderComplete?: boolean }).__preloaderComplete = false;
@@ -59,9 +59,7 @@ export function Preloader({ images, videos = [] }: { images: string[]; videos?: 
         duration: 1,
         ease: "power2.out",
         onUpdate: () => {
-          const v = Math.round(state.val);
-          if (percentEl) percentEl.textContent = String(v).padStart(2, "0");
-          if (v >= 100) setProgress(100);
+          if (Math.round(state.val) >= 100) setProgress(100);
         },
       });
     };
@@ -143,7 +141,7 @@ export function Preloader({ images, videos = [] }: { images: string[]; videos?: 
             { xPercent: 130, duration: 1.5, ease: "power2.inOut" },
             "-=0.6"
           )
-          // 4. Counter, rule and cycling words arrive.
+          // 4. Rule, cycling words and tagline arrive.
           .fromTo(
             q("[data-meta]"),
             { autoAlpha: 0, y: 16 },
@@ -283,19 +281,11 @@ export function Preloader({ images, videos = [] }: { images: string[]; videos?: 
           </div>
         </div>
 
-        {/* Counter */}
-        <div data-meta className="mt-10 flex items-baseline gap-1.5">
-          <span data-percent className="font-display text-[2.4rem] leading-none tracking-tight text-ink">
-            00
-          </span>
-          <span className="font-display text-base italic text-clay">%</span>
-        </div>
-
         <p
           data-meta
-          className="mt-8 text-[0.58rem] font-medium tracking-[0.3em] uppercase text-taupe"
+          className="mt-6 text-[0.58rem] font-medium tracking-[0.3em] uppercase text-taupe"
         >
-          Maison de Luxe · Colombo
+          {site.tagline}
         </p>
       </div>
     </div>

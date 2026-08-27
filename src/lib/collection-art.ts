@@ -23,7 +23,7 @@ const TAGLINES: Record<string, string> = {
   wellness: "The unhurried hour",
   fragrances: "Composed in Colombo",
   "home-living": "Quiet luxury, every room",
-  jewelry: "Strung and set by hand",
+  jewelry: "Hand-strung, hand-set",
   fashion: "Linen, silk, and time",
   bedlinen: "For the best night of your week",
 };
@@ -34,6 +34,6 @@ export function collectionBanner(slug?: string, fallback?: string): string {
 }
 
 export function collectionTagline(slug?: string): string {
-  if (!slug) return "Six collections, one atelier";
-  return TAGLINES[slug] ?? "From the atelier";
+  if (!slug) return "Six collections, one house";
+  return TAGLINES[slug] ?? "From the maison";
 }

@@ -23,7 +23,7 @@ export function EditorsPicks({ categories }: { categories: Category[] }) {
               The Enivrant edit
             </h2>
             <p className="mt-3 max-w-md text-sm text-ink-soft">
-              Chosen by the people who compose, string and sew it.
+              The finest expressions of elegance, chosen piece by piece.
             </p>
           </div>
           <Link href="/shop" className="link-rule">

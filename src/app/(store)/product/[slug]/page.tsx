@@ -6,13 +6,13 @@ import { site } from "@/lib/site";
 import { productRating, formatCount } from "@/lib/ratings";
 import type { Product } from "@/lib/types";
 import { ProductDetail } from "@/components/product/ProductDetail";
+import { ProductAssurance } from "@/components/product/ProductAssurance";
 import { ProductRail } from "@/components/home/ProductRail";
 import { Reveal } from "@/components/anim/Reveal";
 import { Stars } from "@/components/Stars";
 
 function productJsonLd(product: Product) {
   const prices = product.sizes.map((s) => s.price);
-  const { rating, count } = productRating(product.slug);
   return {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -21,14 +21,12 @@ function productJsonLd(product: Product) {
     image: product.images,
     material: product.material,
     brand: { "@type": "Brand", name: site.name },
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: rating,
-      reviewCount: count,
-    },
+    // No aggregateRating: the on-page ratings are placeholders until the store
+    // has a real review system, and Google's structured-data policy treats
+    // self-serving review markup as grounds for a manual action.
     offers: {
       "@type": "AggregateOffer",
-      priceCurrency: "LKR",
+      priceCurrency: "USD",
       lowPrice: Math.min(...prices),
       highPrice: Math.max(...prices),
       availability: product.in_stock
@@ -77,10 +75,19 @@ export async function generateMetadata({
   return {
     title: product.name,
     description: product.short_description,
+    alternates: { canonical: `/product/${product.slug}` },
     openGraph: {
-      title: product.name,
+      type: "website",
+      title: `${product.name} — ${site.name}`,
       description: product.short_description,
-      images: [{ url: product.images[0] }],
+      url: `${site.url}/product/${product.slug}`,
+      images: [{ url: product.images[0], width: 1200, height: 1200, alt: product.name }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${product.name} — ${site.name}`,
+      description: product.short_description,
+      images: [product.images[0]],
     },
   };
 }
@@ -178,11 +185,13 @@ export default async function ProductPage({
         </div>
       </section>
 
+      <ProductAssurance />
+
       {related.length > 0 && (
         <ProductRail
           products={related}
           eyebrow="You may also like"
-          title="From the same atelier"
+          title="From the same collection"
           moreHref="/shop"
           moreLabel="Shop everything"
         />

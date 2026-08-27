@@ -153,7 +153,7 @@ export function FilterPanel({
               <h3 className="eyebrow">Price</h3>
               <div className="flex items-center gap-3">
                 <div className="relative flex-1">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-ink-soft">Rs</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-ink-soft">$</span>
                   <input
                     type="number"
                     inputMode="numeric"
@@ -166,7 +166,7 @@ export function FilterPanel({
                 </div>
                 <span className="text-sm text-ink-soft">—</span>
                 <div className="relative flex-1">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-ink-soft">Rs</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-ink-soft">$</span>
                   <input
                     type="number"
                     inputMode="numeric"

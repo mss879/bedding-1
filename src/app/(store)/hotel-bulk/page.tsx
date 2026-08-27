@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   title: "Hotel & Trade Orders",
   description:
     "Amenity, linen and interior programmes for hotels, villas, spas and restaurants — bespoke fragrance, robes, bedlinen and stoneware at volume pricing, discussed personally on WhatsApp.",
+  alternates: { canonical: "/hotel-bulk" },
 };
 
 const segments = [
@@ -40,7 +41,7 @@ const steps = [
   { title: "Inquire", copy: "Send your property details through the form — it lands directly in our WhatsApp." },
   { title: "Consult", copy: "We talk quantities, sizes, materials, budget and timelines. Personally, not by ticket." },
   { title: "Sample", copy: "We send swatches, scent strips and a made-up room kit for your team to trial." },
-  { title: "Produce", copy: "Your order is cut, thrown, sewn and quality-checked in our own workshop, batch by batch." },
+  { title: "Produce", copy: "Your order is made and quality-checked batch by batch with the partner makers we work with directly." },
   { title: "Deliver", copy: "Packed per room and delivered on your schedule — with reorder support after." },
 ];
 

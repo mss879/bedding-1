@@ -7,23 +7,25 @@ import { ScrollExpand } from "@/components/anim/ScrollExpand";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "The maison",
+  title: "About us",
   description:
-    "The Enivrant story — a Colombo atelier composing fragrance, wellness rituals, fine pearls, quiet fashion and bedlinen by hand.",
+    "Enivrant curates the finest expressions of elegance across fashion, fragrance, wellness, home and jewellery — working in close partnership with select manufacturers and suppliers for authenticity, craftsmanship and exclusivity.",
+  alternates: { canonical: "/about" },
 };
 
+// The three qualities the partnerships exist to guarantee.
 const values = [
   {
-    title: "Made to last",
-    copy: "Unheated Ceylon sapphires, 22-momme silk, 800-fill down, full-grain leather. Materials chosen for how they hold up after the hundredth wearing — not how they photograph on the first.",
+    title: "Authenticity",
+    copy: "We know the makers behind the pieces we carry, so provenance is something we can account for rather than something we repeat from a listing. Every product is chosen with care.",
   },
   {
-    title: "Made by hand",
-    copy: "Every blend, knot, setting and hem is finished by a person. Small batches, signed work, and a name attached to each piece that leaves the door.",
+    title: "Craftsmanship",
+    copy: "Limited-edition perfumes, artisanal wellness essentials, rare pearls, fine jewellery and hotel-grade bedlinen — selected for the skill in them, not the volume behind them.",
   },
   {
-    title: "Made fairly",
-    copy: "Our atelier pays fair wages and keeps honest hours. Pearls, gemstones, flax and leather are traceable to source, and we will tell you where any of it came from.",
+    title: "Exclusivity",
+    copy: "Luxury is not mass-produced. Collections stay small and deliberate, built for discerning individuals who would rather own one considered thing than five forgettable ones.",
   },
 ];
 
@@ -40,19 +42,19 @@ export default function AboutPage() {
             </li>
             <li aria-hidden>/</li>
             <li aria-current="page" className="text-ink">
-              The maison
+              About us
             </li>
           </ol>
         </nav>
 
         <Reveal>
-          <p className="eyebrow">Our story</p>
+          <p className="eyebrow">About {site.name}</p>
         </Reveal>
         <LineReveal
           as="h1"
           animateOnMount
           delay={0.15}
-          lines={["A house built", "around the senses."]}
+          lines={["Luxury is not", "mass-produced."]}
           className="mt-5 max-w-4xl font-display text-[2.5rem] leading-[1.04] xs:text-5xl md:text-7xl"
         />
 
@@ -70,21 +72,24 @@ export default function AboutPage() {
             className="max-w-lg space-y-6 self-center text-[0.95rem] leading-relaxed text-ink-soft"
           >
             <p>
-              <span className="text-ink">Enivrant</span> — French for intoxicating —
-              began with a single question in a Colombo workshop: why does everything
-              made beautifully here leave the island under someone else&rsquo;s name?
+              At <span className="text-ink">Enivrant</span> — French for
+              intoxicating — we believe luxury is not mass-produced. It is
+              carefully curated. Our platform brings together the finest
+              expressions of elegance across fashion, fragrance, wellness, home
+              and jewellery, for discerning individuals worldwide.
             </p>
             <p>
-              We started with fragrance, because scent is the sense that keeps.
-              Jasmine picked after dark, Ceylon cinnamon from the wet zone, tea from
-              a single hill-country estate. Then the people wearing it asked for the
-              pearls, the linen, the bath, the bed.
+              We work in close partnership with select manufacturers and
+              suppliers, building personal relationships that ensure
+              authenticity, craftsmanship and exclusivity. Unlike mass-market
+              platforms, we are watchful over every customer interaction, taking
+              each purchase and each experience seriously.
             </p>
             <p>
-              Today the maison keeps six collections and one rule: nothing leaves the
-              atelier that a person here would not keep. Everything is composed, strung
-              and sewn under one roof, and every piece still passes through the same
-              small number of hands.
+              From limited-edition perfumes and artisanal wellness essentials to
+              rare pearls, fine jewellery and hotel-grade bedlinen, our
+              collections are chosen to elevate everyday living into timeless
+              luxury.
             </p>
           </Reveal>
         </div>
@@ -93,9 +98,9 @@ export default function AboutPage() {
       <ScrollExpand
         src="/images/editorial/about-pearls.webp"
         alt="Pearls being knotted onto silk thread at a jeweller's bench"
-        eyebrow="The atelier"
-        title="Slow made, in a fast world."
-        body="No seasonal churn, no landfill collections. We make fewer things, better — and we stand behind each of them for 365 days."
+        eyebrow="The collections"
+        title="Chosen, not gathered."
+        body="Six collections and one standard: every product we present is chosen with care, and nothing joins a collection simply because it filled a gap in the range."
       />
 
       {/* Values */}
@@ -144,12 +149,18 @@ export default function AboutPage() {
           </div>
 
           <Reveal className="mx-auto mt-20 max-w-xl text-center">
-            <h2 className="font-display text-[2.1rem] leading-tight xs:text-4xl md:text-5xl">
-              Come and live with it
+            <p className="eyebrow">Customer excellence</p>
+            <h2 className="mt-4 font-display text-[2.1rem] leading-tight xs:text-4xl md:text-5xl">
+              Every client, personally
             </h2>
             <p className="mt-4 text-[0.95rem] leading-relaxed text-ink-soft">
-              Browse what is on the bench right now, or write to us — every message
-              is answered by someone who works on the pieces themselves.
+              Customer excellence is our highest priority. We combine curated
+              exclusivity with human-led engagement, so every client feels
+              valued, understood and connected to the artistry behind their
+              purchase.
+            </p>
+            <p className="mt-8 font-display text-xl italic text-clay">
+              {site.name} — {site.tagline}.
             </p>
             <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
               <Link href="/shop" className="btn btn-solid">

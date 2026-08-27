@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { gsap, SplitText, useGSAP, MOTION_OK, MOTION_REDUCE } from "@/lib/gsap";
 import { FabricCanvas } from "@/components/webgl/FabricCanvas";
-import { Stars } from "@/components/Stars";
 
 export type HeroTile = { src: string; alt: string };
 
@@ -114,15 +113,15 @@ export function Hero({ tiles }: { tiles: HeroTile[] }) {
                 data-hero-heading
                 className="mt-5 font-display text-[3rem] leading-[1.02] tracking-tight text-ink sm:text-6xl md:text-7xl xl:text-[5.2rem]"
               >
-                An intoxication of the senses.
+                Where Elegance Becomes a Lifestyle
               </h1>
               <p
                 data-hero-rest
                 className="mt-7 max-w-md text-[0.95rem] leading-relaxed text-ink-soft"
               >
-                Fragrance, wellness rituals, fine pearls, quiet fashion and bedlinen
-                made for deep sleep — six collections, composed and finished by hand
-                in our Colombo atelier.
+                Indulge in a curated universe of refinement — from the art of
+                self-care and rare fragrances to timeless pearls, Luxury Fashion
+                Designer Selects, and the serenity of fine bedlinen.
               </p>
               <div data-hero-rest className="mt-10 flex flex-wrap items-center gap-3">
                 <Link href="/shop" className="btn btn-solid">
@@ -134,12 +133,9 @@ export function Hero({ tiles }: { tiles: HeroTile[] }) {
               </div>
               <p
                 data-hero-rest
-                className="mt-9 flex flex-wrap items-center gap-2.5 text-[0.82rem] text-ink-soft"
+                className="mt-9 text-[0.82rem] text-ink-soft"
               >
-                <Stars rating={4.9} size={14} />
-                <span>
-                  <strong className="font-medium text-ink">4.9</strong> from 12,000+ collectors
-                </span>
+                Curated, never mass-produced.
               </p>
             </div>
 

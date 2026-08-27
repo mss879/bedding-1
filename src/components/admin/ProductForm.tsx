@@ -371,8 +371,8 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
           <div className="hidden gap-2 text-[0.72rem] font-semibold text-fog sm:grid sm:grid-cols-[1fr_1fr_1fr_1fr_2.5rem]">
             <span>Name</span>
             <span>Dimensions</span>
-            <span>Price (Rs)</span>
-            <span>Compare-at (Rs)</span>
+            <span>Price ($)</span>
+            <span>Compare-at ($)</span>
             <span />
           </div>
           {sizes.map((row, index) => (
@@ -396,7 +396,7 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
                 min={1}
                 step={1}
                 className="field"
-                aria-label={`Size ${index + 1} price in rupees`}
+                aria-label={`Size ${index + 1} price in US dollars`}
                 placeholder="12500"
                 value={row.price}
                 onChange={(e) => setSize(row.key, { price: e.target.value })}
@@ -406,7 +406,7 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
                 min={1}
                 step={1}
                 className="field"
-                aria-label={`Size ${index + 1} compare-at price in rupees`}
+                aria-label={`Size ${index + 1} compare-at price in US dollars`}
                 placeholder="Optional"
                 value={row.compareAt}
                 onChange={(e) => setSize(row.key, { compareAt: e.target.value })}
@@ -438,7 +438,7 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
             Add size
           </button>
           <p className={hintClass}>
-            Prices are whole rupees. Compare-at shows a strikethrough &quot;was&quot; price — leave it
+            Prices are whole dollars. Compare-at shows a strikethrough &quot;was&quot; price — leave it
             blank unless the size is on sale, and keep it higher than the price.
           </p>
         </div>

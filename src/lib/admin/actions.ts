@@ -156,7 +156,7 @@ export async function saveProduct(input: ProductInput): Promise<AdminActionResul
     if (!sizeName) return { ok: false, error: "Every size needs a name." };
     const price = Math.round(Number(raw.price));
     if (!Number.isFinite(price) || price <= 0) {
-      return { ok: false, error: "Every size needs a whole-rupee price above zero." };
+      return { ok: false, error: "Every size needs a whole-dollar price above zero." };
     }
     const compare_at_price = raw.compare_at_price == null ? null : Math.round(Number(raw.compare_at_price));
     if (compare_at_price !== null && (!Number.isFinite(compare_at_price) || compare_at_price <= price)) {

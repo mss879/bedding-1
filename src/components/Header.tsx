@@ -6,7 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import type { Category, Product } from "@/lib/types";
-import { site, whatsappLink, formatPrice } from "@/lib/site";
+import { site, whatsappLink, formatPrice, FREE_DELIVERY_FROM } from "@/lib/site";
 import { HeaderSearch, HeaderSearchFallback } from "./HeaderSearch";
 import { useCart } from "./cart/CartContext";
 
@@ -75,9 +75,9 @@ export function Header({
         }`}
       >
         <p className="container-x py-2 text-center text-[0.56rem] font-medium tracking-[0.16em] uppercase xs:text-[0.62rem] xs:tracking-[0.22em]">
-          <span className="sm:hidden">Free delivery over Rs 25,000</span>
+          <span className="sm:hidden">Free delivery over {formatPrice(FREE_DELIVERY_FROM)}</span>
           <span className="hidden sm:inline">
-            Complimentary island-wide delivery over Rs 25,000
+            Complimentary island-wide delivery over {formatPrice(FREE_DELIVERY_FROM)}
             <span aria-hidden className="mx-3 text-linen/40">
               ·
             </span>
@@ -116,12 +116,6 @@ export function Header({
           </div>
 
           <div className="ml-auto flex shrink-0 items-center gap-0.5 md:ml-0">
-            <Link
-              href="/contact"
-              className="mr-1.5 hidden text-[0.66rem] font-medium tracking-[0.14em] uppercase transition-colors hover:text-clay lg:inline"
-            >
-              Concierge
-            </Link>
             <a
               href={whatsappLink(`Hello ${site.name}! I have a question.`)}
               target="_blank"

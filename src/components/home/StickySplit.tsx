@@ -84,7 +84,10 @@ export function StickySplit({
     <section ref={ref} className="section-y bg-cream" aria-label={title}>
       <div className="container-x grid gap-14 lg:grid-cols-[0.95fr_1fr] lg:gap-20">
         {/* Pinned photograph */}
-        <div className="lg:sticky lg:top-32 lg:h-[calc(100vh-16rem)]">
+        {/* top offset = sticky header (148px) + a 76px gap; the height leaves
+            the same gap underneath, so the frame is centred in what the header
+            does not cover. Revisit both if the header's height changes. */}
+        <div className="lg:sticky lg:top-[14rem] lg:h-[calc(100vh-19rem)]">
           <div className="relative h-[26rem] overflow-hidden rounded-sm bg-sand lg:h-full">
             <div data-zoom className="absolute inset-0 will-change-transform">
               <Image src={image} alt={alt} fill sizes="(max-width: 1024px) 100vw, 45vw" className="object-cover" />
