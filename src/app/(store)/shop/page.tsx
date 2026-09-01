@@ -12,7 +12,7 @@ import { SortSelect } from "@/components/shop/SortSelect";
 import { FilterPanel } from "@/components/shop/FilterPanel";
 
 const SHOP_DESCRIPTION =
-  "Shop the Enivrant maison — rare fragrance, wellness rituals, home pieces, pearls and fine jewellery, designer fashion selects and hotel-grade bedlinen. Curated, never mass-produced.";
+  "Shop the Enivrant maison — iconic fragrance, wellness rituals, home pieces, pearls and fine jewellery, designer fashion selects and hotel-grade bedlinen. Curated, never mass-produced.";
 
 /**
  * Every collection, filter, sort and search on the storefront is a query string

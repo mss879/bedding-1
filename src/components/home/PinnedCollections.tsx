@@ -101,11 +101,11 @@ export function PinnedCollections({ categories }: { categories: Category[] }) {
           <div>
             <p className="eyebrow">Six collections</p>
             <h2 className="mt-4 font-display text-[2.1rem] leading-[1.02] xs:text-[2.6rem] md:text-6xl">
-              Everything the <span className="italic text-clay">senses</span> ask for.
+              Where Elegance Meets your <span className="italic text-clay">Desire</span>
             </h2>
           </div>
           <Link href="/shop" className="link-rule">
-            Shop everything
+            Discover our universe
           </Link>
         </div>
 

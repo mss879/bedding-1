@@ -201,7 +201,7 @@ export function Header({
                   {activeMega.description}
                 </p>
                 <Link href={`/shop?category=${activeMega.slug}`} className="link-rule mt-6 inline-block">
-                  Shop the collection
+                  Explore your collection
                 </Link>
               </div>
 

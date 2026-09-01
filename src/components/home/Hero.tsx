@@ -120,22 +120,19 @@ export function Hero({ tiles }: { tiles: HeroTile[] }) {
                 className="mt-7 max-w-md text-[0.95rem] leading-relaxed text-ink-soft"
               >
                 Indulge in a curated universe of refinement — from the art of
-                self-care and rare fragrances to timeless pearls, Luxury Fashion
+                self-care and iconic fragrances to timeless pearls, Luxury Fashion
                 Designer Selects, and the serenity of fine bedlinen.
               </p>
               <div data-hero-rest className="mt-10 flex flex-wrap items-center gap-3">
                 <Link href="/shop" className="btn btn-solid">
                   Explore the maison
                 </Link>
-                <Link href="/shop?category=fragrances" className="btn btn-outline">
-                  Discover fragrance
-                </Link>
               </div>
               <p
                 data-hero-rest
                 className="mt-9 text-[0.82rem] text-ink-soft"
               >
-                Curated, never mass-produced.
+                Curated collections, exclusively chosen, authentically yours
               </p>
             </div>
 

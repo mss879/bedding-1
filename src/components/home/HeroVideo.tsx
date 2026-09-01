@@ -192,11 +192,10 @@ export function HeroVideo({
             className="mt-6 max-w-xl text-balance text-[0.92rem] leading-[1.75] text-ink-soft sm:mt-8 sm:text-[0.98rem] sm:leading-[1.85]"
           >
             Indulge in a curated universe of refinement — from the art of
-            self-care and rare fragrances to timeless pearls, Luxury Fashion
+            self-care and iconic fragrances to timeless pearls, Luxury Fashion
             Designer Selects, and the serenity of fine bedlinen.
           </p>
-          {/* Stacked and full-bleed on a phone — two half-width buttons of
-              different lengths read as a mistake at this size. */}
+          {/* Full-bleed on a phone, sized to its label from xs up. */}
           <div
             data-hero-rest
             className="mt-8 flex flex-col items-stretch gap-3 xs:flex-row xs:flex-wrap xs:items-center sm:mt-11"
@@ -204,27 +203,13 @@ export function HeroVideo({
             <Link href="/shop" className="btn btn-solid">
               Explore the maison
             </Link>
-            <Link href="/shop?category=fragrances" className="btn btn-outline">
-              Discover fragrance
-            </Link>
           </div>
-          <ul
+          <p
             data-hero-rest
-            className="mt-8 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-[0.78rem] text-ink-soft sm:mt-10 sm:text-[0.82rem]"
+            className="mt-8 max-w-xl text-[0.78rem] leading-relaxed text-ink-soft sm:mt-10 sm:text-[0.82rem]"
           >
-            {["Curated, never mass-produced", "Authenticity assured"].map(
-              (item, i) => (
-                <li key={item} className="flex items-center gap-2.5">
-                  {i > 0 && (
-                    <span aria-hidden className="text-clay/50">
-                      ✦
-                    </span>
-                  )}
-                  {item}
-                </li>
-              )
-            )}
-          </ul>
+            Curated collections, exclusively chosen, authentically yours
+          </p>
         </div>
       </div>
 

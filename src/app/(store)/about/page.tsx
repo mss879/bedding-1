@@ -99,8 +99,8 @@ export default function AboutPage() {
         src="/images/editorial/about-pearls.webp"
         alt="Pearls being knotted onto silk thread at a jeweller's bench"
         eyebrow="The collections"
-        title="Chosen, not gathered."
-        body="Six collections and one standard: every product we present is chosen with care, and nothing joins a collection simply because it filled a gap in the range."
+        title="Chosen with intent."
+        body="Six collections and one principle: every product is chosen with care, never added simply to complete a range."
       />
 
       {/* Values */}
@@ -149,15 +149,15 @@ export default function AboutPage() {
           </div>
 
           <Reveal className="mx-auto mt-20 max-w-xl text-center">
-            <p className="eyebrow">Customer excellence</p>
+            <p className="eyebrow">Commitment to you</p>
             <h2 className="mt-4 font-display text-[2.1rem] leading-tight xs:text-4xl md:text-5xl">
-              Every client, personally
+              Personal Connections, Lasting Trust
             </h2>
             <p className="mt-4 text-[0.95rem] leading-relaxed text-ink-soft">
-              Customer excellence is our highest priority. We combine curated
-              exclusivity with human-led engagement, so every client feels
-              valued, understood and connected to the artistry behind their
-              purchase.
+              Our highest priority is ensuring each client feels valued,
+              understood, and connected to the artistry behind their purchase.
+              We combine curated exclusivity with human-led engagement, so every
+              relationship is as refined as the pieces we offer.
             </p>
             <p className="mt-8 font-display text-xl italic text-clay">
               {site.name} — {site.tagline}.

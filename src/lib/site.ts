@@ -31,10 +31,10 @@ export const site = {
   /** The brand line — hero headline, share card and OG title all use it. */
   headline: "Where Elegance Becomes a Lifestyle",
   description:
-    "Enivrant is a curated universe of refinement — rare fragrance, the art of self-care, timeless pearls and fine jewellery, Luxury Fashion Designer Selects and the serenity of hotel-grade bedlinen. Curated, never mass-produced.",
+    "Enivrant is a curated universe of refinement — iconic fragrance, the art of self-care, timeless pearls and fine jewellery, Luxury Fashion Designer Selects and the serenity of hotel-grade bedlinen. Curated, never mass-produced.",
   /** Shorter line for share cards and social bios, where 300 chars is too many. */
   shareDescription:
-    "A curated universe of refinement — rare fragrance, wellness, timeless pearls, designer fashion and fine bedlinen. Curated, never mass-produced.",
+    "A curated universe of refinement — iconic fragrance, wellness, timeless pearls, designer fashion and fine bedlinen. Curated, never mass-produced.",
   keywords: [
     "luxury fragrance Sri Lanka",
     "rare perfume Colombo",

@@ -25,13 +25,13 @@ const heroFilms = [heroFilm];
 const craftChapters = [
   {
     index: "I",
-    title: "Curated, never mass-produced",
+    title: "Exclusively chosen, authentically yours",
     body: "Luxury is not made in volume — it is chosen. Every piece is selected for authenticity, craftsmanship and exclusivity, and nothing joins a collection because it filled a gap in the range.",
   },
   {
     index: "II",
     title: "Partners, not marketplaces",
-    body: "We work in close partnership with select manufacturers and suppliers, building personal relationships with the people who actually make the work. That relationship is what lets us stand behind a piece's provenance rather than repeat a listing.",
+    body: "We partner closely with select manufacturers and suppliers, nurturing relationships with the artisans behind each creation. It's this connection that enables us to stand behind a piece's provenance rather than simply replicate a catalogue.",
   },
   {
     index: "III",
@@ -70,7 +70,7 @@ export default async function HomePage() {
         src="/images/editorial/editorial-boudoir.webp"
         alt="A sunlit dressing room with perfume bottles, pearls and linen"
         eyebrow="The Enivrant difference"
-        title="Made to be lived with."
+        title="Crafted whispers of luxury."
         body="Limited-edition perfumes, artisanal wellness essentials, rare pearls and fine jewellery, designer selects and hotel-grade bedlinen — collections chosen to elevate everyday living into timeless luxury."
         ctaLabel="Explore the maison"
         ctaHref="/shop"
@@ -81,7 +81,7 @@ export default async function HomePage() {
         image="/images/editorial/about-atelier.webp"
         alt="A perfumer's bench of glass vials, botanicals and a brass scale"
         eyebrow="Inside the maison"
-        title="How a piece earns its place."
+        title="Where every piece finds its destiny."
         chapters={craftChapters}
         ctaLabel="The maison"
         ctaHref="/about"

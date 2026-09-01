@@ -29,11 +29,11 @@ export function CategoryTiles({
         <div>
           <p className="eyebrow">Six collections</p>
           <h2 className="mt-3 max-w-lg font-display text-4xl leading-tight md:text-5xl">
-            Everything the senses ask for.
+            Where Elegance Meets your Desire
           </h2>
         </div>
         <Link href="/shop" className="link-rule">
-          Shop everything
+          Discover our universe
         </Link>
       </Reveal>
 
