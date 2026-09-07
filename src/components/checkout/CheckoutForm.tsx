@@ -25,7 +25,12 @@ function joinList(parts: string[]) {
   return `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
 }
 
-export function CheckoutForm() {
+/**
+ * `cardEnabled` is decided on the server (see the checkout page) from whether
+ * Paycorp credentials are present, so a missing credential hides the card
+ * option instead of offering a button that dead-ends at the gateway.
+ */
+export function CheckoutForm({ cardEnabled = false }: { cardEnabled?: boolean }) {
   const { items, subtotal, clearCart } = useCart();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -39,7 +44,8 @@ export function CheckoutForm() {
     city: "",
     notes: "",
   });
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cod");
+  const methods = cardEnabled ? paymentMethods : paymentMethods.filter((m) => m.id !== "card");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(cardEnabled ? "card" : "cod");
 
   const deliveryFree = subtotal >= 25000;
 
@@ -112,18 +118,25 @@ export function CheckoutForm() {
           quantity: i.quantity,
         })),
       });
-      if (result.ok) {
-        clearCart();
-        const params = new URLSearchParams({
-          ref: result.reference,
-          total: String(result.total),
-          wa: result.whatsappUrl,
-          pm: result.paymentMethod,
-        });
-        router.push(`/checkout/success?${params.toString()}`);
-      } else {
+      if (!result.ok) {
         setError(result.error);
+        return;
       }
+      if (result.redirectUrl) {
+        // Card: hand the shopper to Paycorp's hosted page. The basket is left
+        // alone so a declined or abandoned payment has something to come back
+        // to — /checkout/success clears it once the payment is confirmed.
+        window.location.assign(result.redirectUrl);
+        return;
+      }
+      clearCart();
+      const params = new URLSearchParams({
+        ref: result.reference,
+        total: String(result.total),
+        wa: result.whatsappUrl,
+        pm: result.paymentMethod,
+      });
+      router.push(`/checkout/success?${params.toString()}`);
     });
   }
 
@@ -277,7 +290,7 @@ export function CheckoutForm() {
               <>
                 <h2 className="font-display text-2xl">Payment</h2>
                 <div className="space-y-3">
-                  {paymentMethods.map((m) => {
+                  {methods.map((m) => {
                     const selected = paymentMethod === m.id;
                     return (
                       <label
@@ -332,14 +345,22 @@ export function CheckoutForm() {
             </button>
           ) : (
             <button type="submit" disabled={pending} className="btn btn-solid w-full flex-1 disabled:opacity-60">
-              {pending ? "Placing order…" : `Place order — ${formatPrice(subtotal)}`}
+              {pending
+                ? paymentMethod === "card"
+                  ? "Taking you to payment…"
+                  : "Placing order…"
+                : paymentMethod === "card"
+                  ? `Pay ${formatPrice(subtotal)} securely`
+                  : `Place order — ${formatPrice(subtotal)}`}
             </button>
           )}
         </div>
 
         {step === 3 && (
           <p className="text-xs leading-relaxed text-ink-soft">
-            We confirm every order and delivery personally on WhatsApp within a few hours.
+            {paymentMethod === "card"
+              ? "You'll be taken to Commercial Bank of Ceylon's secure payment page to enter your card details — we never see or store them."
+              : "We confirm every order and delivery personally on WhatsApp within a few hours."}
           </p>
         )}
       </form>

@@ -46,7 +46,10 @@ export type CartItem = {
   quantity: number;
 };
 
-export type PaymentMethod = "cod" | "bank_transfer";
+export type PaymentMethod = "cod" | "bank_transfer" | "card";
+
+/** Where an order sits with the money, independent of fulfilment `status`. */
+export type PaymentStatus = "unpaid" | "pending" | "paid" | "failed" | "cancelled";
 
 export type OrderStatus = "pending" | "confirmed" | "shipped" | "delivered" | "cancelled";
 
@@ -74,6 +77,20 @@ export type Order = {
   status: OrderStatus;
   payment_method: PaymentMethod;
   created_at: string;
+  // Card payments (Paycorp). Optional so rows written before migration 0006
+  // still type-check; absent means the order predates card checkout.
+  payment_status?: PaymentStatus;
+  payment_reqid?: string | null;
+  payment_txn_reference?: string | null;
+  payment_auth_code?: string | null;
+  payment_card_type?: string | null;
+  payment_card_masked?: string | null;
+  payment_response_code?: string | null;
+  payment_response_text?: string | null;
+  /** Currency actually charged — LKR while the catalogue prices in USD. */
+  payment_currency?: string | null;
+  payment_amount?: number | null;
+  paid_at?: string | null;
 };
 
 export type OrderItem = {

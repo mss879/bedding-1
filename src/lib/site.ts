@@ -70,7 +70,17 @@ export const FREE_DELIVERY_FROM = 85;
 // Checkout payment options. Bank details are placeholders — swap in the
 // client's real account before launch (shown on the order-success page for
 // bank-transfer orders).
+//
+// `card` is listed here but only offered when Paycorp credentials are present:
+// the checkout page reads that server-side and passes it down, so a missing
+// credential hides the option rather than dead-ending the shopper (see
+// lib/paycorp/config.ts).
 export const paymentMethods = [
+  {
+    id: "card",
+    label: "Card payment",
+    description: "Visa, Mastercard or Amex — secured by Commercial Bank of Ceylon.",
+  },
   {
     id: "cod",
     label: "Cash on Delivery",

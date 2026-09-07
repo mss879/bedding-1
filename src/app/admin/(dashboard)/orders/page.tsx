@@ -4,6 +4,7 @@ import { adminListOrders } from "@/lib/admin/data";
 import { formatPrice, paymentMethodLabel } from "@/lib/site";
 import type { OrderStatus } from "@/lib/types";
 import { SetupNotice } from "@/components/admin/SetupNotice";
+import { PaymentBadge } from "@/components/admin/PaymentBadge";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 
 export const metadata: Metadata = {
@@ -101,6 +102,13 @@ export default async function AdminOrdersPage({
                   </td>
                   <td className="whitespace-nowrap px-4 py-3 text-ink-soft">
                     {paymentMethodLabel(order.payment_method)}
+                    {/* Only card orders carry a payment state worth a badge;
+                        cod and bank transfer are settled off-site. */}
+                    {order.payment_status && order.payment_status !== "unpaid" && (
+                      <span className="ml-2 align-middle">
+                        <PaymentBadge status={order.payment_status} />
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <StatusBadge status={order.status} />

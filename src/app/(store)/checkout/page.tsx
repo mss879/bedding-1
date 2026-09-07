@@ -2,11 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CheckoutForm } from "@/components/checkout/CheckoutForm";
 import { Reveal } from "@/components/anim/Reveal";
+import { isPaycorpConfigured } from "@/lib/paycorp/config";
 
 export const metadata: Metadata = {
   title: "Checkout",
   description: "Complete your Enivrant order.",
 };
+
+// Card availability is read from the environment at request time, so the page
+// must not be prerendered with whatever was set at build.
+export const dynamic = "force-dynamic";
 
 export default function CheckoutPage() {
   return (
@@ -41,7 +46,7 @@ export default function CheckoutPage() {
           </p>
         </Reveal>
 
-        <CheckoutForm />
+        <CheckoutForm cardEnabled={isPaycorpConfigured()} />
       </div>
     </div>
   );

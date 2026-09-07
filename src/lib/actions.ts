@@ -1,9 +1,17 @@
 "use server";
 
 import { randomUUID } from "node:crypto";
+import { cookies } from "next/headers";
 import { getSupabaseAdmin } from "./supabase-admin";
 import { getProduct } from "./catalog";
 import { formatPrice, paymentMethodLabel, site } from "./site";
+import { paymentInit } from "./paycorp/client";
+import { getPaycorpConfig, toGatewayAmount } from "./paycorp/config";
+import {
+  PENDING_PAYMENT_COOKIE,
+  PENDING_PAYMENT_MAX_AGE,
+  pendingPaymentCookie,
+} from "./paycorp/pending";
 import type { InquiryInput, OrderInput, PaymentMethod, ProductSize } from "./types";
 
 function orderReference() {
@@ -13,10 +21,23 @@ function orderReference() {
 }
 
 export type PlaceOrderResult =
-  | { ok: true; reference: string; total: number; whatsappUrl: string; paymentMethod: PaymentMethod }
+  | {
+      ok: true;
+      reference: string;
+      total: number;
+      whatsappUrl: string;
+      paymentMethod: PaymentMethod;
+      /** Card orders only: Paycorp's hosted payment page. Send the browser here. */
+      redirectUrl?: string;
+    }
   | { ok: false; error: string };
 
-const PAYMENT_METHODS: PaymentMethod[] = ["cod", "bank_transfer"];
+const PAYMENT_METHODS: PaymentMethod[] = ["cod", "bank_transfer", "card"];
+
+/** Origin every gateway callback URL is built from, without a trailing slash. */
+function siteOrigin() {
+  return site.url.replace(/\/+$/, "");
+}
 
 type PricedProduct = { slug: string; name: string; in_stock: boolean; sizes: ProductSize[] };
 
@@ -88,11 +109,15 @@ export async function placeOrder(input: OrderInput): Promise<PlaceOrderResult> {
   const total = lines.reduce((sum, l) => sum + l.unit_price * l.quantity, 0);
   const reference = orderReference();
 
+  // A card order is handed straight to Paycorp below, so it opens as a pending
+  // payment; cod and bank transfer have nothing to collect online.
+  const isCard = input.paymentMethod === "card";
+  // Generated here so the order and its line items can be inserted and, if a
+  // later step fails, the orphaned order rolled back — without a SELECT
+  // round-trip.
+  const orderId = randomUUID();
+
   if (sb) {
-    // The id is generated here so the order and its line items can be inserted
-    // and, if the second write fails, the orphaned order rolled back — without
-    // needing a SELECT round-trip.
-    const orderId = randomUUID();
     const { error } = await sb.from("orders").insert({
       id: orderId,
       reference,
@@ -105,6 +130,9 @@ export async function placeOrder(input: OrderInput): Promise<PlaceOrderResult> {
       total,
       status: "pending",
       payment_method: input.paymentMethod,
+      // Only card orders touch the columns migration 0006 adds, so a database
+      // still on 0005 keeps taking cod and bank-transfer orders.
+      ...(isCard ? { payment_status: "pending" } : {}),
     });
     if (error) {
       return { ok: false, error: "We couldn't save your order. Please try again." };
@@ -126,7 +154,112 @@ export async function placeOrder(input: OrderInput): Promise<PlaceOrderResult> {
   const message = `Hello ${site.name}! I just placed order ${reference}.\n\n${summary}\n\nTotal: ${formatPrice(total)}\nPayment: ${paymentMethodLabel(input.paymentMethod)}\nName: ${input.customerName}\nDelivery: ${input.address}, ${input.city}`;
   const whatsappUrl = `https://wa.me/${site.whatsappNumber}?text=${encodeURIComponent(message)}`;
 
+  if (isCard) {
+    const gateway = await startCardPayment({
+      orderId: sb ? orderId : null,
+      reference,
+      total,
+    });
+    if (!gateway.ok) {
+      // Nothing was collected and nothing can be, so the order must not sit in
+      // the dashboard looking real. Line items cascade with the delete.
+      if (sb) await sb.from("orders").delete().eq("id", orderId);
+      return { ok: false, error: gateway.error };
+    }
+    return {
+      ok: true,
+      reference,
+      total,
+      whatsappUrl,
+      paymentMethod: "card",
+      redirectUrl: gateway.paymentPageUrl,
+    };
+  }
+
   return { ok: true, reference, total, whatsappUrl, paymentMethod: input.paymentMethod };
+}
+
+/**
+ * Opens a Paycorp session for an order and records the `reqid` that the return
+ * leg will match it back by. Money is never moved here — this only reserves the
+ * hosted payment page the shopper is about to be sent to.
+ */
+async function startCardPayment(order: {
+  orderId: string | null;
+  reference: string;
+  total: number;
+}): Promise<{ ok: true; paymentPageUrl: string } | { ok: false; error: string }> {
+  const config = getPaycorpConfig();
+  if (!config) {
+    return {
+      ok: false,
+      error: "Card payment is unavailable right now. Please choose another payment method.",
+    };
+  }
+
+  // Catalogue and merchant profile are both USD, so this is currently an
+  // identity. It is still stored alongside the order, so that if a profile in
+  // another currency is ever added the settled figure stays reconcilable.
+  const amount = toGatewayAmount(order.total, config);
+  const origin = siteOrigin();
+
+  const init = await paymentInit({
+    amount,
+    currency: config.currency,
+    // Paycorp appends ?reqid=… to this URL, and that reqid is the only thing
+    // identifying the order on the way back — no amount, reference or status
+    // travels through the browser, so there is nothing for a shopper to edit.
+    returnUrl: `${origin}/api/payments/paycorp/return`,
+    cancelUrl: `${origin}/checkout/payment-failed?reason=cancelled`,
+    clientRef: order.reference,
+    comment: `${site.name} order ${order.reference}`,
+  });
+  if (!init.ok) {
+    return {
+      ok: false,
+      error: "We couldn't start the card payment. Please try again, or choose another payment method.",
+    };
+  }
+
+  const sb = getSupabaseAdmin();
+  if (sb && order.orderId) {
+    const { error } = await sb
+      .from("orders")
+      .update({
+        payment_reqid: init.reqid,
+        payment_status: "pending",
+        payment_currency: config.currency,
+        payment_amount: amount,
+      })
+      .eq("id", order.orderId);
+    if (error) {
+      // Without the reqid stored the return leg could not match the payment to
+      // this order, so fail now rather than take money we cannot reconcile.
+      return { ok: false, error: "We couldn't start the card payment. Please try again." };
+    }
+  } else {
+    // Demo mode: no row to write the reqid to, so it rides back in a signed
+    // cookie instead. See lib/paycorp/pending.ts.
+    const value = pendingPaymentCookie({
+      reqid: init.reqid,
+      reference: order.reference,
+      total: order.total,
+    });
+    if (value) {
+      const store = await cookies();
+      store.set(PENDING_PAYMENT_COOKIE, value, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        // The shopper returns from paycorp.lk by top-level navigation, which
+        // 'lax' allows and 'strict' would drop.
+        sameSite: "lax",
+        path: "/",
+        maxAge: PENDING_PAYMENT_MAX_AGE,
+      });
+    }
+  }
+
+  return { ok: true, paymentPageUrl: init.paymentPageUrl };
 }
 
 export type InquiryResult = { ok: true } | { ok: false; error: string };

@@ -5,6 +5,7 @@ import { adminGetOrder } from "@/lib/admin/data";
 import { formatPrice, paymentMethodLabel, whatsappLink } from "@/lib/site";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { OrderStatusControl } from "@/components/admin/OrderStatusControl";
+import { PaymentBadge } from "@/components/admin/PaymentBadge";
 import { SetupNotice } from "@/components/admin/SetupNotice";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 
@@ -24,6 +25,15 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
       <h2 className="font-display text-lg">{title}</h2>
       <div className="mt-3">{children}</div>
     </section>
+  );
+}
+
+function Row({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-baseline justify-between gap-4">
+      <dt className="shrink-0 text-ink-soft">{label}</dt>
+      <dd className="break-all text-right font-medium text-ink">{children}</dd>
+    </div>
   );
 }
 
@@ -137,7 +147,45 @@ export default async function AdminOrderPage({ params }: { params: Promise<{ id:
           </Card>
 
           <Card title="Payment">
-            <p className="text-sm text-ink-soft">{paymentMethodLabel(order.payment_method)}</p>
+            <dl className="space-y-2.5 text-sm">
+              <Row label="Method">{paymentMethodLabel(order.payment_method)}</Row>
+              {order.payment_status && (
+                <Row label="Status">
+                  <PaymentBadge status={order.payment_status} />
+                </Row>
+              )}
+              {/* Charged in the merchant profile's settlement currency, which
+                  is not the currency the catalogue is priced in. */}
+              {order.payment_amount != null && order.payment_currency && (
+                <Row label="Charged">
+                  {order.payment_currency} {Number(order.payment_amount).toLocaleString("en-US", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </Row>
+              )}
+              {order.payment_card_masked && (
+                <Row label="Card">
+                  {[order.payment_card_type, order.payment_card_masked].filter(Boolean).join(" ")}
+                </Row>
+              )}
+              {order.payment_txn_reference && (
+                <Row label="Transaction">{order.payment_txn_reference}</Row>
+              )}
+              {order.payment_auth_code && <Row label="Auth code">{order.payment_auth_code}</Row>}
+              {order.paid_at && (
+                <Row label="Paid">{dateFormat.format(new Date(order.paid_at))}</Row>
+              )}
+              {order.payment_status === "failed" && order.payment_response_text && (
+                <Row label="Gateway said">
+                  <span className="text-clay">
+                    {order.payment_response_code
+                      ? `${order.payment_response_code} — ${order.payment_response_text}`
+                      : order.payment_response_text}
+                  </span>
+                </Row>
+              )}
+            </dl>
           </Card>
 
           <Card title="Status">

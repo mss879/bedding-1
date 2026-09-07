@@ -1,28 +1,44 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Reveal } from "@/components/anim/Reveal";
-import { bankDetails, formatPrice } from "@/lib/site";
+import { ClearCartOnMount } from "@/components/cart/ClearCartOnMount";
+import { bankDetails, formatPrice, robotsFor, site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Order confirmed",
+  // Every value on this page comes from the query string, so a crafted variant
+  // must never be indexable. /checkout/payment-failed does the same.
+  robots: robotsFor(false),
 };
 
 export default async function OrderSuccessPage({
   searchParams,
 }: {
-  searchParams: Promise<{ ref?: string; total?: string; wa?: string; pm?: string }>;
+  searchParams: Promise<{ ref?: string; total?: string; wa?: string; pm?: string; txn?: string }>;
 }) {
-  const { ref, total, wa, pm } = await searchParams;
+  const { ref, total, wa, pm, txn } = await searchParams;
   const totalNumber = Number(total);
   const hasTotal = Number.isFinite(totalNumber) && totalNumber > 0;
   const isBankTransfer = pm === "bank_transfer";
+  // Card orders only reach this page through the Paycorp return handler, which
+  // has already verified the payment server-side.
+  const isCard = pm === "card";
 
-  // Only trust a WhatsApp deep link, never an arbitrary redirect target.
-  const whatsappHref = wa && wa.startsWith("https://wa.me/") ? wa : null;
+  // Pin the number, not just the host. Checking only the `https://wa.me/`
+  // prefix fixed the destination host but left the phone number free, so a
+  // crafted link could point this page's primary button at someone else's
+  // WhatsApp while everything around it still read as a genuine confirmation
+  // on our own domain — a ready-made payment-redirection pretext.
+  const whatsappBase = `https://wa.me/${site.whatsappNumber}`;
+  const whatsappHref =
+    wa && (wa === whatsappBase || wa.startsWith(`${whatsappBase}?`)) ? wa : null;
 
   return (
     <div className="bg-cream pt-6 md:pt-8">
       <div className="container-x flex min-h-[72vh] items-center justify-center pb-20 md:pb-28">
+        {/* Only an order that actually carries a reference empties the basket,
+            so a stray or crafted link to this page cannot silently clear it. */}
+        {ref && <ClearCartOnMount />}
         <Reveal className="w-full max-w-lg">
           <div className="card-lift p-8 text-center md:p-10">
             <span
@@ -43,10 +59,28 @@ export default async function OrderSuccessPage({
                 {hasTotal && (
                   <p className="mt-0.5 text-sm text-ink-soft">Total {formatPrice(totalNumber)}</p>
                 )}
+                {isCard && txn && (
+                  <p className="mt-2 border-t hairline pt-2 text-xs text-ink-soft">
+                    Payment reference{" "}
+                    <span className="font-semibold tracking-wide text-ink">{txn}</span>
+                  </p>
+                )}
               </div>
             )}
 
-            {isBankTransfer ? (
+            {isCard ? (
+              <p className="mx-auto mt-4 max-w-sm text-sm leading-relaxed text-ink-soft">
+                {hasTotal ? (
+                  <>
+                    Your card payment of{" "}
+                    <span className="font-semibold text-ink">{formatPrice(totalNumber)}</span> went
+                    through. A receipt is on its way from your bank.
+                  </>
+                ) : (
+                  <>Your card payment went through. A receipt is on its way from your bank.</>
+                )}
+              </p>
+            ) : isBankTransfer ? (
               <div className="mt-4 rounded-xl bg-cream px-5 py-5 text-left">
                 <h2 className="font-display text-xl">Complete your payment</h2>
                 <dl className="mt-4 space-y-2.5">
@@ -104,7 +138,11 @@ export default async function OrderSuccessPage({
                   rel="noopener noreferrer"
                   className="btn btn-clay w-full sm:w-auto"
                 >
-                  {isBankTransfer ? "Send us the transfer slip on WhatsApp" : "Confirm on WhatsApp now"}
+                  {isBankTransfer
+                    ? "Send us the transfer slip on WhatsApp"
+                    : isCard
+                      ? "Say hello on WhatsApp"
+                      : "Confirm on WhatsApp now"}
                 </a>
               )}
               <Link href="/shop" className="btn btn-solid w-full sm:w-auto">

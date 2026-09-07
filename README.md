@@ -90,6 +90,44 @@ browser bundle.
   "show in navigation" and "show on homepage" toggles + sort order drive the
   header menus, footer, and homepage sections.
 
+## Card payments (Paycorp — Commercial Bank of Ceylon)
+
+Checkout can take Visa/Mastercard/Amex through Paycorp's IPG, using the
+redirect ("hosted payment page") flow. Card details never touch this app.
+
+**Flow**
+
+1. `placeOrder` re-prices the basket server-side, saves the order as
+   `payment_status: 'pending'`, then calls `PAYMENT_INIT`.
+2. The shopper is redirected to Paycorp's hosted page; the basket is left intact
+   so an abandoned payment has something to come back to.
+3. Paycorp returns them to `/api/payments/paycorp/return?reqid=…`. That handler
+   calls `PAYMENT_COMPLETE` server-to-server — the browser carries nothing but
+   the `reqid`, so there is no amount or status for a shopper to edit.
+4. The returned amount and currency are checked against what we asked the
+   gateway to charge. Only then is the order marked `paid` / `confirmed` and the
+   basket cleared; anything else lands on `/checkout/payment-failed`.
+
+**Wire-level contract** (`src/lib/paycorp/client.ts`)
+
+- `POST` the JSON envelope (`version 1.04`, `msgId`, `operation`, `requestDate`,
+  `validateOnly`, `requestData`) to the service endpoint.
+- Headers: `AUTHTOKEN`, and `HMAC` = hex HMAC-SHA256 of the **exact request body
+  bytes**, keyed by the HMAC secret. The body is serialised once and both hashed
+  and sent — re-stringifying in between produces a 401.
+- Amounts are integers in minor units (cents), so `LKR 25,500.00` → `2550000`.
+- `responseCode` `00` is approved; `PT` is an abandoned page, not a decline.
+
+**Configuration** — see `.env.example`. Leave `PAYCORP_*` blank and the card
+option is hidden at checkout; cash on delivery and bank transfer are unaffected.
+`NEXT_PUBLIC_SITE_URL` must be the real public https origin, since the gateway
+return URL is built from it — Paycorp cannot redirect a shopper to localhost.
+
+> **Currency:** the catalogue is priced in USD but the issued client id settles
+> in **LKR**, so card totals are converted at the fixed `PAYCORP_USD_RATE`
+> (default `300`, the rate the storefront prices were originally converted at).
+> On a USD merchant profile, set `PAYCORP_CURRENCY=USD` and the rate is ignored.
+
 ## Structure
 
 - `src/app/(store)/` — storefront pages: home, `shop` (category filters),
@@ -119,11 +157,18 @@ browser bundle.
   client's real account in `src/lib/site.ts` (`bankDetails`).
 - Change `ADMIN_PASSWORD` to something strong before deploying, and set
   `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` /
-  `SUPABASE_SERVICE_ROLE_KEY`. Provisioning Supabase (env vars + running all
-  three migrations) is a **launch gate**: until it's done the storefront runs on
-  the seed catalog and orders are not persisted.
-- Payment gateways remain out of scope; checkout settles cash on delivery or
-  bank transfer, confirmed over WhatsApp.
+  `SUPABASE_SERVICE_ROLE_KEY`. Provisioning Supabase (env vars + running every
+  migration in `supabase/migrations/`, in order) is a **launch gate**: until it's
+  done the storefront runs on the seed catalog and orders are not persisted.
+  Migration `0006` is what card payments record their outcome into, and `0007`
+  replaces the retired Ivory Homez catalogue with the Enivrant one.
+- **`0007` is a launch gate for card payments, not cosmetics.** The Ivory Homez
+  rows it replaces are priced in LKR while the storefront renders every price as
+  USD, so a card order for a `4900` vase would bill LKR 1,470,000 instead of
+  LKR 4,900. Run it before taking a single card payment.
+- Card payments run against Paycorp's **production** endpoint — any test
+  transaction is a real charge, refundable only from the bank's merchant portal.
+  Set `PAYCORP_VALIDATE_ONLY=true` for a dry run that moves no money.
 - Recommended follow-ups (not blocking): rate-limiting/lockout on `/admin` login,
   server-enforced session expiry, and a real inventory count (the `stock_quantity`
   column is provisioned in `0003` but not yet wired into the admin UI).
