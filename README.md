@@ -19,9 +19,9 @@ npm run dev
 ```
 
 The site is fully functional out of the box using the built-in seed catalog —
-no database required. The admin dashboard needs `ADMIN_PASSWORD` (already set
-to `ivoryhomez-admin` in `.env.local` for local dev) and Supabase to manage real
-data.
+no database required. The admin dashboard needs `ADMIN_PASSWORD` (set it in
+`.env.local` for local dev — never commit the value) and Supabase to manage
+real data.
 
 ## Connecting Supabase
 
