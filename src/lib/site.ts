@@ -21,6 +21,33 @@ export function robotsFor(index: boolean): Metadata["robots"] {
   };
 }
 
+const DEFAULT_SITE_URL = "https://enivrant.com";
+
+/**
+ * Normalises NEXT_PUBLIC_SITE_URL into a bare origin.
+ *
+ * `metadataBase` (root layout) and the Paycorp return URL are both built with
+ * `new URL(...)`, which throws on a scheme-less host. A production env var set
+ * to `enivrant.com` rather than `https://enivrant.com` therefore failed the
+ * whole build at page-data collection rather than degrading — so a missing
+ * scheme is now assumed to be https, a trailing slash is dropped, and anything
+ * still unparseable falls back to the canonical domain. A typo in the host's
+ * environment can misdirect canonical URLs; it can no longer take the site down.
+ */
+function normalizeSiteUrl(raw: string | undefined) {
+  // Deliberately not stripping a trailing slash first: `.origin` drops it
+  // anyway, and stripping early turns a bare "https://" into the scheme test's
+  // blind spot and out the far side as the host "https".
+  const trimmed = raw?.trim();
+  if (!trimmed) return DEFAULT_SITE_URL;
+  const withScheme = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+  try {
+    return new URL(withScheme).origin;
+  } catch {
+    return DEFAULT_SITE_URL;
+  }
+}
+
 export const site = {
   name: "Enivrant",
   /** Uppercase treatment used in the logo lockup and legal lines. */
@@ -46,9 +73,11 @@ export const site = {
     "luxury wellness",
     "Enivrant",
   ],
-  // Canonical origin. Every absolute URL (OG tags, sitemap, JSON-LD) is built
-  // from this, so it must match the host the site actually answers on.
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://enivrant.com",
+  // Canonical origin. Every absolute URL (OG tags, sitemap, JSON-LD, and the
+  // payment gateway's return URL) is built from this, so it must match the host
+  // the site actually answers on. Always a scheme-qualified origin with no
+  // trailing slash — see normalizeSiteUrl above.
+  url: normalizeSiteUrl(process.env.NEXT_PUBLIC_SITE_URL),
   // Same line for calls and WhatsApp — country code, no + or spaces.
   whatsappNumber: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "94774126226",
   email: "support@enivrant.com",
