@@ -61,6 +61,9 @@ export type OrderInput = {
   city: string;
   notes: string;
   paymentMethod: PaymentMethod;
+  /** The Terms & Conditions box at checkout was ticked. The payment gateway
+   *  requires it, and placeOrder refuses any order without it. */
+  acceptedTerms: boolean;
   items: { productSlug: string; sizeName: string; quantity: number }[];
 };
 

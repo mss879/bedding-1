@@ -97,6 +97,9 @@ export function Footer({ categories }: { categories: Category[] }) {
                 { href: "/hotel-bulk", label: "Hotel & trade" },
                 { href: "/contact", label: "Contact & concierge" },
                 { href: "/basket", label: "Your basket" },
+                { href: "/terms", label: "Terms & conditions" },
+                { href: "/terms#returns", label: "Returns & refunds" },
+                { href: "/terms#privacy", label: "Privacy" },
               ].map((item) => (
                 <li key={item.href}>
                   <Link

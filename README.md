@@ -108,6 +108,14 @@ redirect ("hosted payment page") flow. Card details never touch this app.
    gateway to charge. Only then is the order marked `paid` / `confirmed` and the
    basket cleared; anything else lands on `/checkout/payment-failed`.
 
+**Terms & Conditions** — the bank requires shoppers to accept the terms before
+they can pay. Step 3 of checkout has a required checkbox linking to `/terms`
+(opens in a new tab); the pay button stays inactive until it is ticked, and
+`placeOrder` refuses any order without `acceptedTerms: true`, so the rule holds
+for cash on delivery and bank transfer too. The copy lives in
+`src/app/(store)/terms/page.tsx`: bump `LAST_UPDATED` whenever a clause changes,
+and keep the `returns` and `privacy` section ids, which the footer deep-links to.
+
 **Wire-level contract** (`src/lib/paycorp/client.ts`)
 
 - `POST` the JSON envelope (`version 1.04`, `msgId`, `operation`, `requestDate`,
@@ -131,7 +139,7 @@ return URL is built from it — Paycorp cannot redirect a shopper to localhost.
 ## Structure
 
 - `src/app/(store)/` — storefront pages: home, `shop` (category filters),
-  `product/[slug]`, `hotel-bulk`, `about`, `contact`, `checkout` (+ success);
+  `product/[slug]`, `hotel-bulk`, `about`, `contact`, `terms`, `checkout` (+ success);
   chrome lives in the group layout.
 - `src/app/admin/` — admin dashboard (own shell, no storefront chrome).
 - `src/lib/` — site config (`site.ts`), catalog data layer with Supabase
@@ -155,6 +163,13 @@ return URL is built from it — Paycorp cannot redirect a shopper to localhost.
   `/admin` once Supabase is connected.
 - Bank-transfer details on the order-success page are placeholders — set the
   client's real account in `src/lib/site.ts` (`bankDetails`).
+- **The Terms & Conditions at `/terms` need the client's sign-off.** They were
+  drafted from what the site already promises (dispatch in 2–4 working days,
+  island-wide delivery, 30-day exchanges, the 365-day guarantee) plus standard
+  clauses the site had no position on — hygiene exclusions, a 7-day window to
+  report damage, refunds issued within 7 working days, liability and Sri Lankan
+  law. If the bank asks for the registered company name, number or address, add
+  them to the first clause.
 - Change `ADMIN_PASSWORD` to something strong before deploying, and set
   `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` /
   `SUPABASE_SERVICE_ROLE_KEY`. Provisioning Supabase (env vars + running every

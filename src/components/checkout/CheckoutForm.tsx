@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -46,8 +46,10 @@ export function CheckoutForm({ cardEnabled = false }: { cardEnabled?: boolean })
   });
   const methods = cardEnabled ? paymentMethods : paymentMethods.filter((m) => m.id !== "card");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(cardEnabled ? "card" : "cod");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const termsRef = useRef<HTMLInputElement>(null);
 
-  const deliveryFree = subtotal >= 25000;
+  const deliveryFree = subtotal >= FREE_DELIVERY_FROM;
 
   if (items.length === 0) {
     return (
@@ -103,6 +105,15 @@ export function CheckoutForm({ cardEnabled = false }: { cardEnabled?: boolean })
       return;
     }
 
+    // The payment gateway requires the terms to be accepted before paying. The
+    // button is only aria-disabled, so a click still lands here and explains
+    // itself; placeOrder re-checks on the server.
+    if (!acceptedTerms) {
+      setError("Please read and accept the Terms & Conditions to continue.");
+      termsRef.current?.focus();
+      return;
+    }
+
     startTransition(async () => {
       const result = await placeOrder({
         customerName: values.name.trim(),
@@ -112,6 +123,7 @@ export function CheckoutForm({ cardEnabled = false }: { cardEnabled?: boolean })
         city: values.city.trim(),
         notes: values.notes.trim(),
         paymentMethod,
+        acceptedTerms,
         items: items.map((i) => ({
           productSlug: i.productSlug,
           sizeName: i.sizeName,
@@ -323,6 +335,42 @@ export function CheckoutForm({ cardEnabled = false }: { cardEnabled?: boolean })
                     );
                   })}
                 </div>
+
+                <div className="border-t hairline pt-5">
+                  <label htmlFor="co-terms" className="flex cursor-pointer items-start gap-3.5">
+                    <span className="relative mt-0.5 flex h-[1.125rem] w-[1.125rem] shrink-0">
+                      <input
+                        ref={termsRef}
+                        id="co-terms"
+                        name="acceptTerms"
+                        type="checkbox"
+                        required
+                        checked={acceptedTerms}
+                        onChange={(e) => {
+                          setAcceptedTerms(e.target.checked);
+                          if (e.target.checked) setError(null);
+                        }}
+                        className="peer h-full w-full cursor-pointer appearance-none rounded-[2px] border border-fog bg-white transition-colors checked:border-ink checked:bg-ink"
+                      />
+                      <CheckIcon className="pointer-events-none absolute inset-0 m-auto h-3 w-3 text-white opacity-0 peer-checked:opacity-100" />
+                    </span>
+                    <span className="text-sm leading-relaxed text-ink">
+                      I have read and agree to the{" "}
+                      <Link
+                        href="/terms"
+                        target="_blank"
+                        rel="noopener"
+                        className="font-medium underline decoration-clay underline-offset-4 transition-colors hover:text-clay"
+                      >
+                        Terms &amp; Conditions
+                      </Link>
+                      , including the returns, refund and privacy policies.
+                      <span className="mt-1 block text-xs text-ink-soft">
+                        Opens in a new tab, so nothing you&rsquo;ve entered here is lost.
+                      </span>
+                    </span>
+                  </label>
+                </div>
               </>
             )}
         </motion.div>
@@ -344,7 +392,12 @@ export function CheckoutForm({ cardEnabled = false }: { cardEnabled?: boolean })
               Continue
             </button>
           ) : (
-            <button type="submit" disabled={pending} className="btn btn-solid w-full flex-1 disabled:opacity-60">
+            <button
+              type="submit"
+              disabled={pending}
+              aria-disabled={!acceptedTerms}
+              className="btn btn-solid w-full flex-1 disabled:opacity-60 aria-disabled:cursor-not-allowed aria-disabled:opacity-50 aria-disabled:shadow-none aria-disabled:active:transform-none"
+            >
               {pending
                 ? paymentMethod === "card"
                   ? "Taking you to payment…"
@@ -391,8 +444,8 @@ export function CheckoutForm({ cardEnabled = false }: { cardEnabled?: boolean })
           </div>
           <div className="flex justify-between text-ink-soft">
             <span>Delivery</span>
-            <span className={deliveryFree ? "font-semibold text-sale" : ""}>
-              {deliveryFree ? "FREE" : "Confirmed on WhatsApp"}
+            <span className={deliveryFree ? "font-medium text-sale" : ""}>
+              {deliveryFree ? "Complimentary" : "Confirmed on WhatsApp"}
             </span>
           </div>
           {step === 3 && (

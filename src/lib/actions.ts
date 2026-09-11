@@ -54,6 +54,12 @@ export async function placeOrder(input: OrderInput): Promise<PlaceOrderResult> {
   if (!PAYMENT_METHODS.includes(input.paymentMethod)) {
     return { ok: false, error: "Please choose a payment method." };
   }
+  // The payment gateway requires every shopper to accept the terms before
+  // paying. Checkout enforces it too, but only this stops an order placed by
+  // calling the action directly — and it covers cod and bank transfer as well.
+  if (input.acceptedTerms !== true) {
+    return { ok: false, error: "Please read and accept the Terms & Conditions to place your order." };
+  }
   if (!input.items.length) {
     return { ok: false, error: "Your cart is empty." };
   }
