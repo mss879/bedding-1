@@ -10,6 +10,10 @@ import { site, whatsappLink, formatPrice, FREE_DELIVERY_FROM } from "@/lib/site"
 import { HeaderSearch, HeaderSearchFallback } from "./HeaderSearch";
 import { useCart } from "./cart/CartContext";
 
+// Shared by the collection links and About us in the second row.
+const navLinkClass =
+  "whitespace-nowrap px-2.5 py-3 text-[0.62rem] font-medium tracking-[0.1em] uppercase transition-colors xl:px-3.5 xl:text-[0.68rem] xl:tracking-[0.14em]";
+
 /**
  * Etsy's header structure in Enivrant dress (measured from etsy.com):
  * one row — logo far left, a DOMINANT search field taking ~64% of the width,
@@ -160,10 +164,11 @@ export function Header({
         </div>
 
         {/* Row 2 — the six collections under their full names, each with a
-            mega panel on hover. Long names, so the type tightens at lg and
+            mega panel on hover, then About us behind a hairline (client
+            request, Sep 2026). Long names, so the type tightens at lg and
             opens back up at xl where there is room. */}
         <nav
-          aria-label="Collections"
+          aria-label="Main"
           className="relative hidden items-center justify-center gap-0 border-t hairline lg:flex"
         >
           {categories.map((c) => (
@@ -172,13 +177,26 @@ export function Header({
               href={`/shop?category=${c.slug}`}
               onMouseEnter={() => openMega(c.slug)}
               onFocus={() => openMega(c.slug)}
-              className={`whitespace-nowrap px-2.5 py-3 text-[0.62rem] font-medium tracking-[0.1em] uppercase transition-colors xl:px-3.5 xl:text-[0.68rem] xl:tracking-[0.14em] ${
+              className={`${navLinkClass} ${
                 megaSlug === c.slug ? "text-clay" : "text-ink-soft hover:text-clay"
               }`}
             >
               {c.name}
             </Link>
           ))}
+          <span aria-hidden className="mx-1 h-3 w-px bg-board xl:mx-2" />
+          <Link
+            href="/about"
+            // No panel of its own, so arriving here closes whichever is open.
+            onMouseEnter={() => setMegaSlug(null)}
+            onFocus={() => setMegaSlug(null)}
+            aria-current={pathname === "/about" ? "page" : undefined}
+            className={`${navLinkClass} ${
+              pathname === "/about" ? "text-clay" : "text-ink-soft hover:text-clay"
+            }`}
+          >
+            About us
+          </Link>
         </nav>
       </div>
 
@@ -253,7 +271,7 @@ export function Header({
                   label: c.name,
                 })),
                 { href: "/hotel-bulk", label: "Hotel & Trade" },
-                { href: "/about", label: "The maison" },
+                { href: "/about", label: "About us" },
                 { href: "/contact", label: "Contact" },
               ].map((item, i) => (
                 <motion.div

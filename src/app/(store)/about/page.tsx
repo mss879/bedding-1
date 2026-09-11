@@ -71,25 +71,44 @@ export default function AboutPage() {
             delay={0.2}
             className="max-w-lg space-y-6 self-center text-[0.95rem] leading-relaxed text-ink-soft"
           >
+            {/* Client copy, Sep 2026 — revised with a French speaker so the
+                name reads as captivating, never as toxic. Keep it verbatim. */}
             <p>
-              At <span className="text-ink">Enivrant</span> — French for
-              intoxicating — we believe luxury is not mass-produced. It is
-              carefully curated. Our platform brings together the finest
-              expressions of elegance across fashion, fragrance, wellness, home
-              and jewellery, for discerning individuals worldwide.
+              At <span className="text-ink">Enivrant</span> — in French,{" "}
+              <em>enivrant</em> literally translates to “intoxicating” — but not
+              in the sense of toxicity or harm. It speaks to being captivating,
+              alluring, and irresistibly moving, the way a fragrance, a piece of
+              music, or a work of art can intoxicate the senses. We believe
+              luxury should embody this spirit: pure, enriching, and deeply
+              captivating.
+            </p>
+            <p>
+              Our name reflects the essence of what we offer — experiences and
+              creations so refined they intoxicate the senses with beauty,
+              craftsmanship, and authenticity.
+            </p>
+            <p>
+              Luxury, to us, lies not in quantity but in the quality of
+              selection and craftsmanship. Our platform brings together the
+              finest expressions of elegance across fashion, fragrance,
+              wellness, home, and jewelry, designed for discerning individuals
+              worldwide.
             </p>
             <p>
               We work in close partnership with select manufacturers and
               suppliers, building personal relationships that ensure
-              authenticity, craftsmanship and exclusivity. Unlike mass-market
+              authenticity, craftsmanship, and exclusivity. Unlike mass-market
               platforms, we are watchful over every customer interaction, taking
               each purchase and each experience seriously.
             </p>
             <p>
               From limited-edition perfumes and artisanal wellness essentials to
-              rare pearls, fine jewellery and hotel-grade bedlinen, our
+              rare pearls, fine jewelry, and hotel-grade bedlinen, our
               collections are chosen to elevate everyday living into timeless
               luxury.
+            </p>
+            <p className="font-display text-2xl italic leading-snug text-clay">
+              “Enivrant — captivating the senses, elevating the soul.”
             </p>
           </Reveal>
         </div>
