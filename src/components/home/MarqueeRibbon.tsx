@@ -1,13 +1,18 @@
 import { VelocityMarquee } from "@/components/anim/VelocityMarquee";
-import { formatPrice, FREE_DELIVERY_FROM } from "@/lib/site";
 
+// "Hotel & villa partners" comes back once the first trade partners are signed.
 const items = [
   "Complimentary gift wrapping",
-  "365-day guarantee",
-  `Free delivery over ${formatPrice(FREE_DELIVERY_FROM)}`,
+  "Authenticity assured",
+  "Curated luxury, delivered worldwide",
+  "Craftsmanship you can trust",
+  "Verified suppliers, authentic products",
+  "Empowering artisans & designers worldwide",
+  "Secure, effortless shopping",
   "Curated, never mass-produced",
-  "Hotel & villa partners",
-  "Authenticity assured on every piece",
+  "Global luxury access",
+  "Partnered with designers",
+  "Curated elegance online",
 ];
 
 /** Scroll-reactive promo strip — drifts on its own, speeds up with scroll. */
