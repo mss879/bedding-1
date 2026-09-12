@@ -184,7 +184,7 @@ export function HeroVideo({
             data-hero-heading
             className="font-wordmark text-[clamp(1.55rem,8.4vw,2.05rem)] font-normal leading-[1.06] tracking-[-0.01em] text-ink xs:text-[2.55rem] sm:text-[3.6rem] md:text-[4.6rem] md:leading-[1] xl:text-[5.4rem]"
           >
-            <span className="block">Where Elegance</span>
+            <span className="block">Where Luxury</span>
             <span className="block">Becomes a Lifestyle</span>
           </h1>
           <p

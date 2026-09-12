@@ -54,9 +54,11 @@ export const site = {
   nameUpper: "ENIVRANT",
   /** The tagline. Set in caps wherever it appears, so it is stored in title
    *  case and left to the CSS to shout. Doubles as the editorial sign-off. */
-  tagline: "Where Elegance Finds You",
-  /** The brand line — hero headline, share card and OG title all use it. */
-  headline: "Where Elegance Becomes a Lifestyle",
+  tagline: "Where Luxury Finds You",
+  /** The brand line — OG title and schema slogan read it from here. The hero
+   *  sets it as two hand-broken halves and the share card has it baked into
+   *  opengraph-image.png, so a change here means updating both by hand. */
+  headline: "Where Luxury Becomes a Lifestyle",
   description:
     "Enivrant is a curated universe of refinement — iconic fragrance, the art of self-care, timeless pearls and fine jewellery, Luxury Fashion Designer Selects and the serenity of hotel-grade bedlinen. Curated, never mass-produced.",
   /** Shorter line for share cards and social bios, where 300 chars is too many. */

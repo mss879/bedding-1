@@ -93,7 +93,7 @@ export function Footer({ categories }: { categories: Category[] }) {
             </p>
             <ul className="-my-1.5 space-y-0.5 text-sm">
               {[
-                { href: "/about", label: "Our story" },
+                { href: "/about", label: "About us" },
                 { href: "/hotel-bulk", label: "Hotel & trade" },
                 { href: "/contact", label: "Contact & concierge" },
                 { href: "/basket", label: "Your basket" },

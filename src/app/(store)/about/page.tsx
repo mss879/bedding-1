@@ -54,7 +54,7 @@ export default function AboutPage() {
           as="h1"
           animateOnMount
           delay={0.15}
-          lines={["Luxury is not", "mass-produced."]}
+          lines={["Luxury means", "peace within,", "elegance without."]}
           className="mt-5 max-w-4xl font-display text-[2.5rem] leading-[1.04] xs:text-5xl md:text-7xl"
         />
 
@@ -83,6 +83,14 @@ export default function AboutPage() {
               captivating.
             </p>
             <p>
+              For us, luxury is not only about what you wear or surround
+              yourself with — it is about how you feel within. True elegance
+              nurtures both inner well-being and outer expression, creating a
+              richness that flows inside out. Sometimes, luxury is not a
+              possession at all, but a state of peace, balance, and wellness
+              that elevates the soul as much as it adorns the body.
+            </p>
+            <p>
               Our name reflects the essence of what we offer — experiences and
               creations so refined they intoxicate the senses with beauty,
               craftsmanship, and authenticity.
@@ -91,21 +99,21 @@ export default function AboutPage() {
               Luxury, to us, lies not in quantity but in the quality of
               selection and craftsmanship. Our platform brings together the
               finest expressions of elegance across fashion, fragrance,
-              wellness, home, and jewelry, designed for discerning individuals
-              worldwide.
+              wellness, home and living, and fine jewelry, designed for
+              discerning individuals worldwide.
             </p>
             <p>
               We work in close partnership with select manufacturers and
               suppliers, building personal relationships that ensure
               authenticity, craftsmanship, and exclusivity. Unlike mass-market
-              platforms, we are watchful over every customer interaction, taking
-              each purchase and each experience seriously.
+              platforms, we are watchful over every supplier and customer
+              interaction, taking each purchase and each experience seriously.
             </p>
             <p>
               From limited-edition perfumes and artisanal wellness essentials to
-              rare pearls, fine jewelry, and hotel-grade bedlinen, our
-              collections are chosen to elevate everyday living into timeless
-              luxury.
+              rare pearls, fine jewelry, hotel-grade bed linen and table
+              decor & lighting, our collections are chosen to elevate everyday
+              living into timeless luxury.
             </p>
             <p className="font-display text-2xl italic leading-snug text-clay">
               “Enivrant — captivating the senses, elevating the soul.”

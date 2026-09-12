@@ -113,7 +113,7 @@ export function Hero({ tiles }: { tiles: HeroTile[] }) {
                 data-hero-heading
                 className="mt-5 font-display text-[3rem] leading-[1.02] tracking-tight text-ink sm:text-6xl md:text-7xl xl:text-[5.2rem]"
               >
-                Where Elegance Becomes a Lifestyle
+                Where Luxury Becomes a Lifestyle
               </h1>
               <p
                 data-hero-rest
