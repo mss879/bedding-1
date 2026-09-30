@@ -122,11 +122,14 @@ browser bundle.
   delivery, payment method; update status (pending → confirmed → shipped →
   delivered / cancelled).
 - **Products** — create, edit, delete; sizes & pricing (incl. compare-at),
-  images (each shown as a thumbnail: replace one with an upload to Supabase
-  Storage, remove it, add more, or move one up — the first is the listing
-  photo), details/care/colors, badge, featured, stock toggle. Out-of-stock
-  products show "Sold out" and can't be ordered.
-- **Collections** — create, edit, delete; **storefront control**: per-collection
+  photos, details/care/colors, badge, featured, stock toggle. Out-of-stock
+  products show "Sold out" and can't be ordered. Photos are added by upload
+  only — "Add photos" takes several at once — and each one goes straight into
+  the Supabase `product-images` bucket. Every photo shows as a thumbnail with
+  where it is stored, and can be replaced, removed or moved up (the first is
+  the listing photo).
+- **Collections** — create, edit, delete (the photo is upload-only too, into
+  the same bucket); **storefront control**: per-collection
   "show in navigation" and "show on homepage" toggles + sort order drive the
   header menus, footer, and homepage sections.
 
@@ -135,7 +138,8 @@ browser bundle.
 A product row only stores the *address* of each photograph. Two kinds work:
 
 - **Supabase Storage** — `https://<project>.supabase.co/storage/v1/object/public/product-images/…`.
-  Anything uploaded from the dashboard lands here.
+  The dashboard only adds photos by upload, so everything added or replaced
+  there lands here, under `products/` or `collections/`.
 - **Site paths** — `/images/products/…`, files in this repo under `public/`.
   The catalogue migrations start products off on these, because SQL can record
   where a photo lives but cannot carry the file.
