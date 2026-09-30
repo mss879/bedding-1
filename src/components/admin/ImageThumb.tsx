@@ -1,17 +1,32 @@
 "use client";
 
-/**
- * Small preview of an image field in the admin forms, so it is clear which
- * photo a row holds before it is replaced or removed. A plain <img>, not
- * next/image: the URL is still being edited, and next/image throws on any host
- * it has not been told about.
- */
-export function ImageThumb({ url }: { url: string }) {
+/** What the photo pickers offer — the same types uploadImage accepts. */
+export const PHOTO_TYPES = "image/jpeg,image/png,image/webp,image/avif,image/gif";
+
+/** Where a stored photo lives, in words for the dashboard. */
+export function photoLocation(url: string): string {
   const src = url.trim();
-  const showable = src.startsWith("/") || src.startsWith("https://");
+  if (src.includes("/storage/v1/object/public/")) return "Stored in Supabase";
+  if (src.startsWith("/")) return "Stored with the website";
+  return "External link";
+}
+
+/**
+ * Small preview of a photo in the admin forms, so it is clear which one a row
+ * holds before it is replaced or removed. A plain <img>, not next/image: the
+ * admin has to show whatever address is stored, and next/image throws on any
+ * host it has not been told about.
+ */
+export function ImageThumb({ url, large = false }: { url: string; large?: boolean }) {
+  const src = url.trim();
+  const showable = src.startsWith("/") || src.startsWith("https://") || src.startsWith("http://");
 
   return (
-    <span className="relative block h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-sand">
+    <span
+      className={`relative block shrink-0 overflow-hidden rounded-lg bg-sand ${
+        large ? "h-16 w-16" : "h-12 w-12"
+      }`}
+    >
       {showable && (
         // eslint-disable-next-line @next/next/no-img-element
         <img

@@ -148,7 +148,7 @@ export async function saveProduct(input: ProductInput): Promise<AdminActionResul
   if (!category_slug) return { ok: false, error: "Choose a collection for this product." };
 
   const images = input.images.map((url) => url.trim()).filter(Boolean);
-  if (images.length === 0) return { ok: false, error: "Add at least one image URL." };
+  if (images.length === 0) return { ok: false, error: "Add at least one photo." };
   if (images.some((url) => !isAllowedImageUrl(url))) {
     return { ok: false, error: IMAGE_HOST_HELP };
   }
@@ -227,8 +227,9 @@ const IMAGE_BUCKET = "product-images";
 
 // Uploads a product/collection photo to the Supabase Storage bucket provisioned
 // in migration 0003, and returns its public URL (a *.supabase.co/storage URL,
-// which is allow-listed in next.config.ts and by isAllowedImageUrl). Lets a
-// non-technical owner add a photo without hosting it elsewhere first.
+// which is allow-listed in next.config.ts and by isAllowedImageUrl). This is
+// the only way the dashboard adds a photo, so everything added there lives in
+// the bucket — under products/ or collections/, by what it was uploaded for.
 export async function uploadImage(formData: FormData): Promise<UploadResult> {
   if (!(await isAdmin())) return { ok: false, error: EXPIRED };
   const sb = getSupabaseAdmin();
@@ -246,7 +247,8 @@ export async function uploadImage(formData: FormData): Promise<UploadResult> {
   }
 
   const ext = (file.name.split(".").pop() ?? "").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
-  const path = `${randomUUID()}.${ext}`;
+  const folder = formData.get("folder") === "collections" ? "collections" : "products";
+  const path = `${folder}/${randomUUID()}.${ext}`;
   const { error } = await sb.storage.from(IMAGE_BUCKET).upload(path, file, {
     contentType: file.type,
     upsert: false,
@@ -283,7 +285,7 @@ export async function saveCategory(input: CategoryInput): Promise<AdminActionRes
 
   const image = input.image.trim();
   if (!image) {
-    return { ok: false, error: "Add an image URL — it's shown on the homepage circles and shop tiles." };
+    return { ok: false, error: "Add a photo — it's shown on the homepage circles and shop tiles." };
   }
   if (!isAllowedImageUrl(image)) {
     return { ok: false, error: IMAGE_HOST_HELP };

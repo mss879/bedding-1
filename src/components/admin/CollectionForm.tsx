@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { saveCategory, uploadImage } from "@/lib/admin/actions";
-import { ImageThumb } from "@/components/admin/ImageThumb";
+import { ImageThumb, PHOTO_TYPES, photoLocation } from "@/components/admin/ImageThumb";
 import type { Category } from "@/lib/types";
 
 const labelClass = "mb-1.5 block text-[0.82rem] font-semibold text-ink";
@@ -35,6 +35,7 @@ export function CollectionForm({ category }: { category?: Category }) {
     setUploading(true);
     const fd = new FormData();
     fd.append("file", file);
+    fd.append("folder", "collections");
     const result = await uploadImage(fd);
     setUploading(false);
     if (result.ok) setImage(result.url);
@@ -119,33 +120,37 @@ export function CollectionForm({ category }: { category?: Category }) {
           </div>
           <div className="grid gap-4 sm:grid-cols-[1fr_10rem]">
             <div>
-              <label htmlFor="cf-image" className={labelClass}>
+              <p id="cf-image" className={labelClass}>
                 Image *
-              </label>
-              <div className="flex items-center gap-2">
-                <ImageThumb url={image} />
-                {/* Not type="url": that rejects the site paths (/images/…) the
-                    catalogue ships with, and the browser then refuses to submit. */}
-                <input
-                  id="cf-image"
-                  type="text"
-                  inputMode="url"
-                  required
-                  className="field"
-                  placeholder="Upload a photo →"
-                  value={image}
-                  onChange={(e) => setImage(e.target.value)}
-                />
+              </p>
+              <div className="flex items-center gap-3" aria-labelledby="cf-image">
+                {image ? (
+                  <a
+                    href={image}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="shrink-0"
+                    aria-label="Open the collection photo full size"
+                  >
+                    <ImageThumb url={image} large />
+                  </a>
+                ) : (
+                  <ImageThumb url="" large />
+                )}
+                <p className="min-w-0 flex-1 truncate text-xs text-fog" title={image}>
+                  {image ? photoLocation(image) : "No photo yet"}
+                </p>
                 <label
                   className={`btn btn-tint btn-sm shrink-0 cursor-pointer ${
                     uploading ? "pointer-events-none opacity-60" : ""
                   }`}
                 >
-                  {uploading ? "Uploading…" : image.trim() ? "Replace" : "Upload"}
+                  {uploading ? "Uploading…" : image ? "Replace" : "Upload"}
                   <input
                     type="file"
-                    accept="image/*"
+                    accept={PHOTO_TYPES}
                     className="sr-only"
+                    aria-label={image ? "Replace the collection photo" : "Upload the collection photo"}
                     onChange={(e) => {
                       handleUpload(e.target.files?.[0]);
                       e.target.value = "";
@@ -154,8 +159,8 @@ export function CollectionForm({ category }: { category?: Category }) {
                 </label>
               </div>
               <p className={hintClass}>
-                Shown on the homepage circles and shop tiles. Upload a photo (JPEG, PNG or WebP, up
-                to 5 MB) — it is stored in Supabase and goes live when you save.
+                Shown on the homepage circles and shop tiles. The photo uploads straight to
+                Supabase Storage (JPEG, PNG or WebP, up to 5 MB) and goes live when you save.
               </p>
             </div>
             <div>
@@ -218,8 +223,8 @@ export function CollectionForm({ category }: { category?: Category }) {
       )}
 
       <div className="flex flex-wrap items-center gap-3">
-        <button type="submit" disabled={pending} className="btn btn-solid disabled:opacity-60">
-          {pending ? "Saving…" : "Save collection"}
+        <button type="submit" disabled={pending || uploading} className="btn btn-solid disabled:opacity-60">
+          {uploading ? "Uploading photo…" : pending ? "Saving…" : "Save collection"}
         </button>
         <Link href="/admin/collections" className="btn btn-outline">
           Cancel

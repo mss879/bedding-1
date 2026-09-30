@@ -4,7 +4,7 @@ import { useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { saveProduct, uploadImage } from "@/lib/admin/actions";
-import { ImageThumb } from "@/components/admin/ImageThumb";
+import { ImageThumb, PHOTO_TYPES, photoLocation } from "@/components/admin/ImageThumb";
 import type { Category, Product } from "@/lib/types";
 
 const labelClass = "mb-1.5 block text-[0.82rem] font-semibold text-ink";
@@ -31,7 +31,11 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  // Which photo row is being replaced, and progress through a batch of new
+  // photos. Uploads go straight to Supabase Storage.
   const [uploadingKey, setUploadingKey] = useState<number | null>(null);
+  const [adding, setAdding] = useState<{ done: number; total: number } | null>(null);
+  const uploading = uploadingKey !== null || adding !== null;
 
   const [name, setName] = useState(product?.name ?? "");
   const [slug, setSlug] = useState(product?.slug ?? "");
@@ -41,7 +45,7 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
   // Keys for the dynamic rows so removals don't reshuffle React state.
   // The initial rows take their keys by index — a ref must not be *read* during
   // render — and the counter then starts past them for rows added later.
-  const initialImages = product && product.images.length > 0 ? product.images : [""];
+  const initialImages = product?.images ?? [];
   const initialSizes =
     product && product.sizes.length > 0
       ? product.sizes
@@ -77,16 +81,45 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
     });
   }
 
-  async function handleUpload(key: number, file: File | undefined) {
+  function upload(file: File) {
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("folder", "products");
+    return uploadImage(fd);
+  }
+
+  /** Swaps the photo in one row for a newly uploaded one. */
+  async function handleReplace(key: number, file: File | undefined) {
     if (!file) return;
     setError(null);
     setUploadingKey(key);
-    const fd = new FormData();
-    fd.append("file", file);
-    const result = await uploadImage(fd);
+    const result = await upload(file);
     setUploadingKey(null);
     if (result.ok) setImage(key, result.url);
     else setError(result.error);
+  }
+
+  /** Uploads new photos one by one, in the order chosen, adding each as it lands. */
+  async function handleAdd(files: File[]) {
+    if (files.length === 0) return;
+    setError(null);
+    const failed: string[] = [];
+    for (let i = 0; i < files.length; i++) {
+      setAdding({ done: i, total: files.length });
+      const result = await upload(files[i]);
+      if (result.ok) {
+        const row = { key: makeKey(), url: result.url };
+        setImages((rows) => [...rows, row]);
+      } else {
+        failed.push(`${files[i].name}: ${result.error}`);
+      }
+    }
+    setAdding(null);
+    if (failed.length > 0) {
+      setError(
+        failed.length === 1 ? failed[0] : `${failed.length} photos couldn't be uploaded. ${failed.join(" ")}`
+      );
+    }
   }
 
   function setSize(key: number, patch: Partial<SizeRow>) {
@@ -323,74 +356,100 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
       <section className="rounded-xl bg-white p-5 shadow-card md:p-6">
         <h2 className="font-display text-lg">Images</h2>
         <div className="mt-4 space-y-3">
+          {images.length === 0 && (
+            <p className="text-sm text-ink-soft">No photos yet — add at least one.</p>
+          )}
           {images.map((row, index) => (
-            // On a phone the address drops to its own line under the buttons,
-            // rather than being squeezed to a sliver beside them.
-            <div key={row.key} className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
-              <ImageThumb url={row.url} />
-              {/* Not type="url": that rejects the site paths (/images/…) the
-                  catalogue ships with, and the browser then refuses to submit. */}
-              <input
-                type="text"
-                inputMode="url"
-                className="field order-last sm:order-none"
-                aria-label={`Image URL ${index + 1}`}
-                placeholder="Upload a photo →"
-                value={row.url}
-                onChange={(e) => setImage(row.key, e.target.value)}
-              />
-              <label
-                className={`btn btn-tint btn-sm shrink-0 cursor-pointer ${
-                  uploadingKey !== null ? "pointer-events-none opacity-60" : ""
-                }`}
+            // On a phone the buttons drop to their own line under the photo.
+            <div key={row.key} className="flex flex-wrap items-center gap-x-3 gap-y-2 sm:flex-nowrap">
+              <a
+                href={row.url}
+                target="_blank"
+                rel="noreferrer"
+                className="shrink-0"
+                aria-label={`Open photo ${index + 1} full size`}
               >
-                {uploadingKey === row.key ? "Uploading…" : row.url.trim() ? "Replace" : "Upload"}
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="sr-only"
-                  onChange={(e) => {
-                    handleUpload(row.key, e.target.files?.[0]);
-                    e.target.value = "";
-                  }}
-                />
-              </label>
-              {index > 0 ? (
-                <button
-                  type="button"
-                  onClick={() => moveImageUp(row.key)}
-                  className="icon-btn shrink-0 text-lg"
-                  aria-label={`Move image ${index + 1} up`}
+                <ImageThumb url={row.url} large />
+              </a>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-ink">
+                  {index === 0 ? "Listing photo" : `Photo ${index + 1}`}
+                </p>
+                <p className="truncate text-xs text-fog" title={row.url}>
+                  {photoLocation(row.url)}
+                </p>
+              </div>
+              <div className="flex w-full items-center justify-end gap-2 sm:w-auto">
+                <label
+                  className={`btn btn-tint btn-sm shrink-0 cursor-pointer ${
+                    uploading ? "pointer-events-none opacity-60" : ""
+                  }`}
                 >
-                  ↑
-                </button>
-              ) : (
-                // Holds the arrow's place so the first row lines up with the rest.
-                images.length > 1 && <span className="hidden w-10 shrink-0 sm:block" aria-hidden />
-              )}
-              {images.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => setImages((rows) => rows.filter((r) => r.key !== row.key))}
-                  className="icon-btn shrink-0 text-lg"
-                  aria-label={`Remove image ${index + 1}`}
-                >
-                  ×
-                </button>
-              )}
+                  {uploadingKey === row.key ? "Uploading…" : "Replace"}
+                  <input
+                    type="file"
+                    accept={PHOTO_TYPES}
+                    className="sr-only"
+                    aria-label={`Replace photo ${index + 1}`}
+                    onChange={(e) => {
+                      handleReplace(row.key, e.target.files?.[0]);
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
+                {index > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => moveImageUp(row.key)}
+                    className="icon-btn shrink-0 text-lg"
+                    aria-label={`Move photo ${index + 1} up`}
+                  >
+                    ↑
+                  </button>
+                ) : (
+                  // Holds the arrow's place so the first row lines up with the rest.
+                  images.length > 1 && <span className="hidden w-10 shrink-0 sm:block" aria-hidden />
+                )}
+                {images.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => setImages((rows) => rows.filter((r) => r.key !== row.key))}
+                    className="icon-btn shrink-0 text-lg"
+                    aria-label={`Remove photo ${index + 1}`}
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
             </div>
           ))}
-          <button
-            type="button"
-            onClick={() => setImages((rows) => [...rows, { key: makeKey(), url: "" }])}
-            className="btn btn-tint btn-sm"
+          <label
+            className={`btn btn-tint btn-sm cursor-pointer ${
+              uploading ? "pointer-events-none opacity-60" : ""
+            }`}
           >
-            Add image
-          </button>
+            {adding
+              ? `Uploading ${adding.done + 1} of ${adding.total}…`
+              : images.length === 0
+                ? "Upload photos"
+                : "Add photos"}
+            <input
+              type="file"
+              accept={PHOTO_TYPES}
+              multiple
+              className="sr-only"
+              onChange={(e) => {
+                // Copy the list before clearing the input, which empties it.
+                const files = Array.from(e.target.files ?? []);
+                e.target.value = "";
+                handleAdd(files);
+              }}
+            />
+          </label>
           <p className={hintClass}>
-            Upload a photo (JPEG, PNG or WebP, up to 5 MB) to add one or replace the one in that
-            row — it is stored in Supabase and goes live when you save. The first image is the
-            listing photo; use the arrow to move one up.
+            Photos upload straight to Supabase Storage (JPEG, PNG or WebP, up to 5 MB each — you
+            can pick several at once) and go live when you save. The first is the listing photo;
+            use the arrow to move one up. Click a photo to see it full size.
           </p>
         </div>
       </section>
@@ -482,8 +541,8 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
       )}
 
       <div className="flex flex-wrap items-center gap-3">
-        <button type="submit" disabled={pending} className="btn btn-solid disabled:opacity-60">
-          {pending ? "Saving…" : "Save product"}
+        <button type="submit" disabled={pending || uploading} className="btn btn-solid disabled:opacity-60">
+          {uploading ? "Uploading photos…" : pending ? "Saving…" : "Save product"}
         </button>
         <Link href="/admin/products" className="btn btn-outline">
           Cancel
