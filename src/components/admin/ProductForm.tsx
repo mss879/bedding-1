@@ -4,6 +4,7 @@ import { useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { saveProduct, uploadImage } from "@/lib/admin/actions";
+import { ImageThumb } from "@/components/admin/ImageThumb";
 import type { Category, Product } from "@/lib/types";
 
 const labelClass = "mb-1.5 block text-[0.82rem] font-semibold text-ink";
@@ -64,6 +65,16 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
 
   function setImage(key: number, url: string) {
     setImages((rows) => rows.map((row) => (row.key === key ? { ...row, url } : row)));
+  }
+
+  function moveImageUp(key: number) {
+    setImages((rows) => {
+      const i = rows.findIndex((row) => row.key === key);
+      if (i < 1) return rows;
+      const next = [...rows];
+      [next[i - 1], next[i]] = [next[i], next[i - 1]];
+      return next;
+    });
   }
 
   async function handleUpload(key: number, file: File | undefined) {
@@ -313,12 +324,18 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
         <h2 className="font-display text-lg">Images</h2>
         <div className="mt-4 space-y-3">
           {images.map((row, index) => (
-            <div key={row.key} className="flex items-center gap-2">
+            // On a phone the address drops to its own line under the buttons,
+            // rather than being squeezed to a sliver beside them.
+            <div key={row.key} className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
+              <ImageThumb url={row.url} />
+              {/* Not type="url": that rejects the site paths (/images/…) the
+                  catalogue ships with, and the browser then refuses to submit. */}
               <input
-                type="url"
-                className="field"
+                type="text"
+                inputMode="url"
+                className="field order-last sm:order-none"
                 aria-label={`Image URL ${index + 1}`}
-                placeholder="https://… or upload →"
+                placeholder="Upload a photo →"
                 value={row.url}
                 onChange={(e) => setImage(row.key, e.target.value)}
               />
@@ -327,7 +344,7 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
                   uploadingKey !== null ? "pointer-events-none opacity-60" : ""
                 }`}
               >
-                {uploadingKey === row.key ? "Uploading…" : "Upload"}
+                {uploadingKey === row.key ? "Uploading…" : row.url.trim() ? "Replace" : "Upload"}
                 <input
                   type="file"
                   accept="image/*"
@@ -338,6 +355,19 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
                   }}
                 />
               </label>
+              {index > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => moveImageUp(row.key)}
+                  className="icon-btn shrink-0 text-lg"
+                  aria-label={`Move image ${index + 1} up`}
+                >
+                  ↑
+                </button>
+              ) : (
+                // Holds the arrow's place so the first row lines up with the rest.
+                images.length > 1 && <span className="hidden w-10 shrink-0 sm:block" aria-hidden />
+              )}
               {images.length > 1 && (
                 <button
                   type="button"
@@ -358,8 +388,9 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
             Add image
           </button>
           <p className={hintClass}>
-            Upload a photo (JPEG/PNG/WebP, up to 5 MB) or paste a public HTTPS URL from
-            images.unsplash.com. The first image is the listing photo.
+            Upload a photo (JPEG, PNG or WebP, up to 5 MB) to add one or replace the one in that
+            row — it is stored in Supabase and goes live when you save. The first image is the
+            listing photo; use the arrow to move one up.
           </p>
         </div>
       </section>

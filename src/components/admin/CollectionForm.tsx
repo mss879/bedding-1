@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { saveCategory, uploadImage } from "@/lib/admin/actions";
+import { ImageThumb } from "@/components/admin/ImageThumb";
 import type { Category } from "@/lib/types";
 
 const labelClass = "mb-1.5 block text-[0.82rem] font-semibold text-ink";
@@ -122,12 +123,16 @@ export function CollectionForm({ category }: { category?: Category }) {
                 Image *
               </label>
               <div className="flex items-center gap-2">
+                <ImageThumb url={image} />
+                {/* Not type="url": that rejects the site paths (/images/…) the
+                    catalogue ships with, and the browser then refuses to submit. */}
                 <input
                   id="cf-image"
-                  type="url"
+                  type="text"
+                  inputMode="url"
                   required
                   className="field"
-                  placeholder="https://… or upload →"
+                  placeholder="Upload a photo →"
                   value={image}
                   onChange={(e) => setImage(e.target.value)}
                 />
@@ -136,7 +141,7 @@ export function CollectionForm({ category }: { category?: Category }) {
                     uploading ? "pointer-events-none opacity-60" : ""
                   }`}
                 >
-                  {uploading ? "Uploading…" : "Upload"}
+                  {uploading ? "Uploading…" : image.trim() ? "Replace" : "Upload"}
                   <input
                     type="file"
                     accept="image/*"
@@ -149,8 +154,8 @@ export function CollectionForm({ category }: { category?: Category }) {
                 </label>
               </div>
               <p className={hintClass}>
-                Shown on the homepage circles and shop tiles. Upload a photo (up to 5 MB) or paste an
-                https:// Unsplash / Supabase Storage URL.
+                Shown on the homepage circles and shop tiles. Upload a photo (JPEG, PNG or WebP, up
+                to 5 MB) — it is stored in Supabase and goes live when you save.
               </p>
             </div>
             <div>
