@@ -19,9 +19,9 @@ npm run dev
 ```
 
 The site is fully functional out of the box using the built-in seed catalog —
-no database required. The admin dashboard needs `ADMIN_PASSWORD` (set it in
-`.env.local` for local dev — never commit the value) and Supabase to manage
-real data.
+no database required. The admin dashboard needs Supabase: it signs in with a
+Supabase Auth email and password and manages the data held there (see
+[Admin dashboard](#admin-dashboard)).
 
 ## Connecting Supabase
 
@@ -45,17 +45,32 @@ real data.
      catalog (stoneware, teak, rattan lighting, candles, planters, workshop
      storage alongside the retained textile line). Upserts by slug; see the
      header comment before running if products were added via the admin.
+   - [`supabase/migrations/0006_paycorp_payments.sql`](supabase/migrations/0006_paycorp_payments.sql) —
+     the columns card payments record their outcome into.
+   - [`supabase/migrations/0007_enivrant_catalogue.sql`](supabase/migrations/0007_enivrant_catalogue.sql) —
+     the Enivrant catalogue: six collections, 36 pieces, priced in USD.
+   - [`supabase/migrations/0008_molee_edit.sql`](supabase/migrations/0008_molee_edit.sql) —
+     80 sourced pieces added to the existing collections. Follow it with
+     `npm run photos:upload` (see [Product photographs](#product-photographs)).
+   - [`supabase/migrations/0009_admin_users.sql`](supabase/migrations/0009_admin_users.sql) —
+     the list of Supabase accounts allowed into the admin dashboard.
 3. Copy `.env.example` to `.env.local` and fill in:
    - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `SUPABASE_SERVICE_ROLE_KEY` — server-only, powers the admin dashboard
-   - `ADMIN_PASSWORD` — login for `/admin`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` — reads the catalogue, and checks admin
+     sign-ins
+   - `SUPABASE_SERVICE_ROLE_KEY` — server-only; the admin dashboard and every
+     storefront write (orders, inquiries, newsletter) go through it
    - `NEXT_PUBLIC_WHATSAPP_NUMBER` — the client's WhatsApp number
    - `NEXT_PUBLIC_SITE_URL` — production URL (for SEO/sitemap)
+4. Add an admin (see [Admin dashboard](#admin-dashboard)).
 
 Once the env vars are present, products/categories are read from Supabase and
 orders, inquiries and newsletter signups are written to it. Without them, the
-site falls back to the seed catalog and completes flows in demo mode.
+site falls back to the seed catalog and completes flows in demo mode. **All
+three Supabase variables must be set on the host as well** — with
+`SUPABASE_SERVICE_ROLE_KEY` missing the storefront still looks healthy, but
+orders are not saved and the dashboard cannot be opened. `/admin/login` names
+whichever variable is missing.
 
 ### Tables
 
@@ -65,6 +80,7 @@ site falls back to the seed catalog and completes flows in demo mode.
 | `orders`, `order_items` | Retail purchase flow (server re-prices every line; COD / bank transfer) | none — server-only writes |
 | `inquiries` | Contact + hotel/bulk inquiries | none — server-only writes |
 | `newsletter_subscribers` | Footer signups | none — server-only writes |
+| `admin_users` | Supabase accounts allowed into `/admin` | none — server-only |
 
 The storefront reads the catalog with the **anon key** (public read policies).
 All *writes* — orders, inquiries, newsletter — happen inside server actions
@@ -76,19 +92,68 @@ browser bundle.
 
 ## Admin dashboard
 
-- `/admin/login` — password login (`ADMIN_PASSWORD`), signed HttpOnly session
-  cookie, all `/admin` routes gated in `src/proxy.ts` and re-checked in every
-  admin server action.
+- `/admin/login` — signs in with a **Supabase Auth email and password**. The
+  account must also be on the admin list (`admin_users`, migration `0009`):
+  a Supabase project accepts sign-ups from anyone unless that is switched off,
+  so having an account is never enough on its own.
+  - **Add an admin:** in Supabase → Authentication → Users → *Add user*, enter
+    their email and a password and tick *Auto Confirm User*. Then run this in
+    the SQL editor with their email — one row back means they are on the list:
+
+    ```sql
+    insert into public.admin_users (user_id)
+    select id from auth.users where lower(email) = lower('owner@example.com')
+    on conflict (user_id) do update set user_id = excluded.user_id
+    returning user_id;
+    ```
+
+  - **Remove one:** delete their row from `admin_users`, or delete the user
+    under Authentication → Users. They are locked out on their next click.
+  - **Change a password:** delete the user under Authentication → Users, add
+    them again with the new password, and run the insert above once more
+    (their admin-list row went with the old account). There is no
+    forgot-password page in the dashboard yet.
+  - After a successful sign-in the dashboard keeps its own signed, HttpOnly
+    session cookie for seven days (`src/lib/admin/session.ts`), so there are no
+    Supabase tokens in the browser. The cookie is checked in `src/proxy.ts`;
+    the admin list is re-read wherever admin data is loaded and in every admin
+    server action.
 - **Orders** — list with status filters; detail view with items, customer,
   delivery, payment method; update status (pending → confirmed → shipped →
   delivered / cancelled).
 - **Products** — create, edit, delete; sizes & pricing (incl. compare-at),
-  images (upload a photo to Supabase Storage or paste a URL), details/care/colors,
-  badge, featured, stock toggle. Out-of-stock products show "Sold out" and can't
-  be ordered.
+  images (each shown as a thumbnail: replace one with an upload to Supabase
+  Storage, remove it, add more, or move one up — the first is the listing
+  photo), details/care/colors, badge, featured, stock toggle. Out-of-stock
+  products show "Sold out" and can't be ordered.
 - **Collections** — create, edit, delete; **storefront control**: per-collection
   "show in navigation" and "show on homepage" toggles + sort order drive the
   header menus, footer, and homepage sections.
+
+## Product photographs
+
+A product row only stores the *address* of each photograph. Two kinds work:
+
+- **Supabase Storage** — `https://<project>.supabase.co/storage/v1/object/public/product-images/…`.
+  Anything uploaded from the dashboard lands here.
+- **Site paths** — `/images/products/…`, files in this repo under `public/`.
+  The catalogue migrations start products off on these, because SQL can record
+  where a photo lives but cannot carry the file.
+
+To move a migration's photographs into Supabase Storage, so they sit with the
+rest of the catalogue and no deploy is needed for them to appear:
+
+```bash
+npm run photos:upload
+```
+
+It uploads the Molee edit's 320 photographs from
+`public/images/products/molee/` to the `product-images` bucket and repoints
+those 80 products at the bucket. Add `-- --dry-run` to see what it would do, or
+`-- --all` to move every product still on a site path. It reads the project
+from `.env.local`, is safe to run again, and only repoints a product once all
+of its photographs are confirmed readable at their new address. The copies in
+`public/` stay as the source for that command and for the demo-mode catalogue.
 
 ## Card payments (Paycorp — Commercial Bank of Ceylon)
 
@@ -147,6 +212,8 @@ return URL is built from it — Paycorp cannot redirect a shopper to localhost.
   admin data/actions/auth (`lib/admin/`), service-role client
   (`supabase-admin.ts`), seed data.
 - `src/proxy.ts` — auth gate for `/admin` (Next 16 proxy, ex-middleware).
+- `scripts/upload-product-photos.mjs` — moves catalogue photographs into
+  Supabase Storage (`npm run photos:upload`).
 - `src/components/anim/` — scroll animation primitives: `Reveal`, `MaskReveal`,
   `Stagger`, `LineReveal` (masked line-by-line headlines), `ParallaxImage`,
   `ScrollExpand` (pinned image that grows to full-bleed on scroll).
@@ -170,25 +237,28 @@ return URL is built from it — Paycorp cannot redirect a shopper to localhost.
   report damage, refunds issued within 7 working days, liability and Sri Lankan
   law. If the bank asks for the registered company name, number or address, add
   them to the first clause.
-- Change `ADMIN_PASSWORD` to something strong before deploying, and set
-  `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` /
-  `SUPABASE_SERVICE_ROLE_KEY`. Provisioning Supabase (env vars + running every
-  migration in `supabase/migrations/`, in order) is a **launch gate**: until it's
-  done the storefront runs on the seed catalog and orders are not persisted.
-  Migration `0006` is what card payments record their outcome into, and `0007`
-  replaces the retired Ivory Homez catalogue with the Enivrant one.
+- Set `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` /
+  `SUPABASE_SERVICE_ROLE_KEY` on the host, and add at least one admin (see
+  [Admin dashboard](#admin-dashboard)). Provisioning Supabase (env vars + running
+  every migration in `supabase/migrations/`, in order) is a **launch gate**:
+  until it's done the storefront runs on the seed catalog and orders are not
+  persisted. Migration `0006` is what card payments record their outcome into,
+  and `0007` replaces the retired Ivory Homez catalogue with the Enivrant one.
 - **`0007` is a launch gate for card payments, not cosmetics.** The Ivory Homez
   rows it replaces are priced in LKR while the storefront renders every price as
   USD, so a card order for a `4900` vase would bill LKR 1,470,000 instead of
   LKR 4,900. Run it before taking a single card payment.
 - **`0008` adds the Molee edit**: 80 pieces sourced from Chengdu Molee Textile
-  (74 bedlinen, 4 wellness, 2 fashion), additive and re-runnable. Their photos
-  ship in the repo under `public/images/products/molee/`, so **deploy before
-  running it** or the new cards go live without images. It is generated together
-  with `src/lib/seed-data-molee.ts`; regenerate both rather than hand-editing one.
+  (74 bedlinen, 4 wellness, 2 fashion). It only adds pieces that are missing, so
+  running it again never overwrites what has been edited in the dashboard. It
+  points the pieces at photographs under `public/images/products/molee/`; run
+  `npm run photos:upload` afterwards to put them in Supabase Storage (see
+  [Product photographs](#product-photographs)). It is generated together with
+  `src/lib/seed-data-molee.ts`; regenerate both rather than hand-editing one.
 - Card payments run against Paycorp's **production** endpoint — any test
   transaction is a real charge, refundable only from the bank's merchant portal.
   Set `PAYCORP_VALIDATE_ONLY=true` for a dry run that moves no money.
-- Recommended follow-ups (not blocking): rate-limiting/lockout on `/admin` login,
-  server-enforced session expiry, and a real inventory count (the `stock_quantity`
-  column is provisioned in `0003` but not yet wired into the admin UI).
+- Recommended follow-ups (not blocking): a change-password / forgot-password
+  page for admins (sign-in attempts are already rate-limited by Supabase Auth),
+  and a real inventory count (the `stock_quantity` column is provisioned in
+  `0003` but not yet wired into the admin UI).
