@@ -1,16 +1,29 @@
+import { requireAdmin } from "@/lib/admin/auth";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import type { Category, Order, OrderItem, OrderStatus, Product } from "@/lib/types";
 
-// Admin reads go through the service-role client (server-only, bypasses RLS).
-// Every function returns null when Supabase isn't configured yet — pages
-// render a SetupNotice in that case — and never throws: a failed query on a
-// configured database degrades to an empty result instead of a crash.
+// Admin reads go through the service-role client (server-only, bypasses RLS),
+// so each one first confirms the request belongs to a signed-in admin — the
+// dashboard layout checks too, but a layout is not re-rendered when navigating
+// between its pages, and these reads are what actually hand out the data.
+//
+// Every function returns null when Supabase isn't configured, and pages render
+// a SetupNotice for it. That is a safeguard only: nobody can sign in without
+// Supabase, so an admin never actually sees it. None of them throws on a bad
+// query — a failed query on a configured database degrades to an empty result
+// instead of a crash.
 //
 // PostgREST returns numeric(12,2) columns as strings, so order totals and
 // unit prices are coerced with Number(...) here, once, at the boundary.
 
+/** The service-role client, for a verified admin only. */
+async function adminDb() {
+  await requireAdmin();
+  return getSupabaseAdmin();
+}
+
 export async function adminListProducts(): Promise<Product[] | null> {
-  const sb = getSupabaseAdmin();
+  const sb = await adminDb();
   if (!sb) return null;
   const { data, error } = await sb
     .from("products")
@@ -21,7 +34,7 @@ export async function adminListProducts(): Promise<Product[] | null> {
 }
 
 export async function adminGetProduct(id: string): Promise<Product | null> {
-  const sb = getSupabaseAdmin();
+  const sb = await adminDb();
   if (!sb) return null;
   const { data, error } = await sb.from("products").select("*").eq("id", id).maybeSingle();
   if (error || !data) return null;
@@ -29,7 +42,7 @@ export async function adminGetProduct(id: string): Promise<Product | null> {
 }
 
 export async function adminListCategories(): Promise<Category[] | null> {
-  const sb = getSupabaseAdmin();
+  const sb = await adminDb();
   if (!sb) return null;
   const { data, error } = await sb.from("categories").select("*").order("sort_order");
   if (error || !data) return [];
@@ -37,7 +50,7 @@ export async function adminListCategories(): Promise<Category[] | null> {
 }
 
 export async function adminGetCategory(id: string): Promise<Category | null> {
-  const sb = getSupabaseAdmin();
+  const sb = await adminDb();
   if (!sb) return null;
   const { data, error } = await sb.from("categories").select("*").eq("id", id).maybeSingle();
   if (error || !data) return null;
@@ -49,7 +62,7 @@ export async function adminGetCategory(id: string): Promise<Category | null> {
 // "unknown — refuse", never as zero: the category_slug FK cascades, so a
 // mistaken 0 could let a delete wipe a non-empty collection's products.
 export async function adminCountProductsInCategory(slug: string): Promise<number | null> {
-  const sb = getSupabaseAdmin();
+  const sb = await adminDb();
   if (!sb) return null;
   const { count, error } = await sb
     .from("products")
@@ -60,7 +73,7 @@ export async function adminCountProductsInCategory(slug: string): Promise<number
 }
 
 export async function adminListOrders(status?: OrderStatus): Promise<Order[] | null> {
-  const sb = getSupabaseAdmin();
+  const sb = await adminDb();
   if (!sb) return null;
   let query = sb.from("orders").select("*").order("created_at", { ascending: false });
   if (status) query = query.eq("status", status);
@@ -72,7 +85,7 @@ export async function adminListOrders(status?: OrderStatus): Promise<Order[] | n
 export async function adminGetOrder(
   id: string
 ): Promise<{ order: Order; items: OrderItem[] } | null> {
-  const sb = getSupabaseAdmin();
+  const sb = await adminDb();
   if (!sb) return null;
   const { data, error } = await sb.from("orders").select("*").eq("id", id).maybeSingle();
   if (error || !data) return null;
@@ -93,7 +106,7 @@ export async function adminCounts(): Promise<{
   orders: number;
   pendingOrders: number;
 } | null> {
-  const sb = getSupabaseAdmin();
+  const sb = await adminDb();
   if (!sb) return null;
   const [products, categories, orders, pendingOrders] = await Promise.all([
     sb.from("products").select("*", { count: "exact", head: true }),

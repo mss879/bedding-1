@@ -4,12 +4,11 @@ import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { isAdmin } from "@/lib/admin/auth";
+import { isAdmin, signInAdmin } from "@/lib/admin/auth";
 import {
   ADMIN_COOKIE,
-  adminConfigured,
-  adminSessionToken,
-  isCorrectAdminPassword,
+  ADMIN_SESSION_MAX_AGE,
+  createAdminSessionToken,
 } from "@/lib/admin/session";
 import { adminCountProductsInCategory, adminGetCategory } from "@/lib/admin/data";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
@@ -21,7 +20,8 @@ import type { OrderStatus, ProductSize } from "@/lib/types";
 
 export type AdminActionResult = { ok: true } | { ok: false; error: string };
 
-export type LoginState = { error: string | null };
+/** `email` is handed back so a failed attempt doesn't clear the field. */
+export type LoginState = { error: string | null; email?: string };
 
 export type ProductInput = {
   id?: string;
@@ -99,20 +99,23 @@ function isAllowedImageUrl(url: string): boolean {
 // ---------------------------------------------------------------------------
 
 export async function adminLogin(_prevState: LoginState, formData: FormData): Promise<LoginState> {
-  if (!adminConfigured()) {
-    return { error: "ADMIN_PASSWORD is not set on the server." };
-  }
+  const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
-  const token = adminSessionToken();
-  if (!token || !isCorrectAdminPassword(password)) {
-    return { error: "Wrong password." };
+  if (!email || !password) {
+    return { error: "Enter your email and password.", email };
   }
+
+  const result = await signInAdmin(email, password);
+  if (!result.ok) return { error: result.error, email };
+
+  const token = await createAdminSessionToken(result.userId);
+  if (!token) return { error: "Supabase isn't connected on this server yet.", email };
   (await cookies()).set(ADMIN_COOKIE, token, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: 60 * 60 * 24 * 7,
+    maxAge: ADMIN_SESSION_MAX_AGE,
   });
   // Only follow same-dashboard destinations; anything else goes home.
   const from = String(formData.get("from") ?? "");

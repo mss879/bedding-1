@@ -5,37 +5,51 @@ function Env({ children }: { children: React.ReactNode }) {
 }
 
 /**
- * Shown on every admin page when the service-role Supabase client isn't
- * configured yet (admin data functions return null in that case).
+ * Setup steps for a server where Supabase isn't connected. The login page
+ * shows it in place of the sign-in form, naming the variables that are
+ * `missing`; dashboard pages keep it as a fallback for the same case.
  */
-export function SetupNotice() {
+export function SetupNotice({ missing = [] }: { missing?: string[] }) {
   return (
     <div className="max-w-2xl rounded-xl bg-white p-6 shadow-card md:p-8">
       <h2 className="font-display text-2xl">Connect Supabase to finish setup</h2>
       <p className="mt-3 text-sm leading-relaxed text-ink-soft">
-        The dashboard manages the live catalog and orders through Supabase, and it isn&apos;t
-        connected yet. In the meantime the storefront keeps running on the built-in demo seed
-        catalog, so nothing is broken for visitors.
+        The dashboard signs in with a Supabase account and manages the live catalogue and orders
+        through Supabase, and it isn&apos;t connected on this server yet.
       </p>
+      {missing.length > 0 && (
+        <p className="mt-3 text-sm leading-relaxed text-ink">
+          Missing on this server:{" "}
+          {missing.map((name, i) => (
+            <span key={name}>
+              {i > 0 && ", "}
+              <Env>{name}</Env>
+            </span>
+          ))}
+          .
+        </p>
+      )}
       <ol className="mt-5 list-decimal space-y-2.5 pl-5 text-sm leading-relaxed text-ink-soft">
         <li>
-          Create a Supabase project and run the migrations in{" "}
-          <Env>supabase/migrations/</Env> against it, in order (0001 through
-          0005).
+          Run every migration in <Env>supabase/migrations/</Env> against the Supabase project, in
+          order.
         </li>
         <li>
-          Add <Env>NEXT_PUBLIC_SUPABASE_URL</Env> and <Env>NEXT_PUBLIC_SUPABASE_ANON_KEY</Env> to{" "}
-          <Env>.env.local</Env> so the storefront reads from the database.
+          Set <Env>NEXT_PUBLIC_SUPABASE_URL</Env> and <Env>NEXT_PUBLIC_SUPABASE_ANON_KEY</Env> so
+          the storefront reads from the database and the dashboard can check sign-ins.
         </li>
         <li>
-          Add <Env>SUPABASE_SERVICE_ROLE_KEY</Env> so this dashboard can write to it.
+          Set <Env>SUPABASE_SERVICE_ROLE_KEY</Env> so the dashboard and the checkout can write to
+          it. Until it is set, orders and inquiries placed on the storefront are not saved.
         </li>
         <li>
-          Set <Env>ADMIN_PASSWORD</Env> to lock the dashboard behind a password.
+          In Supabase, add a user under Authentication → Users, then put that user on the admin
+          list. The README has the one line of SQL for it.
         </li>
       </ol>
       <p className="mt-5 text-xs text-fog">
-        Restart the dev server after changing environment variables.
+        Set the variables in the host&apos;s environment settings (or <Env>.env.local</Env> when
+        running locally), then redeploy or restart the server.
       </p>
     </div>
   );

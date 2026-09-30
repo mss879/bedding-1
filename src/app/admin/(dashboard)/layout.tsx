@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { isAdmin } from "@/lib/admin/auth";
+import { requireAdmin } from "@/lib/admin/auth";
 import { adminLogout } from "@/lib/admin/actions";
 import { AdminNav } from "@/components/admin/AdminNav";
 
@@ -34,10 +33,10 @@ function ShellActions() {
   );
 }
 
-// Defense in depth: the proxy already redirects unauthenticated /admin
-// requests, but the shell re-checks the cookie before rendering anything.
+// Defense in depth: the proxy already redirects requests without a session,
+// but the shell re-checks it — and the admin list — before rendering anything.
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  if (!(await isAdmin())) redirect("/admin/login");
+  await requireAdmin();
 
   return (
     <div className="flex min-h-screen flex-col md:flex-row">

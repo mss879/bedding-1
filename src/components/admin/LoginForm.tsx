@@ -5,7 +5,9 @@ import { adminLogin, type LoginState } from "@/lib/admin/actions";
 
 const initialState: LoginState = { error: null };
 
-export function LoginForm({ configured, from }: { configured: boolean; from?: string }) {
+const labelClass = "mb-1.5 block text-[0.82rem] font-semibold text-ink";
+
+export function LoginForm({ from }: { from?: string }) {
   const [state, formAction, pending] = useActionState(adminLogin, initialState);
 
   return (
@@ -16,7 +18,22 @@ export function LoginForm({ configured, from }: { configured: boolean; from?: st
       <form action={formAction} className="mt-6 space-y-4">
         {from?.startsWith("/admin") && <input type="hidden" name="from" value={from} />}
         <div>
-          <label htmlFor="admin-password" className="mb-1.5 block text-[0.82rem] font-semibold text-ink">
+          <label htmlFor="admin-email" className={labelClass}>
+            Email *
+          </label>
+          <input
+            id="admin-email"
+            name="email"
+            type="email"
+            required
+            autoFocus
+            autoComplete="username"
+            defaultValue={state.email ?? ""}
+            className="field"
+          />
+        </div>
+        <div>
+          <label htmlFor="admin-password" className={labelClass}>
             Password *
           </label>
           <input
@@ -24,7 +41,6 @@ export function LoginForm({ configured, from }: { configured: boolean; from?: st
             name="password"
             type="password"
             required
-            autoFocus
             autoComplete="current-password"
             className="field"
           />
@@ -40,13 +56,6 @@ export function LoginForm({ configured, from }: { configured: boolean; from?: st
           {pending ? "Signing in…" : "Sign in"}
         </button>
       </form>
-
-      {!configured && (
-        <p className="mt-4 text-xs leading-relaxed text-fog">
-          The dashboard isn&apos;t enabled yet — set <code className="rounded bg-sand px-1 py-0.5">ADMIN_PASSWORD</code>{" "}
-          in <code className="rounded bg-sand px-1 py-0.5">.env.local</code> and restart the server.
-        </p>
-      )}
     </div>
   );
 }
