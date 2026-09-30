@@ -14,15 +14,35 @@
 -- costs 2%+ more it retails at least one rung higher. The supplier cost and
 -- SKU behind every price is in the price sheet, which is kept out of the repo.
 --
--- Photographs are the supplier's own listing images, saved as WebP under
--- public/images/products/molee/ -- deploy the site before running this, or
--- the new cards render without photos.
+-- Photographs are the supplier's own listing images, saved as WebP. SQL can
+-- only record where a photo lives, not carry the file, so this migration
+-- points each piece at its copy under public/images/products/molee/. To put
+-- the photographs in Supabase Storage instead, where the dashboard manages
+-- them, run `npm run photos:upload` afterwards: it uploads them to the
+-- product-images bucket and repoints these rows at the bucket.
 --
--- Generated together with src/lib/seed-data-molee.ts from one source, so the
--- database and the demo-mode fallback stay identical. Re-runnable: every
--- write is an upsert on slug.
+-- Generated together with src/lib/seed-data-molee.ts from one source, so a
+-- fresh database and the demo-mode fallback start out identical.
+--
+-- Safe to run again: a piece that already exists is left exactly as it is, so
+-- nothing edited in the dashboard since (names, prices, photographs) is ever
+-- overwritten. It only adds pieces that are missing.
 
 BEGIN;
+
+-- Every piece goes into a collection that already exists. Stop with a clear
+-- message, before anything is written, if one of them is missing.
+DO $$
+DECLARE
+  missing text;
+BEGIN
+  SELECT string_agg(want.slug, ', ' ORDER BY want.slug) INTO missing
+    FROM unnest(ARRAY['bedlinen', 'fashion', 'wellness']::text[]) AS want(slug)
+   WHERE NOT EXISTS (SELECT 1 FROM public.categories c WHERE c.slug = want.slug);
+  IF missing IS NOT NULL THEN
+    RAISE EXCEPTION 'Missing collection(s): %. Run migration 0007 first.', missing;
+  END IF;
+END $$;
 
 -- bedlinen ------------------------------------------------------------------
 
@@ -44,12 +64,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -69,12 +84,7 @@ VALUES (
   true,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -94,12 +104,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -119,12 +124,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -144,12 +144,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -169,12 +164,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -194,12 +184,7 @@ VALUES (
   true,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -219,12 +204,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -244,12 +224,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -269,12 +244,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -294,12 +264,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -319,12 +284,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -344,12 +304,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -369,12 +324,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -394,12 +344,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -419,12 +364,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -444,12 +384,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -469,12 +404,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -494,12 +424,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -519,12 +444,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -544,12 +464,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -569,12 +484,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -594,12 +504,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -619,12 +524,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -644,12 +544,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -669,12 +564,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -694,12 +584,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -719,12 +604,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -744,12 +624,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -769,12 +644,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -794,12 +664,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -819,12 +684,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -844,12 +704,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -869,12 +724,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -894,12 +744,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -919,12 +764,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -944,12 +784,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -969,12 +804,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -994,12 +824,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -1019,12 +844,7 @@ VALUES (
   true,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -1044,12 +864,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -1069,12 +884,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -1094,12 +904,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -1119,12 +924,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -1144,12 +944,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -1169,12 +964,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -1194,12 +984,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -1219,12 +1004,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -1244,12 +1024,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -1269,12 +1044,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -1294,12 +1064,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -1319,12 +1084,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -1344,12 +1104,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -1369,12 +1124,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -1394,12 +1144,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -1419,12 +1164,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -1444,12 +1184,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -1469,12 +1204,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -1494,12 +1224,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -1519,12 +1244,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -1544,12 +1264,7 @@ VALUES (
   true,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -1569,12 +1284,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -1594,12 +1304,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -1619,12 +1324,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -1644,12 +1344,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -1669,12 +1364,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -1694,12 +1384,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -1719,12 +1404,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -1744,12 +1424,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -1769,12 +1444,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -1794,12 +1464,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -1819,12 +1484,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -1844,12 +1504,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -1869,12 +1524,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 -- wellness ------------------------------------------------------------------
 
@@ -1896,12 +1546,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -1921,12 +1566,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -1946,12 +1586,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -1971,12 +1606,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 -- fashion -------------------------------------------------------------------
 
@@ -1998,12 +1628,7 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products
   (slug, name, category_slug, short_description, description, material, details, care, colors, images, sizes, badge, featured, in_stock)
@@ -2023,11 +1648,6 @@ VALUES (
   false,
   true
 )
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name, category_slug = EXCLUDED.category_slug,
-  short_description = EXCLUDED.short_description, description = EXCLUDED.description,
-  material = EXCLUDED.material, details = EXCLUDED.details, care = EXCLUDED.care,
-  colors = EXCLUDED.colors, images = EXCLUDED.images, sizes = EXCLUDED.sizes,
-  badge = EXCLUDED.badge, featured = EXCLUDED.featured, in_stock = EXCLUDED.in_stock;
+ON CONFLICT (slug) DO NOTHING;
 
 COMMIT;
