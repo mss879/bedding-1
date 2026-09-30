@@ -181,6 +181,11 @@ return URL is built from it — Paycorp cannot redirect a shopper to localhost.
   rows it replaces are priced in LKR while the storefront renders every price as
   USD, so a card order for a `4900` vase would bill LKR 1,470,000 instead of
   LKR 4,900. Run it before taking a single card payment.
+- **`0008` adds the Molee edit**: 80 pieces sourced from Chengdu Molee Textile
+  (74 bedlinen, 4 wellness, 2 fashion), additive and re-runnable. Their photos
+  ship in the repo under `public/images/products/molee/`, so **deploy before
+  running it** or the new cards go live without images. It is generated together
+  with `src/lib/seed-data-molee.ts`; regenerate both rather than hand-editing one.
 - Card payments run against Paycorp's **production** endpoint — any test
   transaction is a real charge, refundable only from the bank's merchant portal.
   Set `PAYCORP_VALIDATE_ONLY=true` for a dry run that moves no money.

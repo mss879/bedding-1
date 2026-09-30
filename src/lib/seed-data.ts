@@ -1,15 +1,18 @@
 import type { Category, Product } from "./types";
+import { moleeProducts } from "./seed-data-molee";
 
 /**
- * Enivrant demo catalog — six maison collections, 36 pieces.
+ * Enivrant demo catalog — six maison collections, 36 pieces, plus the Molee
+ * edit appended at the end (80 sourced pieces, see seed-data-molee.ts).
  *
  * Prices are USD. They were converted from the original LKR ladder at
  * 300 LKR = 1 USD and then snapped to clean retail rungs — the maison does not
  * use .99 pricing, so nothing here ends in 9.
  *
- * Imagery is first-party: every photograph was generated for this brand and
- * lives under /public/images (categories, banners, products). Local paths mean
- * next/image optimises them without any remote host allowlist.
+ * The 36 pieces below use first-party imagery generated for this brand; the
+ * Molee edit uses the supplier's own photographs, saved under
+ * /public/images/products/molee. All of it is local, so next/image optimises
+ * it without any remote host allowlist.
  */
 
 /** Product photograph pair: `-a` is the studio shot, `-b` the lifestyle detail. */
@@ -999,4 +1002,8 @@ export const seedProducts: Product[] = [
     featured: false,
     in_stock: true,
   },
+
+  // ── The Molee edit ────────────────────────────────────────────────────
+  // Sourced pieces, generated with migration 0008 (see seed-data-molee.ts).
+  ...moleeProducts,
 ];
