@@ -16,10 +16,10 @@
 --
 -- Photographs are the supplier's own listing images, saved as WebP. SQL can
 -- only record where a photo lives, not carry the file, so this migration
--- points each piece at its copy under public/images/products/molee/. To put
--- the photographs in Supabase Storage instead, where the dashboard manages
--- them, run `npm run photos:upload` afterwards: it uploads them to the
--- product-images bucket and repoints these rows at the bucket.
+-- points each piece at its copy under public/images/products/molee/, which
+-- the website serves. To serve them from Supabase Storage instead, where the
+-- dashboard manages them, upload that folder to the product-images bucket
+-- and run migration 0010.
 --
 -- Generated together with src/lib/seed-data-molee.ts from one source, so a
 -- fresh database and the demo-mode fallback start out identical.

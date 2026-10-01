@@ -50,10 +50,12 @@ Supabase Auth email and password and manages the data held there (see
    - [`supabase/migrations/0007_enivrant_catalogue.sql`](supabase/migrations/0007_enivrant_catalogue.sql) —
      the Enivrant catalogue: six collections, 36 pieces, priced in USD.
    - [`supabase/migrations/0008_molee_edit.sql`](supabase/migrations/0008_molee_edit.sql) —
-     80 sourced pieces added to the existing collections. Follow it with
-     `npm run photos:upload` (see [Product photographs](#product-photographs)).
+     80 sourced pieces added to the existing collections.
    - [`supabase/migrations/0009_admin_users.sql`](supabase/migrations/0009_admin_users.sql) —
      the list of Supabase accounts allowed into the admin dashboard.
+   - [`supabase/migrations/0010_molee_photos_to_storage.sql`](supabase/migrations/0010_molee_photos_to_storage.sql) —
+     serves 0008's photographs from Supabase Storage. Upload the photos to
+     the bucket first (see [Product photographs](#product-photographs)).
 3. Copy `.env.example` to `.env.local` and fill in:
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY` — reads the catalogue, and checks admin
@@ -144,20 +146,27 @@ A product row only stores the *address* of each photograph. Two kinds work:
   The catalogue migrations start products off on these, because SQL can record
   where a photo lives but cannot carry the file.
 
-To move a migration's photographs into Supabase Storage, so they sit with the
-rest of the catalogue and no deploy is needed for them to appear:
+To serve the Molee edit's photographs from Supabase Storage instead:
+
+1. In Supabase → Storage → `product-images`, drag in the folder
+   `public/images/products/molee` from this repo (320 photos).
+2. Run [`0010_molee_photos_to_storage.sql`](supabase/migrations/0010_molee_photos_to_storage.sql)
+   in the SQL editor. It first checks all 320 are in the bucket and stops,
+   changing nothing, if one is missing; then it repoints the 80 pieces photo by
+   photo, keeping their order and any photo already replaced in the
+   dashboard. It ends by showing the counts, and is safe to run again. It is
+   written for this project's Supabase address.
+
+The same in one command, uploading and repointing together (it reads the
+project from `.env.local`; `-- --dry-run` shows what it would do, `-- --all`
+also moves the other products' photos):
 
 ```bash
 npm run photos:upload
 ```
 
-It uploads the Molee edit's 320 photographs from
-`public/images/products/molee/` to the `product-images` bucket and repoints
-those 80 products at the bucket. Add `-- --dry-run` to see what it would do, or
-`-- --all` to move every product still on a site path. It reads the project
-from `.env.local`, is safe to run again, and only repoints a product once all
-of its photographs are confirmed readable at their new address. The copies in
-`public/` stay as the source for that command and for the demo-mode catalogue.
+The copies in `public/` stay as the upload source and for the demo-mode
+catalogue.
 
 ## Card payments (Paycorp — Commercial Bank of Ceylon)
 
@@ -255,8 +264,8 @@ return URL is built from it — Paycorp cannot redirect a shopper to localhost.
 - **`0008` adds the Molee edit**: 80 pieces sourced from Chengdu Molee Textile
   (74 bedlinen, 4 wellness, 2 fashion). It only adds pieces that are missing, so
   running it again never overwrites what has been edited in the dashboard. It
-  points the pieces at photographs under `public/images/products/molee/`; run
-  `npm run photos:upload` afterwards to put them in Supabase Storage (see
+  points the pieces at photographs under `public/images/products/molee/`, which
+  the website serves; `0010` moves them onto Supabase Storage (see
   [Product photographs](#product-photographs)). It is generated together with
   `src/lib/seed-data-molee.ts`; regenerate both rather than hand-editing one.
 - Card payments run against Paycorp's **production** endpoint — any test
