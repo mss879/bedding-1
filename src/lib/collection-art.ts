@@ -37,3 +37,31 @@ export function collectionTagline(slug?: string): string {
   if (!slug) return "Six collections, one house";
   return TAGLINES[slug] ?? "From the maison";
 }
+
+/**
+ * An editorial page listed beside a collection's sub-categories — in the
+ * header menu, the shop chips and the shop-by-category tiles — without being a
+ * shelf of products. Code, not catalogue data, for the same reason banners
+ * are: it is a page someone designed, not something added in the dashboard.
+ */
+export type CollectionPage = {
+  name: string;
+  href: string;
+  image: string;
+  blurb: string;
+};
+
+const PAGES: Record<string, CollectionPage[]> = {
+  wellness: [
+    {
+      name: "Wellness Tourism – A Global Journey",
+      href: "/wellness-tourism",
+      image: "/images/subcategories/wellness-tourism.webp",
+      blurb: "Ayurvedic retreats, spa sanctuaries and alpine resorts — and why Sri Lanka shines among them.",
+    },
+  ],
+};
+
+export function collectionPages(slug?: string): CollectionPage[] {
+  return slug ? (PAGES[slug] ?? []) : [];
+}

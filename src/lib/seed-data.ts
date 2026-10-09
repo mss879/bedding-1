@@ -1,9 +1,12 @@
 import type { Category, Product } from "./types";
 import { moleeProducts } from "./seed-data-molee";
+import { seedVoucherProducts, withSubcategory } from "./seed-subcategories";
 
 /**
  * Enivrant demo catalog — six maison collections, 36 pieces, plus the Molee
- * edit appended at the end (80 sourced pieces, see seed-data-molee.ts).
+ * edit appended at the end (80 sourced pieces, see seed-data-molee.ts), then
+ * sorted into sub-categories with the spa vouchers added (migration 0011, see
+ * seed-subcategories.ts).
  *
  * Prices are USD. They were converted from the original LKR ladder at
  * 300 LKR = 1 USD and then snapped to clean retail rungs — the maison does not
@@ -78,7 +81,7 @@ export const seedCategories: Category[] = [
   },
 ];
 
-export const seedProducts: Product[] = [
+const catalogue: Product[] = [
   // ── Luxury Wellness ────────────────────────────────────────────────────
   {
     id: "p1",
@@ -1007,3 +1010,10 @@ export const seedProducts: Product[] = [
   // Sourced pieces, generated with migration 0008 (see seed-data-molee.ts).
   ...moleeProducts,
 ];
+
+/**
+ * The catalogue as the storefront sees it: every piece in its sub-category
+ * (and the Molee sleepwear moved into bedlinen), with the spa vouchers after.
+ * Mirrors the database once migration 0011 has run.
+ */
+export const seedProducts: Product[] = [...catalogue.map(withSubcategory), ...seedVoucherProducts];

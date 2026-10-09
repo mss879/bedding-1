@@ -12,6 +12,30 @@ export type Category = {
   show_on_home?: boolean;
 };
 
+/**
+ * One level under a collection — "Luxury Bedding", "Pillows & Cushions".
+ * Slugs are unique across the whole catalogue, not just within a collection,
+ * so a product can point at one by slug alone (migration 0011).
+ */
+export type Subcategory = {
+  id: string;
+  slug: string;
+  category_slug: string;
+  name: string;
+  description: string;
+  image: string;
+  sort_order: number;
+  /** Anything other than `false` is visible, as with collections. */
+  show_in_nav?: boolean;
+};
+
+/**
+ * What a product is. A voucher is a spa experience sold as a code: it has no
+ * delivery, no address and no cash-on-delivery, and each unit bought gets a
+ * code of its own (see `Voucher`).
+ */
+export type ProductKind = "physical" | "voucher";
+
 export type ProductSize = {
   name: string;
   dimensions: string;
@@ -35,6 +59,10 @@ export type Product = {
   badge: string | null;
   featured: boolean;
   in_stock: boolean;
+  // Migration 0011. Optional so rows from a database that predates it still
+  // type-check: no sub-category, and a missing kind means a physical piece.
+  subcategory_slug?: string | null;
+  kind?: ProductKind;
 };
 
 export type CartItem = {
@@ -44,6 +72,8 @@ export type CartItem = {
   sizeName: string;
   unitPrice: number;
   quantity: number;
+  /** Absent on baskets saved before vouchers existed; treat as physical. */
+  kind?: ProductKind;
 };
 
 export type PaymentMethod = "cod" | "bank_transfer" | "card";
@@ -104,6 +134,28 @@ export type OrderItem = {
   size_name: string;
   unit_price: number;
   quantity: number;
+};
+
+/** pending: ordered, not yet paid · issued: paid, the code is live · redeemed: used at the spa · void: cancelled. */
+export type VoucherStatus = "pending" | "issued" | "redeemed" | "void";
+
+/** One spa voucher — a single unit of a voucher line, with its own code. */
+export type Voucher = {
+  code: string;
+  order_id: string;
+  order_item_id: string | null;
+  product_slug: string;
+  product_name: string;
+  size_name: string;
+  /** What the spa honours it for (the option's compare-at price, else its price). */
+  value: number;
+  /** What the shopper paid for this one unit. */
+  paid: number;
+  status: VoucherStatus;
+  issued_at: string | null;
+  redeemed_at: string | null;
+  redeemed_note: string;
+  created_at: string;
 };
 
 export type InquiryInput = {
