@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { adminListCategories } from "@/lib/admin/data";
+import { adminListCategories, adminListSubcategories } from "@/lib/admin/data";
 import { ProductForm } from "@/components/admin/ProductForm";
 import { SetupNotice } from "@/components/admin/SetupNotice";
 
@@ -8,12 +8,12 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminNewProductPage() {
-  const categories = await adminListCategories();
+  const [categories, subcategories] = await Promise.all([adminListCategories(), adminListSubcategories()]);
 
   return (
     <div className="space-y-6">
       <h1 className="font-display text-3xl md:text-4xl">New product</h1>
-      {categories === null ? <SetupNotice /> : <ProductForm categories={categories} />}
+      {categories === null ? <SetupNotice /> : <ProductForm categories={categories} subcategories={subcategories ?? []} />}
     </div>
   );
 }

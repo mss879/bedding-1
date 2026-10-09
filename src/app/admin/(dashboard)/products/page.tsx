@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { deleteProduct } from "@/lib/admin/actions";
-import { adminListCategories, adminListProducts } from "@/lib/admin/data";
+import { adminListCategories, adminListProducts, adminListSubcategories } from "@/lib/admin/data";
 import { formatPrice } from "@/lib/site";
 import { DeleteButton } from "@/components/admin/DeleteButton";
 import { SetupNotice } from "@/components/admin/SetupNotice";
@@ -14,7 +14,11 @@ export const metadata: Metadata = {
 const thClass = "px-4 py-3 text-left text-[0.78rem] font-semibold text-fog";
 
 export default async function AdminProductsPage() {
-  const [products, categories] = await Promise.all([adminListProducts(), adminListCategories()]);
+  const [products, categories, subcategories] = await Promise.all([
+    adminListProducts(),
+    adminListCategories(),
+    adminListSubcategories(),
+  ]);
 
   const header = (
     <div className="flex flex-wrap items-center justify-between gap-4">
@@ -35,6 +39,7 @@ export default async function AdminProductsPage() {
   }
 
   const categoryNames = new Map((categories ?? []).map((c) => [c.slug, c.name]));
+  const subcategoryNames = new Map((subcategories ?? []).map((s) => [s.slug, s.name]));
 
   return (
     <div className="space-y-6">
@@ -52,7 +57,7 @@ export default async function AdminProductsPage() {
         </div>
       ) : (
         <div className="overflow-x-auto rounded-xl bg-white shadow-card">
-          <table className="w-full min-w-[760px] text-sm">
+          <table className="w-full min-w-[880px] text-sm">
             <thead>
               <tr className="border-b hairline">
                 <th className={thClass}>
@@ -60,6 +65,7 @@ export default async function AdminProductsPage() {
                 </th>
                 <th className={thClass}>Name</th>
                 <th className={thClass}>Collection</th>
+                <th className={thClass}>Sub-category</th>
                 <th className={thClass}>Price</th>
                 <th className={thClass}>Sizes</th>
                 <th className={thClass}>Status</th>
@@ -94,6 +100,15 @@ export default async function AdminProductsPage() {
                       {categoryNames.get(product.category_slug) ?? product.category_slug}
                     </td>
                     <td className="px-4 py-3">
+                      {product.subcategory_slug ? (
+                        <span className="text-ink-soft">
+                          {subcategoryNames.get(product.subcategory_slug) ?? product.subcategory_slug}
+                        </span>
+                      ) : (
+                        <span className="text-fog">Not filed</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
                       {firstSize ? (
                         <span className={firstSize.compare_at_price ? "font-medium text-sale" : ""}>
                           From {formatPrice(firstSize.price)}
@@ -113,6 +128,7 @@ export default async function AdminProductsPage() {
                           {product.in_stock ? "In stock" : "Out of stock"}
                         </span>
                         {product.featured && <span className="badge-img">Featured</span>}
+                        {product.kind === "voucher" && <span className="badge-img">Voucher</span>}
                       </span>
                     </td>
                     <td className="px-4 py-3">

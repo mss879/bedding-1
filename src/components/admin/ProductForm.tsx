@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { saveProduct, uploadImage } from "@/lib/admin/actions";
 import { ImageThumb, PHOTO_TYPES, photoLocation } from "@/components/admin/ImageThumb";
-import type { Category, Product } from "@/lib/types";
+import type { Category, Product, ProductKind, Subcategory } from "@/lib/types";
 
 const labelClass = "mb-1.5 block text-[0.82rem] font-semibold text-ink";
 const hintClass = "mt-1.5 text-xs leading-relaxed text-fog";
@@ -27,7 +27,16 @@ function splitLines(value: FormDataEntryValue | null): string[] {
     .filter(Boolean);
 }
 
-export function ProductForm({ categories, product }: { categories: Category[]; product?: Product }) {
+export function ProductForm({
+  categories,
+  subcategories = [],
+  product,
+}: {
+  categories: Category[];
+  /** Every sub-category; the form offers the chosen collection's. */
+  subcategories?: Subcategory[];
+  product?: Product;
+}) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -36,6 +45,12 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
   const [uploadingKey, setUploadingKey] = useState<number | null>(null);
   const [adding, setAdding] = useState<{ done: number; total: number } | null>(null);
   const uploading = uploadingKey !== null || adding !== null;
+
+  const [categorySlug, setCategorySlug] = useState(product?.category_slug ?? categories[0]?.slug ?? "");
+  const [subcategorySlug, setSubcategorySlug] = useState(product?.subcategory_slug ?? "");
+  const [kind, setKind] = useState<ProductKind>(product?.kind ?? "physical");
+  const isVoucher = kind === "voucher";
+  const collectionSubs = subcategories.filter((s) => s.category_slug === categorySlug);
 
   const [name, setName] = useState(product?.name ?? "");
   const [slug, setSlug] = useState(product?.slug ?? "");
@@ -135,7 +150,9 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
         id: product?.id,
         name,
         slug,
-        category_slug: String(form.get("category_slug") ?? ""),
+        category_slug: categorySlug,
+        subcategory_slug: subcategorySlug || null,
+        kind,
         short_description: String(form.get("short_description") ?? ""),
         description: String(form.get("description") ?? ""),
         material: String(form.get("material") ?? ""),
@@ -214,7 +231,12 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
                 name="category_slug"
                 required
                 className="field"
-                defaultValue={product?.category_slug ?? categories[0]?.slug ?? ""}
+                value={categorySlug}
+                onChange={(e) => {
+                  setCategorySlug(e.target.value);
+                  // Sub-categories belong to one collection, so the choice resets.
+                  setSubcategorySlug("");
+                }}
               >
                 {categories.map((c) => (
                   <option key={c.slug} value={c.slug}>
@@ -233,11 +255,71 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
               )}
             </div>
             <div>
+              <label htmlFor="pf-subcategory" className={labelClass}>
+                Sub-category
+              </label>
+              <select
+                id="pf-subcategory"
+                className="field"
+                value={subcategorySlug}
+                onChange={(e) => setSubcategorySlug(e.target.value)}
+                disabled={collectionSubs.length === 0}
+              >
+                <option value="">— None —</option>
+                {collectionSubs.map((s) => (
+                  <option key={s.slug} value={s.slug}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+              <p className={hintClass}>
+                {subcategories.length === 0
+                  ? "Sub-categories arrive with migration 0011 — run it in Supabase to file products under them."
+                  : collectionSubs.length === 0
+                    ? "This collection has no sub-categories yet — add them on the collection's page."
+                    : "Where it sits in the menu and the shop's chips. Sub-categories are managed on the collection's page."}
+              </p>
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <fieldset>
+              <legend className={labelClass}>Type *</legend>
+              <div className="space-y-2">
+                {(
+                  [
+                    { value: "physical", label: "Physical piece", hint: "Delivered to the shopper." },
+                    {
+                      value: "voucher",
+                      label: "Spa voucher",
+                      hint: "Digital — no delivery or cash on delivery; each one bought gets its own code.",
+                    },
+                  ] as const
+                ).map((option) => (
+                  <label key={option.value} className="flex items-start gap-2.5 text-sm text-ink">
+                    <input
+                      type="radio"
+                      name="kind"
+                      value={option.value}
+                      checked={kind === option.value}
+                      onChange={() => setKind(option.value)}
+                      className="mt-0.5 h-4 w-4 accent-clay"
+                    />
+                    <span>
+                      <span className="block font-medium">{option.label}</span>
+                      <span className="block text-xs text-fog">{option.hint}</span>
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+            <div>
               <label htmlFor="pf-badge" className={labelClass}>
                 Badge
               </label>
               <input id="pf-badge" name="badge" className="field" defaultValue={product?.badge ?? ""} />
-              <p className={hintClass}>e.g. &quot;Bestseller&quot; — shown on the product image.</p>
+              <p className={hintClass}>
+                e.g. &quot;Bestseller&quot;{isVoucher ? " or \"Voucher\"" : ""} — shown on the product image.
+              </p>
             </div>
           </div>
           <div className="flex flex-wrap gap-x-6 gap-y-2 pt-1">
@@ -293,7 +375,7 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
           </div>
           <div>
             <label htmlFor="pf-material" className={labelClass}>
-              Material
+              Material{isVoucher ? " (leave empty for a voucher)" : ""}
             </label>
             <input
               id="pf-material"
@@ -312,7 +394,7 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
         <div className="mt-4 space-y-4">
           <div>
             <label htmlFor="pf-details" className={labelClass}>
-              Details
+              {isVoucher ? "What's included" : "Details"}
             </label>
             <textarea
               id="pf-details"
@@ -325,7 +407,7 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
           </div>
           <div>
             <label htmlFor="pf-care" className={labelClass}>
-              Care
+              {isVoucher ? "Terms" : "Care"}
             </label>
             <textarea
               id="pf-care"
@@ -334,7 +416,9 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
               className="field"
               defaultValue={product?.care.join("\n") ?? ""}
             />
-            <p className={hintClass}>One per line.</p>
+            <p className={hintClass}>
+              One per line.{isVoucher ? " Shown under Terms on the voucher's page." : ""}
+            </p>
           </div>
           <div>
             <label htmlFor="pf-colors" className={labelClass}>
@@ -347,7 +431,9 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
               defaultValue={product?.colors.join(", ") ?? ""}
               placeholder="White, Oat, Sage"
             />
-            <p className={hintClass}>Comma-separated.</p>
+            <p className={hintClass}>
+              Comma-separated.{isVoucher ? " Leave empty for a voucher." : ""}
+            </p>
           </div>
         </div>
       </section>
@@ -456,13 +542,15 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
 
       {/* Sizes & pricing */}
       <section className="rounded-xl bg-white p-5 shadow-card md:p-6">
-        <h2 className="font-display text-lg">Sizes &amp; pricing</h2>
+        <h2 className="font-display text-lg">
+          {isVoucher ? "Treatment options & pricing" : "Sizes & pricing"}
+        </h2>
         <div className="mt-4 space-y-3">
           <div className="hidden gap-2 text-[0.72rem] font-semibold text-fog sm:grid sm:grid-cols-[1fr_1fr_1fr_1fr_2.5rem]">
             <span>Name</span>
             <span>Dimensions</span>
             <span>Price ($)</span>
-            <span>Compare-at ($)</span>
+            <span>{isVoucher ? "Spa value ($)" : "Compare-at ($)"}</span>
             <span />
           </div>
           {sizes.map((row, index) => (
@@ -470,14 +558,14 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
               <input
                 className="field"
                 aria-label={`Size ${index + 1} name`}
-                placeholder="Queen"
+                placeholder={isVoucher ? "60 minutes" : "Queen"}
                 value={row.name}
                 onChange={(e) => setSize(row.key, { name: e.target.value })}
               />
               <input
                 className="field"
                 aria-label={`Size ${index + 1} dimensions`}
-                placeholder="230 × 250 cm"
+                placeholder={isVoucher ? "Full-body massage" : "230 × 250 cm"}
                 value={row.dimensions}
                 onChange={(e) => setSize(row.key, { dimensions: e.target.value })}
               />
@@ -528,8 +616,9 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
             Add size
           </button>
           <p className={hintClass}>
-            Prices are whole dollars. Compare-at shows a strikethrough &quot;was&quot; price — leave it
-            blank unless the size is on sale, and keep it higher than the price.
+            {isVoucher
+              ? "Prices are whole dollars. Spa value is what the treatment costs at the spa — it shows as a quiet strike-through beside your price. Keep it higher than the price."
+              : "Prices are whole dollars. Compare-at shows a strikethrough \"was\" price — leave it blank unless the size is on sale, and keep it higher than the price."}
           </p>
         </div>
       </section>

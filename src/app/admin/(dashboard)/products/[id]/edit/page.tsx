@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { adminGetProduct, adminListCategories } from "@/lib/admin/data";
+import { adminGetProduct, adminListCategories, adminListSubcategories } from "@/lib/admin/data";
 import { ProductForm } from "@/components/admin/ProductForm";
 import { SetupNotice } from "@/components/admin/SetupNotice";
 
@@ -14,7 +14,7 @@ export default async function AdminEditProductPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const categories = await adminListCategories();
+  const [categories, subcategories] = await Promise.all([adminListCategories(), adminListSubcategories()]);
 
   if (categories === null) {
     return (
@@ -34,7 +34,7 @@ export default async function AdminEditProductPage({
         <h1 className="font-display text-3xl md:text-4xl">Edit product</h1>
         <p className="mt-1.5 text-sm text-ink-soft">{product.name}</p>
       </div>
-      <ProductForm categories={categories} product={product} />
+      <ProductForm categories={categories} subcategories={subcategories ?? []} product={product} />
     </div>
   );
 }

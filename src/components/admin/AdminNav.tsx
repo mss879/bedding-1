@@ -8,6 +8,7 @@ const links = [
   { href: "/admin/orders", label: "Orders", icon: ReceiptIcon },
   { href: "/admin/products", label: "Products", icon: TagIcon },
   { href: "/admin/collections", label: "Collections", icon: GridIcon },
+  { href: "/admin/vouchers", label: "Vouchers", icon: TicketIcon },
 ];
 
 function isActive(pathname: string, href: string) {
@@ -94,6 +95,18 @@ function GridIcon({ className }: { className?: string }) {
       <rect x="13" y="4" width="7" height="7" rx="1.5" />
       <rect x="4" y="13" width="7" height="7" rx="1.5" />
       <rect x="13" y="13" width="7" height="7" rx="1.5" />
+    </svg>
+  );
+}
+
+function TicketIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden>
+      <path
+        d="M4 7.5A1.5 1.5 0 0 1 5.5 6h13A1.5 1.5 0 0 1 20 7.5V10a2 2 0 0 0 0 4v2.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 16.5V14a2 2 0 0 0 0-4V7.5Z"
+        strokeLinejoin="round"
+      />
+      <path d="M14.5 6.5v11" strokeDasharray="1.5 2" strokeLinecap="round" />
     </svg>
   );
 }

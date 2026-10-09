@@ -8,6 +8,7 @@ import { OrderStatusControl } from "@/components/admin/OrderStatusControl";
 import { PaymentBadge } from "@/components/admin/PaymentBadge";
 import { SetupNotice } from "@/components/admin/SetupNotice";
 import { StatusBadge } from "@/components/admin/StatusBadge";
+import { VoucherControl, VoucherStatusBadge } from "@/components/admin/VoucherControl";
 
 export const metadata: Metadata = {
   title: "Order",
@@ -51,7 +52,7 @@ export default async function AdminOrderPage({ params }: { params: Promise<{ id:
 
   const result = await adminGetOrder(id);
   if (!result) notFound();
-  const { order, items } = result;
+  const { order, items, vouchers } = result;
 
   return (
     <div className="space-y-6">
@@ -101,6 +102,36 @@ export default async function AdminOrderPage({ params }: { params: Promise<{ id:
             </div>
           </Card>
 
+          {vouchers.length > 0 && (
+            <Card title="Spa vouchers">
+              <p className="text-xs leading-relaxed text-fog">
+                {order.payment_method === "card"
+                  ? "Issued automatically once the card payment went through."
+                  : "Issued when you set this order to Confirmed — do that once the payment has arrived."}{" "}
+                Send each code to the customer on WhatsApp.
+              </p>
+              <ul className="mt-3">
+                {vouchers.map((v) => (
+                  <li
+                    key={v.code}
+                    className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5 border-b hairline py-3 last:border-0"
+                  >
+                    <div className="min-w-0">
+                      <p className="font-mono text-[0.9rem] font-semibold tracking-wide text-ink">{v.code}</p>
+                      <p className="text-xs text-ink-soft">
+                        {v.product_name} · {v.size_name} · {formatPrice(v.value)} at the spa
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <VoucherStatusBadge status={v.status} />
+                      <VoucherControl code={v.code} status={v.status} />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
+
           {order.notes && (
             <Card title="Notes">
               <p className="whitespace-pre-line text-sm leading-relaxed text-ink-soft">
@@ -139,11 +170,17 @@ export default async function AdminOrderPage({ params }: { params: Promise<{ id:
           </Card>
 
           <Card title="Delivery">
-            <p className="text-sm leading-relaxed text-ink-soft">
-              {order.address}
-              <br />
-              {order.city}
-            </p>
+            {order.address || order.city ? (
+              <p className="text-sm leading-relaxed text-ink-soft">
+                {order.address}
+                <br />
+                {order.city}
+              </p>
+            ) : (
+              <p className="text-sm leading-relaxed text-ink-soft">
+                Nothing to deliver — spa vouchers only.
+              </p>
+            )}
           </Card>
 
           <Card title="Payment">

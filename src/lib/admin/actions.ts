@@ -10,9 +10,9 @@ import {
   ADMIN_SESSION_MAX_AGE,
   createAdminSessionToken,
 } from "@/lib/admin/session";
-import { adminCountProductsInCategory, adminGetCategory } from "@/lib/admin/data";
+import { adminCountProductsInCategory, adminGetCategory, adminGetSubcategory } from "@/lib/admin/data";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
-import type { OrderStatus, ProductSize } from "@/lib/types";
+import type { OrderStatus, ProductKind, ProductSize } from "@/lib/types";
 
 // Server actions for the admin dashboard. The proxy already gates /admin
 // routes, but actions are network endpoints of their own, so every mutation
@@ -39,6 +39,9 @@ export type ProductInput = {
   badge: string | null;
   featured: boolean;
   in_stock: boolean;
+  /** Must belong to `category_slug`; null files the product under no sub-category. */
+  subcategory_slug: string | null;
+  kind: ProductKind;
 };
 
 export type CategoryInput = {
@@ -52,7 +55,24 @@ export type CategoryInput = {
   show_on_home: boolean;
 };
 
+export type SubcategoryInput = {
+  id?: string;
+  /** Fixed once created: a sub-category never moves to another collection. */
+  category_slug: string;
+  name: string;
+  slug: string;
+  description: string;
+  image: string;
+  sort_order: number;
+  show_in_nav: boolean;
+};
+
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const PRODUCT_KINDS: ProductKind[] = ["physical", "voucher"];
+/** A database without migration 0011 rejects the new columns with one of these. */
+const MISSING_COLUMN = ["42703", "PGRST204"];
+const NEEDS_0011 =
+  "The database needs migration 0011 (sub-categories and vouchers) before products can be saved. Run it in the Supabase SQL editor, then try again.";
 const ORDER_STATUSES: OrderStatus[] = ["pending", "confirmed", "shipped", "delivered", "cancelled"];
 const EXPIRED = "Your session has expired — sign in again.";
 const UNCONFIGURED = "Supabase is not configured yet.";
@@ -147,6 +167,26 @@ export async function saveProduct(input: ProductInput): Promise<AdminActionResul
   const category_slug = input.category_slug.trim();
   if (!category_slug) return { ok: false, error: "Choose a collection for this product." };
 
+  if (!PRODUCT_KINDS.includes(input.kind)) {
+    return { ok: false, error: "Choose whether this is a physical piece or a spa voucher." };
+  }
+
+  // A product can only sit in a sub-category of its own collection — the shop
+  // would never list it anywhere else.
+  const subcategory_slug = input.subcategory_slug?.trim() || null;
+  if (subcategory_slug) {
+    const { data: sub, error: subError } = await sb
+      .from("subcategories")
+      .select("category_slug")
+      .eq("slug", subcategory_slug)
+      .maybeSingle();
+    if (subError) return { ok: false, error: NEEDS_0011 };
+    if (!sub) return { ok: false, error: "That sub-category doesn't exist anymore — pick another." };
+    if (sub.category_slug !== category_slug) {
+      return { ok: false, error: "That sub-category belongs to a different collection — pick one from this collection." };
+    }
+  }
+
   const images = input.images.map((url) => url.trim()).filter(Boolean);
   if (images.length === 0) return { ok: false, error: "Add at least one photo." };
   if (images.some((url) => !isAllowedImageUrl(url))) {
@@ -184,12 +224,15 @@ export async function saveProduct(input: ProductInput): Promise<AdminActionResul
     badge: input.badge?.trim() || null,
     featured: Boolean(input.featured),
     in_stock: Boolean(input.in_stock),
+    subcategory_slug,
+    kind: input.kind,
   };
 
   const { error } = input.id
     ? await sb.from("products").update(row).eq("id", input.id)
     : await sb.from("products").insert(row);
   if (error) {
+    if (MISSING_COLUMN.includes(error.code)) return { ok: false, error: NEEDS_0011 };
     if (error.code === "23505") return { ok: false, error: "That slug is already in use." };
     if (error.code === "23503") {
       return { ok: false, error: "That collection doesn't exist anymore — pick a different one." };
@@ -247,7 +290,8 @@ export async function uploadImage(formData: FormData): Promise<UploadResult> {
   }
 
   const ext = (file.name.split(".").pop() ?? "").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
-  const folder = formData.get("folder") === "collections" ? "collections" : "products";
+  const asked = String(formData.get("folder") ?? "");
+  const folder = ["collections", "subcategories"].includes(asked) ? asked : "products";
   const path = `${folder}/${randomUUID()}.${ext}`;
   const { error } = await sb.storage.from(IMAGE_BUCKET).upload(path, file, {
     contentType: file.type,
@@ -285,7 +329,7 @@ export async function saveCategory(input: CategoryInput): Promise<AdminActionRes
 
   const image = input.image.trim();
   if (!image) {
-    return { ok: false, error: "Add a photo — it's shown on the homepage circles and shop tiles." };
+    return { ok: false, error: "Add a photo — it's shown in the homepage's collection grid and the shop's tiles." };
   }
   if (!isAllowedImageUrl(image)) {
     return { ok: false, error: IMAGE_HOST_HELP };
@@ -356,6 +400,129 @@ export async function deleteCategory(id: string): Promise<AdminActionResult> {
 }
 
 // ---------------------------------------------------------------------------
+// Sub-categories
+// ---------------------------------------------------------------------------
+
+export async function saveSubcategory(input: SubcategoryInput): Promise<AdminActionResult> {
+  if (!(await isAdmin())) return { ok: false, error: EXPIRED };
+  const sb = getSupabaseAdmin();
+  if (!sb) return { ok: false, error: UNCONFIGURED };
+
+  const name = input.name.trim();
+  if (!name) return { ok: false, error: "Give the sub-category a name." };
+
+  const slug = input.slug.trim() || slugify(name);
+  if (!SLUG_RE.test(slug)) {
+    return { ok: false, error: "Slug can only contain lowercase letters, numbers and hyphens." };
+  }
+
+  const image = input.image.trim();
+  if (image && !isAllowedImageUrl(image)) return { ok: false, error: IMAGE_HOST_HELP };
+
+  const sortOrder = Math.round(Number(input.sort_order));
+  const row = {
+    slug,
+    name,
+    description: input.description.trim(),
+    image,
+    sort_order: Number.isFinite(sortOrder) ? sortOrder : 0,
+    show_in_nav: Boolean(input.show_in_nav),
+  };
+
+  let error;
+  if (input.id) {
+    // The collection is fixed once created, so it is not part of an update.
+    const existing = await adminGetSubcategory(input.id);
+    if (!existing) return { ok: false, error: "This sub-category no longer exists." };
+    ({ error } = await sb.from("subcategories").update(row).eq("id", input.id));
+  } else {
+    const category_slug = input.category_slug.trim();
+    if (!category_slug) return { ok: false, error: "Choose the collection this sub-category belongs to." };
+    ({ error } = await sb.from("subcategories").insert({ ...row, category_slug }));
+  }
+  if (error) {
+    if (error.code === "23505") {
+      return {
+        ok: false,
+        error: "That slug is already in use — sub-category slugs are shared across every collection.",
+      };
+    }
+    if (error.code === "23503") return { ok: false, error: "That collection doesn't exist anymore." };
+    if (error.code === "42P01" || error.code === "PGRST205") return { ok: false, error: NEEDS_0011 };
+    return { ok: false, error: "The sub-category couldn't be saved. Please try again." };
+  }
+
+  revalidatePath("/", "layout");
+  revalidatePath("/admin/collections", "layout");
+  return { ok: true };
+}
+
+/** Deletes a sub-category. Its products stay in the collection, filed under no sub-category. */
+export async function deleteSubcategory(id: string): Promise<AdminActionResult> {
+  if (!(await isAdmin())) return { ok: false, error: EXPIRED };
+  const sb = getSupabaseAdmin();
+  if (!sb) return { ok: false, error: UNCONFIGURED };
+
+  const { error } = await sb.from("subcategories").delete().eq("id", id);
+  if (error) return { ok: false, error: "The sub-category couldn't be deleted. Please try again." };
+
+  revalidatePath("/", "layout");
+  revalidatePath("/admin/collections", "layout");
+  return { ok: true };
+}
+
+// ---------------------------------------------------------------------------
+// Vouchers
+// ---------------------------------------------------------------------------
+
+export type VoucherChange = "issue" | "redeem" | "unredeem" | "void";
+
+/**
+ * Moves a voucher along: issue (pending → issued, when it was paid some other
+ * way), redeem (issued → redeemed, when the spa has honoured it), unredeem
+ * (undo a redeem made by mistake) and void (pending or issued → void, for a
+ * refund or a cancelled order). A void voucher stays void.
+ */
+export async function changeVoucher(
+  code: string,
+  change: VoucherChange,
+  note = ""
+): Promise<AdminActionResult> {
+  if (!(await isAdmin())) return { ok: false, error: EXPIRED };
+  const sb = getSupabaseAdmin();
+  if (!sb) return { ok: false, error: UNCONFIGURED };
+
+  const now = new Date().toISOString();
+  const moves: Record<VoucherChange, { from: string[]; patch: Record<string, unknown> }> = {
+    issue: { from: ["pending"], patch: { status: "issued", issued_at: now } },
+    redeem: {
+      from: ["issued"],
+      patch: { status: "redeemed", redeemed_at: now, redeemed_note: note.trim().slice(0, 300) },
+    },
+    unredeem: { from: ["redeemed"], patch: { status: "issued", redeemed_at: null, redeemed_note: "" } },
+    void: { from: ["pending", "issued"], patch: { status: "void" } },
+  };
+  const move = moves[change];
+  if (!move) return { ok: false, error: "That isn't something a voucher can do." };
+
+  const { data, error } = await sb
+    .from("vouchers")
+    .update(move.patch)
+    .eq("code", code)
+    .in("status", move.from)
+    .select("order_id")
+    .maybeSingle();
+  if (error) return { ok: false, error: "The voucher couldn't be updated. Please try again." };
+  if (!data) {
+    return { ok: false, error: "This voucher has changed since the page loaded — refresh and try again." };
+  }
+
+  revalidatePath("/admin/vouchers");
+  revalidatePath(`/admin/orders/${data.order_id}`);
+  return { ok: true };
+}
+
+// ---------------------------------------------------------------------------
 // Orders
 // ---------------------------------------------------------------------------
 
@@ -368,10 +535,32 @@ export async function updateOrderStatus(id: string, status: OrderStatus): Promis
     return { ok: false, error: "That isn't a valid order status." };
   }
 
-  const { error } = await sb.from("orders").update({ status }).eq("id", id);
-  if (error) return { ok: false, error: "The status couldn't be updated. Please try again." };
+  const { data: order, error } = await sb
+    .from("orders")
+    .update({ status })
+    .eq("id", id)
+    .select("payment_method, payment_status")
+    .maybeSingle();
+  if (error || !order) return { ok: false, error: "The status couldn't be updated. Please try again." };
+
+  // Vouchers follow the money. Confirming a bank-transfer order is how the
+  // dashboard records that the transfer arrived, so it issues the codes; a
+  // card order's codes are issued by the payment itself and never by hand
+  // unless it really was paid. Cancelling voids codes not yet issued — an
+  // issued code is voided on its own, from the vouchers page.
+  const paid = order.payment_method !== "card" || order.payment_status === "paid";
+  if (["confirmed", "shipped", "delivered"].includes(status) && paid) {
+    await sb
+      .from("vouchers")
+      .update({ status: "issued", issued_at: new Date().toISOString() })
+      .eq("order_id", id)
+      .eq("status", "pending");
+  } else if (status === "cancelled") {
+    await sb.from("vouchers").update({ status: "void" }).eq("order_id", id).eq("status", "pending");
+  }
 
   revalidatePath("/admin/orders");
   revalidatePath(`/admin/orders/${id}`);
+  revalidatePath("/admin/vouchers");
   return { ok: true };
 }

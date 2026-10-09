@@ -159,8 +159,9 @@ export function CollectionForm({ category }: { category?: Category }) {
                 </label>
               </div>
               <p className={hintClass}>
-                Shown on the homepage circles and shop tiles. The photo uploads straight to
-                Supabase Storage (JPEG, PNG or WebP, up to 5 MB) and goes live when you save.
+                Shown in the homepage&apos;s collection grid and the shop&apos;s collection tiles. The photo
+                uploads straight to Supabase Storage (JPEG, PNG or WebP, up to 5 MB) and goes live when
+                you save.
               </p>
             </div>
             <div>
@@ -195,7 +196,7 @@ export function CollectionForm({ category }: { category?: Category }) {
             <span>
               <span className="block text-sm font-medium text-ink">Show in navigation menus</span>
               <span className="block text-xs text-fog">
-                Header menu, footer links and the shop filter chips.
+                The header menu, footer links and the shop&apos;s collection chips.
               </span>
             </span>
           </label>
@@ -209,7 +210,7 @@ export function CollectionForm({ category }: { category?: Category }) {
             <span>
               <span className="block text-sm font-medium text-ink">Show on the homepage</span>
               <span className="block text-xs text-fog">
-                Category circles and homepage collection sections.
+                The homepage&apos;s collection grid and the Enivrant edit collage.
               </span>
             </span>
           </label>

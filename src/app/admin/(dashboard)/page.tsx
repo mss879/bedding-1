@@ -33,6 +33,15 @@ export default async function AdminDashboardPage() {
             <StatCard label="Products" value={counts.products} />
             <StatCard label="Collections" value={counts.categories} />
           </div>
+          {counts.liveVouchers > 0 && (
+            <p className="text-sm text-ink-soft">
+              {counts.liveVouchers} spa voucher{counts.liveVouchers === 1 ? " is" : "s are"} issued and
+              waiting to be redeemed.{" "}
+              <Link href="/admin/vouchers?status=issued" className="font-medium text-clay hover:underline">
+                See them
+              </Link>
+            </p>
+          )}
 
           <div className="flex flex-wrap gap-2.5">
             <Link href="/admin/orders" className="btn btn-outline btn-sm">
@@ -43,6 +52,9 @@ export default async function AdminDashboardPage() {
             </Link>
             <Link href="/admin/collections" className="btn btn-outline btn-sm">
               Manage collections
+            </Link>
+            <Link href="/admin/vouchers" className="btn btn-outline btn-sm">
+              Spa vouchers
             </Link>
           </div>
         </>

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { deleteCategory } from "@/lib/admin/actions";
-import { adminCountProductsInCategory, adminListCategories } from "@/lib/admin/data";
+import { adminCountProductsInCategory, adminListCategories, adminListSubcategories } from "@/lib/admin/data";
 import { DeleteButton } from "@/components/admin/DeleteButton";
 import { SetupNotice } from "@/components/admin/SetupNotice";
 
@@ -41,9 +41,12 @@ export default async function AdminCollectionsPage() {
     );
   }
 
-  const counts = await Promise.all(
-    categories.map((c) => adminCountProductsInCategory(c.slug))
-  );
+  const [counts, subcategories] = await Promise.all([
+    Promise.all(categories.map((c) => adminCountProductsInCategory(c.slug))),
+    adminListSubcategories(),
+  ]);
+  const subCounts = new Map<string, number>();
+  for (const s of subcategories ?? []) subCounts.set(s.category_slug, (subCounts.get(s.category_slug) ?? 0) + 1);
 
   return (
     <div className="space-y-6">
@@ -61,7 +64,7 @@ export default async function AdminCollectionsPage() {
         </div>
       ) : (
         <div className="overflow-x-auto rounded-xl bg-white shadow-card">
-          <table className="w-full min-w-[720px] text-sm">
+          <table className="w-full min-w-[820px] text-sm">
             <thead>
               <tr className="border-b hairline">
                 <th className={thClass}>
@@ -71,6 +74,7 @@ export default async function AdminCollectionsPage() {
                 <th className={thClass}>Sort</th>
                 <th className={thClass}>Navigation</th>
                 <th className={thClass}>Homepage</th>
+                <th className={thClass}>Sub-categories</th>
                 <th className={thClass}>Products</th>
                 <th className={thClass}>
                   <span className="sr-only">Actions</span>
@@ -98,6 +102,7 @@ export default async function AdminCollectionsPage() {
                   <td className="px-4 py-3">
                     <Visibility shown={category.show_on_home !== false} />
                   </td>
+                  <td className="px-4 py-3 text-ink-soft">{subCounts.get(category.slug) ?? 0}</td>
                   <td className="px-4 py-3 text-ink-soft">{counts[index]}</td>
                   <td className="px-4 py-3">
                     <span className="flex items-center justify-end gap-4 whitespace-nowrap">
@@ -108,7 +113,7 @@ export default async function AdminCollectionsPage() {
                         Edit
                       </Link>
                       <DeleteButton
-                        confirmMessage={`Delete the “${category.name}” collection? This can't be undone.`}
+                        confirmMessage={`Delete the “${category.name}” collection and its sub-categories? This can't be undone.`}
                         action={deleteCategory.bind(null, category.id)}
                       />
                     </span>
