@@ -14,11 +14,12 @@ import { ProductCard } from "@/components/ProductCard";
  * localStorage, so the server and first client render always agree.
  */
 export function BasketView({ suggestions }: { suggestions: Product[] }) {
-  const { items, subtotal, updateQuantity, removeItem, clearCart } = useCart();
+  const { items, subtotal, physicalSubtotal, hasPhysical, updateQuantity, removeItem, clearCart } = useCart();
 
-  const remaining = Math.max(0, FREE_DELIVERY_FROM - subtotal);
-  const progress = Math.min(100, (subtotal / FREE_DELIVERY_FROM) * 100);
-  const freeDelivery = subtotal >= FREE_DELIVERY_FROM;
+  // Delivery is measured on the pieces that travel, not on spa vouchers.
+  const remaining = Math.max(0, FREE_DELIVERY_FROM - physicalSubtotal);
+  const progress = Math.min(100, (physicalSubtotal / FREE_DELIVERY_FROM) * 100);
+  const freeDelivery = physicalSubtotal >= FREE_DELIVERY_FROM;
   const count = items.reduce((n, i) => n + i.quantity, 0);
 
   if (items.length === 0) {
@@ -82,26 +83,28 @@ export function BasketView({ suggestions }: { suggestions: Product[] }) {
             </button>
           </div>
 
-          {/* Free-delivery progress */}
-          <div className="border-b hairline py-6">
-            {freeDelivery ? (
-              <p className="flex items-center gap-2.5 text-[0.8rem] font-medium text-sale">
-                <TruckCheckIcon className="h-4 w-4 shrink-0" />
-                Complimentary island-wide delivery unlocked
-              </p>
-            ) : (
-              <p className="text-[0.8rem] text-ink-soft">
-                <span className="font-medium text-ink">{formatPrice(remaining)}</span> more for
-                complimentary delivery
-              </p>
-            )}
-            <div className="mt-3 h-px overflow-hidden bg-board" aria-hidden>
-              <div
-                className="h-full origin-left bg-clay transition-[width] duration-700 ease-out"
-                style={{ width: `${progress}%` }}
-              />
+          {/* Free-delivery progress — only when there is something to deliver */}
+          {hasPhysical && (
+            <div className="border-b hairline py-6">
+              {freeDelivery ? (
+                <p className="flex items-center gap-2.5 text-[0.8rem] font-medium text-sale">
+                  <TruckCheckIcon className="h-4 w-4 shrink-0" />
+                  Complimentary island-wide delivery unlocked
+                </p>
+              ) : (
+                <p className="text-[0.8rem] text-ink-soft">
+                  <span className="font-medium text-ink">{formatPrice(remaining)}</span> more for
+                  complimentary delivery
+                </p>
+              )}
+              <div className="mt-3 h-px overflow-hidden bg-board" aria-hidden>
+                <div
+                  className="h-full origin-left bg-clay transition-[width] duration-700 ease-out"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           <ul className="divide-y divide-board">
             <AnimatePresence initial={false}>
@@ -137,7 +140,10 @@ export function BasketView({ suggestions }: { suggestions: Product[] }) {
                         >
                           {item.name}
                         </Link>
-                        <p className="mt-1.5 text-[0.78rem] text-ink-soft">{item.sizeName}</p>
+                        <p className="mt-1.5 text-[0.78rem] text-ink-soft">
+                          {item.sizeName}
+                          {item.kind === "voucher" && " · spa voucher, sent as a code"}
+                        </p>
                         <p className="mt-0.5 text-[0.78rem] text-ink-soft">
                           {formatPrice(item.unitPrice)} each
                         </p>
@@ -199,14 +205,16 @@ export function BasketView({ suggestions }: { suggestions: Product[] }) {
               </div>
               <div className="flex justify-between">
                 <dt className="text-ink-soft">Delivery</dt>
-                <dd className={freeDelivery ? "font-medium text-sale" : "text-ink-soft"}>
-                  {freeDelivery ? "Complimentary" : "Confirmed at checkout"}
+                <dd className={hasPhysical && freeDelivery ? "font-medium text-sale" : "text-ink-soft"}>
+                  {!hasPhysical ? "Not needed — sent as a code" : freeDelivery ? "Complimentary" : "Confirmed at checkout"}
                 </dd>
               </div>
-              <div className="flex justify-between">
-                <dt className="text-ink-soft">Gift wrapping</dt>
-                <dd className="font-medium text-sale">Included</dd>
-              </div>
+              {hasPhysical && (
+                <div className="flex justify-between">
+                  <dt className="text-ink-soft">Gift wrapping</dt>
+                  <dd className="font-medium text-sale">Included</dd>
+                </div>
+              )}
               <div className="flex items-baseline justify-between border-t hairline pt-4">
                 <dt className="text-[0.7rem] font-medium tracking-[0.18em] uppercase">Total</dt>
                 <dd className="font-display text-3xl">{formatPrice(subtotal)}</dd>

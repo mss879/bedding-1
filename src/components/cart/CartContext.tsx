@@ -15,6 +15,12 @@ type CartContextValue = {
   items: CartItem[];
   count: number;
   subtotal: number;
+  /** The physical pieces' share of the subtotal — what free delivery is measured on. */
+  physicalSubtotal: number;
+  /** True when the basket holds something to deliver. */
+  hasPhysical: boolean;
+  /** True when the basket holds at least one spa voucher. */
+  hasVouchers: boolean;
   isOpen: boolean;
   openCart: () => void;
   closeCart: () => void;
@@ -43,8 +49,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) stored = JSON.parse(raw);
+      // Baskets saved before spa vouchers existed have no kind on their
+      // lines; every one of those was a physical piece.
+      stored = stored.map((i) => ({ ...i, kind: i.kind ?? "physical" }));
     } catch {
       // corrupted storage — start fresh
+      stored = [];
     }
     // The cart must render empty on the server, so localStorage can only be
     // merged in after hydration — a one-time sync from an external store.
@@ -105,6 +115,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
       items,
       count: items.reduce((n, i) => n + i.quantity, 0),
       subtotal: items.reduce((n, i) => n + i.unitPrice * i.quantity, 0),
+      physicalSubtotal: items
+        .filter((i) => i.kind !== "voucher")
+        .reduce((n, i) => n + i.unitPrice * i.quantity, 0),
+      hasPhysical: items.some((i) => i.kind !== "voucher"),
+      hasVouchers: items.some((i) => i.kind === "voucher"),
       isOpen,
       openCart: () => setIsOpen(true),
       closeCart: () => setIsOpen(false),

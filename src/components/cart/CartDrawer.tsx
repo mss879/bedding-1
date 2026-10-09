@@ -7,11 +7,14 @@ import { useCart } from "./CartContext";
 import { formatPrice, FREE_DELIVERY_FROM } from "@/lib/site";
 
 export function CartDrawer() {
-  const { items, subtotal, isOpen, closeCart, updateQuantity, removeItem } = useCart();
+  const { items, subtotal, physicalSubtotal, hasPhysical, isOpen, closeCart, updateQuantity, removeItem } =
+    useCart();
 
-  const remaining = Math.max(0, FREE_DELIVERY_FROM - subtotal);
-  const progress = Math.min(100, (subtotal / FREE_DELIVERY_FROM) * 100);
-  const freeDelivery = subtotal >= FREE_DELIVERY_FROM;
+  // Delivery is measured on the pieces that travel; a spa voucher has nothing
+  // to deliver, so it neither earns free delivery nor needs it.
+  const remaining = Math.max(0, FREE_DELIVERY_FROM - physicalSubtotal);
+  const progress = Math.min(100, (physicalSubtotal / FREE_DELIVERY_FROM) * 100);
+  const freeDelivery = physicalSubtotal >= FREE_DELIVERY_FROM;
 
   return (
     <AnimatePresence>
@@ -49,25 +52,27 @@ export function CartDrawer() {
               </div>
             ) : (
               <>
-                <div className="border-b hairline px-6 py-4">
-                  {freeDelivery ? (
-                    <p className="flex items-center gap-2 text-[0.78rem] font-medium text-sale">
-                      <TruckCheckIcon className="h-4 w-4 shrink-0" />
-                      Complimentary delivery unlocked
-                    </p>
-                  ) : (
-                    <p className="text-[0.78rem] text-ink-soft">
-                      <span className="font-medium text-ink">{formatPrice(remaining)}</span> more for
-                      complimentary delivery
-                    </p>
-                  )}
-                  <div className="mt-2.5 h-px overflow-hidden bg-board" aria-hidden>
-                    <div
-                      className="h-full bg-clay transition-[width] duration-700 ease-out"
-                      style={{ width: `${progress}%` }}
-                    />
+                {hasPhysical && (
+                  <div className="border-b hairline px-6 py-4">
+                    {freeDelivery ? (
+                      <p className="flex items-center gap-2 text-[0.78rem] font-medium text-sale">
+                        <TruckCheckIcon className="h-4 w-4 shrink-0" />
+                        Complimentary delivery unlocked
+                      </p>
+                    ) : (
+                      <p className="text-[0.78rem] text-ink-soft">
+                        <span className="font-medium text-ink">{formatPrice(remaining)}</span> more for
+                        complimentary delivery
+                      </p>
+                    )}
+                    <div className="mt-2.5 h-px overflow-hidden bg-board" aria-hidden>
+                      <div
+                        className="h-full bg-clay transition-[width] duration-700 ease-out"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
                   </div>
-                </div>
+                )}
 
                 <ul className="flex-1 divide-y divide-board overflow-y-auto px-6">
                   {items.map((item) => (
@@ -89,7 +94,10 @@ export function CartDrawer() {
                             >
                               {item.name}
                             </Link>
-                            <p className="mt-1 text-[0.72rem] text-ink-soft">{item.sizeName}</p>
+                            <p className="mt-1 text-[0.72rem] text-ink-soft">
+                              {item.sizeName}
+                              {item.kind === "voucher" && " · spa voucher"}
+                            </p>
                           </div>
                           <p className="shrink-0 text-sm">
                             {formatPrice(item.unitPrice * item.quantity)}
@@ -138,9 +146,11 @@ export function CartDrawer() {
                     <span className="font-display text-2xl">{formatPrice(subtotal)}</span>
                   </div>
                   <p className="mb-5 text-xs text-ink-soft">
-                    {freeDelivery
-                      ? "Delivery is on us — confirmed on WhatsApp."
-                      : `Delivery confirmed at checkout. Free over ${formatPrice(FREE_DELIVERY_FROM)}.`}
+                    {!hasPhysical
+                      ? "Spa vouchers — nothing to deliver. Your codes follow on WhatsApp."
+                      : freeDelivery
+                        ? "Delivery is on us — confirmed on WhatsApp."
+                        : `Delivery confirmed at checkout. Free over ${formatPrice(FREE_DELIVERY_FROM)}.`}
                   </p>
                   <Link href="/checkout" onClick={closeCart} className="btn btn-solid w-full">
                     Checkout

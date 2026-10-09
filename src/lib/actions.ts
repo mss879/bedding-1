@@ -7,12 +7,13 @@ import { getProduct } from "./catalog";
 import { formatPrice, paymentMethodLabel, site } from "./site";
 import { paymentInit } from "./paycorp/client";
 import { getPaycorpConfig, toGatewayAmount } from "./paycorp/config";
+import { generateVoucherCode } from "./vouchers";
 import {
   PENDING_PAYMENT_COOKIE,
   PENDING_PAYMENT_MAX_AGE,
   pendingPaymentCookie,
 } from "./paycorp/pending";
-import type { InquiryInput, OrderInput, PaymentMethod, ProductSize } from "./types";
+import type { InquiryInput, OrderInput, PaymentMethod, ProductKind, ProductSize } from "./types";
 
 function orderReference() {
   const stamp = Date.now().toString(36).toUpperCase().slice(-4);
@@ -29,8 +30,15 @@ export type PlaceOrderResult =
       paymentMethod: PaymentMethod;
       /** Card orders only: Paycorp's hosted payment page. Send the browser here. */
       redirectUrl?: string;
+      /** The order includes spa vouchers, whose codes follow once it is paid. */
+      hasVouchers: boolean;
     }
-  | { ok: false; error: string };
+  | {
+      ok: false;
+      error: string;
+      /** The basket holds something to deliver, so an address is needed after all. */
+      needsAddress?: boolean;
+    };
 
 const PAYMENT_METHODS: PaymentMethod[] = ["cod", "bank_transfer", "card"];
 
@@ -39,7 +47,17 @@ function siteOrigin() {
   return site.url.replace(/\/+$/, "");
 }
 
-type PricedProduct = { slug: string; name: string; in_stock: boolean; sizes: ProductSize[] };
+type PricedProduct = {
+  slug: string;
+  name: string;
+  in_stock: boolean;
+  sizes: ProductSize[];
+  /** Absent on a database that predates migration 0011: a physical piece. */
+  kind?: ProductKind;
+};
+
+/** Most of one voucher a single order line may hold — each unit is a code. */
+const MAX_VOUCHERS_PER_LINE = 10;
 
 export async function placeOrder(input: OrderInput): Promise<PlaceOrderResult> {
   if (!input.customerName.trim() || !input.phone.trim()) {
@@ -47,9 +65,6 @@ export async function placeOrder(input: OrderInput): Promise<PlaceOrderResult> {
   }
   if (!/^\S+@\S+\.\S+$/.test(input.email.trim())) {
     return { ok: false, error: "Please enter a valid email address." };
-  }
-  if (!input.address.trim() || !input.city.trim()) {
-    return { ok: false, error: "Please provide your delivery address and city." };
   }
   if (!PAYMENT_METHODS.includes(input.paymentMethod)) {
     return { ok: false, error: "Please choose a payment method." };
@@ -75,19 +90,25 @@ export async function placeOrder(input: OrderInput): Promise<PlaceOrderResult> {
   // as a hard failure (never fall back to stale seed prices); otherwise we use
   // the seed catalog to keep demo mode working.
   const lines: {
+    id: string;
     product_slug: string;
     product_name: string;
     size_name: string;
     unit_price: number;
     quantity: number;
   }[] = [];
+  // What each line is, beside the row itself: the kind decides delivery and
+  // vouchers, and a voucher's value at the spa is its option's compare-at price.
+  const lineMeta: { kind: ProductKind; spaValue: number }[] = [];
 
   for (const item of input.items) {
     let product: PricedProduct | null;
     if (sb) {
+      // Every column, not a list: a database still without migration 0011 has
+      // no `kind`, and naming it would fail every checkout.
       const { data, error } = await sb
         .from("products")
-        .select("slug, name, in_stock, sizes")
+        .select("*")
         .eq("slug", item.productSlug)
         .maybeSingle();
       if (error) {
@@ -102,14 +123,37 @@ export async function placeOrder(input: OrderInput): Promise<PlaceOrderResult> {
     if (!product || !product.in_stock || !size) {
       return { ok: false, error: "One of the items in your cart is unavailable." };
     }
-    const quantity = Math.max(1, Math.min(50, Math.round(item.quantity)));
+    const kind: ProductKind = product.kind === "voucher" ? "voucher" : "physical";
+    const quantity = Math.max(
+      1,
+      Math.min(kind === "voucher" ? MAX_VOUCHERS_PER_LINE : 50, Math.round(item.quantity))
+    );
     lines.push({
+      // Generated here so the vouchers below can point at their line without
+      // reading it back.
+      id: randomUUID(),
       product_slug: product.slug,
       product_name: product.name,
       size_name: size.name,
       unit_price: size.price,
       quantity,
     });
+    lineMeta.push({ kind, spaValue: size.compare_at_price ?? size.price });
+  }
+
+  // Delivery follows what is in the basket, as priced here rather than as the
+  // browser described it: an address only when something is to be delivered,
+  // and no cash on delivery for a spa voucher, which has no courier.
+  const hasPhysical = lineMeta.some((m) => m.kind === "physical");
+  const hasVouchers = lineMeta.some((m) => m.kind === "voucher");
+  if (hasPhysical && (!input.address.trim() || !input.city.trim())) {
+    return { ok: false, error: "Please provide your delivery address and city.", needsAddress: true };
+  }
+  if (hasVouchers && input.paymentMethod === "cod") {
+    return {
+      ok: false,
+      error: "Cash on delivery isn't available for spa vouchers. Please pay by card or bank transfer.",
+    };
   }
 
   const total = lines.reduce((sum, l) => sum + l.unit_price * l.quantity, 0);
@@ -130,8 +174,8 @@ export async function placeOrder(input: OrderInput): Promise<PlaceOrderResult> {
       customer_name: input.customerName,
       email: input.email,
       phone: input.phone,
-      address: input.address,
-      city: input.city,
+      address: hasPhysical ? input.address : "",
+      city: hasPhysical ? input.city : "",
       notes: input.notes,
       total,
       status: "pending",
@@ -152,12 +196,26 @@ export async function placeOrder(input: OrderInput): Promise<PlaceOrderResult> {
       await sb.from("orders").delete().eq("id", orderId);
       return { ok: false, error: "We couldn't save your order. Please try again." };
     }
+
+    if (hasVouchers) {
+      const saved = await saveVoucherCodes(sb, orderId, lines, lineMeta);
+      if (!saved) {
+        // Line items and anything else cascade with the order.
+        await sb.from("orders").delete().eq("id", orderId);
+        return { ok: false, error: "We couldn't save your order. Please try again." };
+      }
+    }
   }
 
   const summary = lines
-    .map((l) => `• ${l.product_name} (${l.size_name}) × ${l.quantity}`)
+    .map(
+      (l, i) =>
+        `• ${l.product_name} (${l.size_name}) × ${l.quantity}${lineMeta[i].kind === "voucher" ? " — spa voucher" : ""}`
+    )
     .join("\n");
-  const message = `Hello ${site.name}! I just placed order ${reference}.\n\n${summary}\n\nTotal: ${formatPrice(total)}\nPayment: ${paymentMethodLabel(input.paymentMethod)}\nName: ${input.customerName}\nDelivery: ${input.address}, ${input.city}`;
+  const message = `Hello ${site.name}! I just placed order ${reference}.\n\n${summary}\n\nTotal: ${formatPrice(total)}\nPayment: ${paymentMethodLabel(input.paymentMethod)}\nName: ${input.customerName}${
+    hasPhysical ? `\nDelivery: ${input.address}, ${input.city}` : "\nNo delivery — spa vouchers only"
+  }`;
   const whatsappUrl = `https://wa.me/${site.whatsappNumber}?text=${encodeURIComponent(message)}`;
 
   if (isCard) {
@@ -179,10 +237,51 @@ export async function placeOrder(input: OrderInput): Promise<PlaceOrderResult> {
       whatsappUrl,
       paymentMethod: "card",
       redirectUrl: gateway.paymentPageUrl,
+      hasVouchers,
     };
   }
 
-  return { ok: true, reference, total, whatsappUrl, paymentMethod: input.paymentMethod };
+  return { ok: true, reference, total, whatsappUrl, paymentMethod: input.paymentMethod, hasVouchers };
+}
+
+/**
+ * One code per voucher bought, written as `pending`: a code is only honoured
+ * once the payment behind it has arrived (see lib/vouchers.ts). Two orders
+ * drawing the same code is vanishingly unlikely, but the code is the key, so
+ * a clash is retried with fresh codes rather than failing the order.
+ */
+async function saveVoucherCodes(
+  sb: NonNullable<ReturnType<typeof getSupabaseAdmin>>,
+  orderId: string,
+  lines: { id: string; product_slug: string; product_name: string; size_name: string; unit_price: number; quantity: number }[],
+  meta: { kind: ProductKind; spaValue: number }[]
+): Promise<boolean> {
+  const build = () =>
+    lines.flatMap((line, i) =>
+      meta[i].kind !== "voucher"
+        ? []
+        : Array.from({ length: line.quantity }, () => ({
+            code: generateVoucherCode(),
+            order_id: orderId,
+            order_item_id: line.id,
+            product_slug: line.product_slug,
+            product_name: line.product_name,
+            size_name: line.size_name,
+            value: meta[i].spaValue,
+            paid: line.unit_price,
+            status: "pending",
+          }))
+    );
+
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const { error } = await sb.from("vouchers").insert(build());
+    if (!error) return true;
+    if (error.code !== "23505") {
+      console.error(`[vouchers] could not save the codes for order ${orderId}: ${error.message}`);
+      return false;
+    }
+  }
+  return false;
 }
 
 /**

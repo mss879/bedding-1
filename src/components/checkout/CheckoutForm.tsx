@@ -31,11 +31,14 @@ function joinList(parts: string[]) {
  * option instead of offering a button that dead-ends at the gateway.
  */
 export function CheckoutForm({ cardEnabled = false }: { cardEnabled?: boolean }) {
-  const { items, subtotal, clearCart } = useCart();
+  const { items, subtotal, physicalSubtotal, hasPhysical, hasVouchers, clearCart } = useCart();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState(1);
+  // Set when the server finds something to deliver that this basket thought
+  // was vouchers only (a basket saved by an older version of the site).
+  const [needsDelivery, setNeedsDelivery] = useState(false);
   const [values, setValues] = useState({
     name: "",
     email: "",
@@ -44,12 +47,24 @@ export function CheckoutForm({ cardEnabled = false }: { cardEnabled?: boolean })
     city: "",
     notes: "",
   });
-  const methods = cardEnabled ? paymentMethods : paymentMethods.filter((m) => m.id !== "card");
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(cardEnabled ? "card" : "cod");
+  // A spa voucher has nothing for a courier to collect cash against, so a
+  // basket holding one is paid by card or bank transfer.
+  const methods = paymentMethods.filter(
+    (m) => (cardEnabled || m.id !== "card") && (!hasVouchers || m.id !== "cod")
+  );
+  const [chosenMethod, setPaymentMethod] = useState<PaymentMethod>(cardEnabled ? "card" : "cod");
+  // The basket arrives from storage after the first render, so the choice made
+  // then may no longer be on offer; fall back to the first that is.
+  const paymentMethod: PaymentMethod = methods.some((m) => m.id === chosenMethod)
+    ? chosenMethod
+    : (methods[0]?.id ?? "bank_transfer");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const termsRef = useRef<HTMLInputElement>(null);
 
-  const deliveryFree = subtotal >= FREE_DELIVERY_FROM;
+  // Vouchers only: nothing to deliver, so no delivery step and no address.
+  const voucherOnly = !hasPhysical && !needsDelivery;
+  const visibleSteps = voucherOnly ? steps.filter((s) => s.n !== 2) : steps;
+  const deliveryFree = physicalSubtotal >= FREE_DELIVERY_FROM;
 
   if (items.length === 0) {
     return (
@@ -101,7 +116,7 @@ export function CheckoutForm({ cardEnabled = false }: { cardEnabled?: boolean })
         setError(message);
         return;
       }
-      setStep(step + 1);
+      setStep(voucherOnly && step === 1 ? 3 : step + 1);
       return;
     }
 
@@ -132,6 +147,10 @@ export function CheckoutForm({ cardEnabled = false }: { cardEnabled?: boolean })
       });
       if (!result.ok) {
         setError(result.error);
+        if (result.needsAddress) {
+          setNeedsDelivery(true);
+          setStep(2);
+        }
         return;
       }
       if (result.redirectUrl) {
@@ -147,6 +166,7 @@ export function CheckoutForm({ cardEnabled = false }: { cardEnabled?: boolean })
         total: String(result.total),
         wa: result.whatsappUrl,
         pm: result.paymentMethod,
+        ...(result.hasVouchers ? { vouchers: "1" } : {}),
       });
       router.push(`/checkout/success?${params.toString()}`);
     });
@@ -158,11 +178,11 @@ export function CheckoutForm({ cardEnabled = false }: { cardEnabled?: boolean })
         {/* Stepper */}
         <nav aria-label="Checkout progress">
           <ol className="flex items-center">
-            {steps.map((s, i) => {
+            {visibleSteps.map((s, i) => {
               const done = s.n < step;
               const current = s.n === step;
               return (
-                <li key={s.n} className={i < steps.length - 1 ? "flex flex-1 items-center" : "flex items-center"}>
+                <li key={s.n} className={i < visibleSteps.length - 1 ? "flex flex-1 items-center" : "flex items-center"}>
                   <button
                     type="button"
                     onClick={done ? () => goToStep(s.n) : undefined}
@@ -175,13 +195,13 @@ export function CheckoutForm({ cardEnabled = false }: { cardEnabled?: boolean })
                         done || current ? "bg-ink text-white" : "bg-sand text-ink-soft"
                       }`}
                     >
-                      {done ? <CheckIcon className="h-3.5 w-3.5" /> : s.n}
+                      {done ? <CheckIcon className="h-3.5 w-3.5" /> : i + 1}
                     </span>
                     <span className={`text-[0.82rem] font-semibold ${current ? "text-ink" : "text-ink-soft"}`}>
                       {s.label}
                     </span>
                   </button>
-                  {i < steps.length - 1 && <span aria-hidden className="hairline mx-3 flex-1 border-t" />}
+                  {i < visibleSteps.length - 1 && <span aria-hidden className="hairline mx-3 flex-1 border-t" />}
                 </li>
               );
             })}
@@ -383,7 +403,11 @@ export function CheckoutForm({ cardEnabled = false }: { cardEnabled?: boolean })
 
         <div className="flex gap-3">
           {step > 1 && (
-            <button type="button" onClick={() => goToStep(step - 1)} className="btn btn-outline">
+            <button
+              type="button"
+              onClick={() => goToStep(voucherOnly && step === 3 ? 1 : step - 1)}
+              className="btn btn-outline"
+            >
               Back
             </button>
           )}
@@ -413,7 +437,10 @@ export function CheckoutForm({ cardEnabled = false }: { cardEnabled?: boolean })
           <p className="text-xs leading-relaxed text-ink-soft">
             {paymentMethod === "card"
               ? "You'll be taken to Commercial Bank of Ceylon's secure payment page to enter your card details — we never see or store them."
-              : "We confirm every order and delivery personally on WhatsApp within a few hours."}
+              : voucherOnly
+                ? "We confirm every order personally on WhatsApp within a few hours."
+                : "We confirm every order and delivery personally on WhatsApp within a few hours."}
+            {hasVouchers && " Your spa voucher codes follow on WhatsApp once payment is confirmed."}
           </p>
         )}
       </form>
@@ -430,6 +457,7 @@ export function CheckoutForm({ cardEnabled = false }: { cardEnabled?: boolean })
                 <p className="font-medium leading-snug">{item.name}</p>
                 <p className="mt-0.5 text-xs text-ink-soft">
                   {item.sizeName} × {item.quantity}
+                  {item.kind === "voucher" && " · spa voucher"}
                 </p>
               </div>
               <p className="text-sm font-semibold">{formatPrice(item.unitPrice * item.quantity)}</p>
@@ -444,8 +472,8 @@ export function CheckoutForm({ cardEnabled = false }: { cardEnabled?: boolean })
           </div>
           <div className="flex justify-between text-ink-soft">
             <span>Delivery</span>
-            <span className={deliveryFree ? "font-medium text-sale" : ""}>
-              {deliveryFree ? "Complimentary" : "Confirmed on WhatsApp"}
+            <span className={!voucherOnly && deliveryFree ? "font-medium text-sale" : ""}>
+              {voucherOnly ? "Not needed — sent as a code" : deliveryFree ? "Complimentary" : "Confirmed on WhatsApp"}
             </span>
           </div>
           {step === 3 && (
@@ -466,10 +494,12 @@ export function CheckoutForm({ cardEnabled = false }: { cardEnabled?: boolean })
             <ShieldIcon className="h-4.5 w-4.5 shrink-0 text-ink" />
             365-day quality guarantee
           </li>
-          <li className="flex items-center gap-2.5">
-            <TruckIcon className="h-4.5 w-4.5 shrink-0 text-ink" />
-            Free delivery on orders over {formatPrice(FREE_DELIVERY_FROM)}
-          </li>
+          {!voucherOnly && (
+            <li className="flex items-center gap-2.5">
+              <TruckIcon className="h-4.5 w-4.5 shrink-0 text-ink" />
+              Free delivery on orders over {formatPrice(FREE_DELIVERY_FROM)}
+            </li>
+          )}
           <li className="flex items-center gap-2.5">
             <ChatIcon className="h-4.5 w-4.5 shrink-0 text-ink" />
             Personal confirmation on WhatsApp

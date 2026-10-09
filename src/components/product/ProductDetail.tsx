@@ -53,6 +53,9 @@ export function ProductDetail({ product }: { product: Product }) {
 
   const size = product.sizes[sizeIndex];
   const { rating, count } = productRating(product.slug);
+  // A spa voucher is sold as a code, not delivered: its compare-at price is
+  // the spa's own price, and its page talks about redeeming, not dispatch.
+  const isVoucher = product.kind === "voucher";
   const discount = size.compare_at_price
     ? Math.round((1 - size.price / size.compare_at_price) * 100)
     : 0;
@@ -63,25 +66,32 @@ export function ProductDetail({ product }: { product: Product }) {
     image: product.images[0],
     sizeName: size.name,
     unitPrice: size.price,
+    kind: product.kind ?? "physical",
   });
 
   const gallery = (dir: 1 | -1) =>
     setActiveImage((i) => (i + dir + product.images.length) % product.images.length);
 
-  const sections = [
-    { key: "details" as const, label: "The piece", items: product.details },
-    { key: "care" as const, label: "Care", items: product.care },
-    {
-      key: "shipping" as const,
-      label: "Delivery & returns",
-      items: [
-        "Dispatched from our Colombo boutique within 2–4 working days",
-        `Complimentary island-wide delivery over ${formatPrice(FREE_DELIVERY_FROM)}`,
-        "365-day guarantee — live with it, then decide",
-        "Exchanges within 30 days, unworn and in original packaging",
-      ],
-    },
-  ];
+  const sections = isVoucher
+    ? [
+        { key: "details" as const, label: "The experience", items: product.details },
+        { key: "care" as const, label: "Terms", items: product.care },
+        { key: "shipping" as const, label: "How to redeem", items: REDEEM_STEPS },
+      ]
+    : [
+        { key: "details" as const, label: "The piece", items: product.details },
+        { key: "care" as const, label: "Care", items: product.care },
+        {
+          key: "shipping" as const,
+          label: "Delivery & returns",
+          items: [
+            "Dispatched from our Colombo boutique within 2–4 working days",
+            `Complimentary island-wide delivery over ${formatPrice(FREE_DELIVERY_FROM)}`,
+            "365-day guarantee — live with it, then decide",
+            "Exchanges within 30 days, unworn and in original packaging",
+          ],
+        },
+      ];
 
   return (
     <div className="container-x grid gap-14 pb-24 lg:grid-cols-[1.15fr_1fr] lg:gap-20">
@@ -170,30 +180,39 @@ export function ProductDetail({ product }: { product: Product }) {
             <span className={`font-display text-[2.4rem] leading-none ${discount > 0 ? "text-clay" : "text-ink"}`}>
               {formatPrice(size.price)}
             </span>
-            {size.compare_at_price && (
-              <>
-                <span className="text-base text-taupe line-through">
-                  {formatPrice(size.compare_at_price)}
+            {size.compare_at_price &&
+              (isVoucher ? (
+                // The saving is stated, not shouted: the spa's own price, struck through.
+                <span className="text-sm text-ink-soft">
+                  <span className="text-base text-taupe line-through">{formatPrice(size.compare_at_price)}</span>{" "}
+                  at the spa
                 </span>
-                <span className="text-[0.78rem] text-clay">({discount}% off)</span>
-              </>
-            )}
+              ) : (
+                <>
+                  <span className="text-base text-taupe line-through">
+                    {formatPrice(size.compare_at_price)}
+                  </span>
+                  <span className="text-[0.78rem] text-clay">({discount}% off)</span>
+                </>
+              ))}
           </div>
           <p className="mt-1.5 text-xs text-ink-soft">Local taxes included where applicable</p>
 
           <p className="mt-8 text-[1rem] leading-[1.85] text-ink-soft">
             {product.short_description}
           </p>
-          <p className="mt-2 text-sm text-ink-soft">
-            <span className="text-ink">Material:</span> {product.material}
-          </p>
+          {product.material && (
+            <p className="mt-2 text-sm text-ink-soft">
+              <span className="text-ink">Material:</span> {product.material}
+            </p>
+          )}
         </Reveal>
 
         <Reveal y={20} delay={0.08} className="mt-12 flex flex-col gap-8">
           {product.sizes.length > 1 && (
             <div>
               <p className="eyebrow mb-3">
-                Size <span className="text-ink-soft">· {size.dimensions}</span>
+                {isVoucher ? "Option" : "Size"} <span className="text-ink-soft">· {size.dimensions}</span>
               </p>
               <div className="flex flex-wrap gap-2">
                 {product.sizes.map((s, i) => (
@@ -291,21 +310,40 @@ export function ProductDetail({ product }: { product: Product }) {
         </Reveal>
 
         <Reveal y={20} delay={0.16} className="mt-10 space-y-3.5 text-sm">
-          <p className="flex items-start gap-3">
-            <TruckIcon className="mt-0.5 h-4 w-4 shrink-0 text-clay" />
-            <span>
-              Dispatched in 2–4 working days from Colombo
-              {size.price >= FREE_DELIVERY_FROM ? " — delivery complimentary" : ""}
-            </span>
-          </p>
-          <p className="flex items-start gap-3">
-            <ReturnIcon className="mt-0.5 h-4 w-4 shrink-0 text-clay" />
-            <span>365-day guarantee &amp; 30-day exchanges</span>
-          </p>
-          <p className="flex items-start gap-3">
-            <GiftIcon className="mt-0.5 h-4 w-4 shrink-0 text-clay" />
-            <span>Complimentary gift wrapping on request</span>
-          </p>
+          {isVoucher ? (
+            <>
+              <p className="flex items-start gap-3">
+                <TicketIcon className="mt-0.5 h-4 w-4 shrink-0 text-clay" />
+                <span>Sent to you as a code on WhatsApp once payment is confirmed</span>
+              </p>
+              <p className="flex items-start gap-3">
+                <SpaIcon className="mt-0.5 h-4 w-4 shrink-0 text-clay" />
+                <span>Present the code at your chosen spa to receive the treatment</span>
+              </p>
+              <p className="flex items-start gap-3">
+                <GiftIcon className="mt-0.5 h-4 w-4 shrink-0 text-clay" />
+                <span>Easily given as a gift — the code is all they need</span>
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="flex items-start gap-3">
+                <TruckIcon className="mt-0.5 h-4 w-4 shrink-0 text-clay" />
+                <span>
+                  Dispatched in 2–4 working days from Colombo
+                  {size.price >= FREE_DELIVERY_FROM ? " — delivery complimentary" : ""}
+                </span>
+              </p>
+              <p className="flex items-start gap-3">
+                <ReturnIcon className="mt-0.5 h-4 w-4 shrink-0 text-clay" />
+                <span>365-day guarantee &amp; 30-day exchanges</span>
+              </p>
+              <p className="flex items-start gap-3">
+                <GiftIcon className="mt-0.5 h-4 w-4 shrink-0 text-clay" />
+                <span>Complimentary gift wrapping on request</span>
+              </p>
+            </>
+          )}
           <a
             href={whatsappLink(
               `Hello ${site.name}! I have a question about the ${product.name} (${size.name}).`
@@ -391,6 +429,35 @@ export function ProductDetail({ product }: { product: Product }) {
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+/** How a spa voucher works, in the client's words: buy here, present the code at the spa. */
+const REDEEM_STEPS = [
+  "Buy the voucher here, by card or bank transfer",
+  "Your voucher code arrives on WhatsApp once payment is confirmed",
+  "Book your treatment with your chosen spa, mentioning your Enivrant voucher",
+  "Present the code when you arrive to receive the treatment at the voucher price",
+];
+
+function TicketIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
+      <path
+        d="M4 7.5A1.5 1.5 0 0 1 5.5 6h13A1.5 1.5 0 0 1 20 7.5V10a2 2 0 0 0 0 4v2.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 16.5V14a2 2 0 0 0 0-4V7.5Z"
+        strokeLinejoin="round"
+      />
+      <path d="M14.5 6.5v11" strokeDasharray="1.5 2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function SpaIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
+      <path d="M12 20c-4.4 0-8-2.6-8-6 2.6 0 5.2 1.2 8 3.6 2.8-2.4 5.4-3.6 8-3.6 0 3.4-3.6 6-8 6Z" strokeLinejoin="round" />
+      <path d="M12 17.6c-1.9-2-2.8-4.2-2.8-6.4C9.2 8.4 10.6 6 12 4.5c1.4 1.5 2.8 3.9 2.8 6.7 0 2.2-.9 4.4-2.8 6.4Z" strokeLinejoin="round" />
+    </svg>
   );
 }
 

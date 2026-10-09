@@ -4,6 +4,13 @@ import { getPaycorpConfig, toGatewayAmount, toMinorUnits } from "@/lib/paycorp/c
 import { PENDING_PAYMENT_COOKIE, readPendingPayment } from "@/lib/paycorp/pending";
 import { formatPrice, site, whatsappLink } from "@/lib/site";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import {
+  issueVouchersForOrder,
+  VOUCHER_CLAIM_COOKIE,
+  VOUCHER_CLAIM_MAX_AGE,
+  VOUCHER_CLAIM_PATH,
+  voucherClaimCookie,
+} from "@/lib/vouchers";
 
 /**
  * Where Paycorp sends the shopper back to.
@@ -254,18 +261,41 @@ async function recordOutcome(
     .neq("payment_status", "paid");
 }
 
-function succeeded(request: NextRequest, order: PendingOrder, txnReference: string | null) {
+/**
+ * Every path that reaches here has a settled payment, so it is also where the
+ * order's spa vouchers go live. Issuing only ever moves a code from pending to
+ * issued, so a reload running it again changes nothing, and a code voided in
+ * the dashboard stays void.
+ */
+async function succeeded(request: NextRequest, order: PendingOrder, txnReference: string | null) {
+  if (order.id) await issueVouchersForOrder(order.id);
+
   const lines = [
     `Hello ${site.name}! I've just paid for order ${order.reference}.`,
     "",
     `Total: ${formatPrice(order.total)}`,
     ...(txnReference ? [`Payment reference: ${txnReference}`] : []),
   ];
-  return redirectTo(request, "/checkout/success", {
+  const response = redirectTo(request, "/checkout/success", {
     ref: order.reference,
     total: String(order.total),
     pm: "card",
     wa: whatsappLink(lines.join("\n")),
     ...(txnReference ? { txn: txnReference } : {}),
   });
+
+  // Lets the confirmation page show this order's voucher codes to this
+  // browser, and to nobody who merely has the confirmation URL. It names the
+  // order by id, is signed, and lapses within minutes.
+  const claim = order.id ? voucherClaimCookie(order.id) : null;
+  if (claim) {
+    response.cookies.set(VOUCHER_CLAIM_COOKIE, claim, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: VOUCHER_CLAIM_PATH,
+      maxAge: VOUCHER_CLAIM_MAX_AGE,
+    });
+  }
+  return response;
 }

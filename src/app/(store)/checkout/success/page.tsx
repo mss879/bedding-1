@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { Reveal } from "@/components/anim/Reveal";
 import { ClearCartOnMount } from "@/components/cart/ClearCartOnMount";
 import { bankDetails, formatPrice, robotsFor, site } from "@/lib/site";
+import { getIssuedVouchers, readVoucherClaim, VOUCHER_CLAIM_COOKIE } from "@/lib/vouchers";
 
 export const metadata: Metadata = {
   title: "Order confirmed",
@@ -14,9 +16,16 @@ export const metadata: Metadata = {
 export default async function OrderSuccessPage({
   searchParams,
 }: {
-  searchParams: Promise<{ ref?: string; total?: string; wa?: string; pm?: string; txn?: string }>;
+  searchParams: Promise<{
+    ref?: string;
+    total?: string;
+    wa?: string;
+    pm?: string;
+    txn?: string;
+    vouchers?: string;
+  }>;
 }) {
-  const { ref, total, wa, pm, txn } = await searchParams;
+  const { ref, total, wa, pm, txn, vouchers: vouchersParam } = await searchParams;
   const totalNumber = Number(total);
   const hasTotal = Number.isFinite(totalNumber) && totalNumber > 0;
   const isBankTransfer = pm === "bank_transfer";
@@ -32,6 +41,14 @@ export default async function OrderSuccessPage({
   const whatsappBase = `https://wa.me/${site.whatsappNumber}`;
   const whatsappHref =
     wa && (wa === whatsappBase || wa.startsWith(`${whatsappBase}?`)) ? wa : null;
+
+  // Spa voucher codes, for a card order only: the payment return handler gave
+  // the paying browser a signed cookie naming the order, and only that cookie
+  // — never the query string — decides whose codes are shown. Everyone else
+  // gets their codes on WhatsApp once the payment is confirmed.
+  const claimedOrder = isCard && ref ? readVoucherClaim((await cookies()).get(VOUCHER_CLAIM_COOKIE)?.value) : null;
+  const codes = claimedOrder && ref ? await getIssuedVouchers(claimedOrder, ref) : [];
+  const vouchersToFollow = codes.length === 0 && vouchersParam === "1";
 
   return (
     <div className="bg-cream pt-6 md:pt-8">
@@ -49,7 +66,11 @@ export default async function OrderSuccessPage({
             </span>
             <p className="mt-5 text-[0.82rem] font-semibold text-clay">Order confirmed</p>
             <h1 className="mt-2 font-display text-3xl leading-tight md:text-4xl">
-              Thank you — your pieces are on the way.
+              {codes.length > 0
+                ? `Thank you — your spa voucher${codes.length === 1 ? " is" : "s are"} ready.`
+                : vouchersToFollow
+                  ? "Thank you — your order is in."
+                  : "Thank you — your pieces are on the way."}
             </h1>
 
             {ref && (
@@ -66,6 +87,34 @@ export default async function OrderSuccessPage({
                   </p>
                 )}
               </div>
+            )}
+
+            {codes.length > 0 && (
+              <div className="mt-6 rounded-xl border hairline bg-white px-5 py-5 text-left">
+                <h2 className="font-display text-xl">
+                  Your voucher code{codes.length === 1 ? "" : "s"}
+                </h2>
+                <ul className="mt-3 divide-y divide-board">
+                  {codes.map((v) => (
+                    <li key={v.code} className="py-3 first:pt-1 last:pb-0">
+                      <p className="font-mono text-lg font-semibold tracking-[0.12em] text-ink">{v.code}</p>
+                      <p className="mt-0.5 text-xs text-ink-soft">
+                        {v.product_name} · {v.size_name} · worth {formatPrice(v.value)} at the spa
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-4 text-xs leading-relaxed text-ink-soft">
+                  Book your treatment with your chosen spa and present the code when you arrive. We send
+                  {codes.length === 1 ? " it" : " them"} on WhatsApp too, so keep this page or that message.
+                </p>
+              </div>
+            )}
+
+            {vouchersToFollow && (
+              <p className="mx-auto mt-4 max-w-sm rounded-xl bg-cream px-5 py-4 text-sm leading-relaxed text-ink-soft">
+                Your spa voucher codes are released on WhatsApp as soon as your payment is confirmed.
+              </p>
             )}
 
             {isCard ? (
@@ -112,7 +161,9 @@ export default async function OrderSuccessPage({
                 {ref && (
                   <p className="mt-4 text-xs leading-relaxed text-ink-soft">
                     Use your order reference <span className="font-semibold text-ink">{ref}</span> as the
-                    payment note — we dispatch as soon as the transfer clears.
+                    payment note — {vouchersParam === "1"
+                      ? "your order goes ahead, and your voucher codes are released, as soon as the transfer clears."
+                      : "we dispatch as soon as the transfer clears."}
                   </p>
                 )}
               </div>
@@ -126,8 +177,9 @@ export default async function OrderSuccessPage({
             )}
 
             <p className="mx-auto mt-6 max-w-sm text-sm leading-relaxed text-ink-soft">
-              We&apos;ll confirm your order, delivery and payment details on WhatsApp
-              within a few hours.
+              {vouchersParam === "1" || codes.length > 0
+                ? "We'll confirm your order and payment details on WhatsApp within a few hours."
+                : "We'll confirm your order, delivery and payment details on WhatsApp within a few hours."}
             </p>
 
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">

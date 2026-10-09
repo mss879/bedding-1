@@ -92,6 +92,7 @@ export function ProductCard({ product }: { product: Product }) {
                     image: primary,
                     sizeName: fromSize.name,
                     unitPrice: fromSize.price,
+                    kind: product.kind ?? "physical",
                   },
                   1
                 );
