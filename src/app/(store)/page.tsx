@@ -2,7 +2,7 @@ import { getFeaturedProducts, getHomeCategories, getProducts } from "@/lib/catal
 import { HeroVideo } from "@/components/home/HeroVideo";
 import { Preloader } from "@/components/Preloader";
 import { MarqueeRibbon } from "@/components/home/MarqueeRibbon";
-import { PinnedCollections } from "@/components/home/PinnedCollections";
+import { CollectionGrid } from "@/components/home/CollectionGrid";
 import { ProductRail } from "@/components/home/ProductRail";
 import { EditorsPicks } from "@/components/home/EditorsPicks";
 import { ScrollExpand } from "@/components/anim/ScrollExpand";
@@ -54,8 +54,8 @@ export default async function HomePage() {
       <HeroVideo src={heroFilm} poster={heroPoster} />
       <MarqueeRibbon />
 
-      {/* Set-piece: the collections travel sideways while the section is pinned. */}
-      <PinnedCollections categories={categories} />
+      {/* The six collections, all on one screen. */}
+      <CollectionGrid categories={categories} />
 
       <ProductRail
         products={featured}

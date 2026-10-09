@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getNavCategories } from "@/lib/catalog";
+import { getHeaderMenu } from "@/lib/header-menu";
 import { CartProvider } from "@/components/cart/CartContext";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -8,10 +9,11 @@ import { Footer } from "@/components/Footer";
 // in the (store) group), so it composes the header/footer itself.
 export default async function NotFound() {
   const categories = await getNavCategories();
+  const menu = await getHeaderMenu(categories);
 
   return (
     <CartProvider>
-      <Header categories={categories} />
+      <Header categories={categories} menu={menu} />
       <main className="flex-1 bg-cream">
         <div className="container-x flex min-h-[70vh] flex-col items-center justify-center py-16 text-center">
           <p className="eyebrow">404</p>

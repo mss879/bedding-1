@@ -1,5 +1,5 @@
-import { getNavCategories, getProducts } from "@/lib/catalog";
-import type { Product } from "@/lib/types";
+import { getNavCategories } from "@/lib/catalog";
+import { getHeaderMenu } from "@/lib/header-menu";
 import { CartProvider } from "@/components/cart/CartContext";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import { Header } from "@/components/Header";
@@ -13,24 +13,15 @@ export default async function StoreLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [categories, products] = await Promise.all([getNavCategories(), getProducts()]);
-
-  // Four pieces per collection for the header mega panels. Featured first so
-  // the menu leads with what the maison is pushing; both queries are already
-  // request-cached, so this costs nothing extra per page.
-  const menuProducts: Record<string, Product[]> = {};
-  for (const category of categories) {
-    menuProducts[category.slug] = products
-      .filter((p) => p.category_slug === category.slug)
-      .sort((a, b) => Number(b.featured) - Number(a.featured))
-      .slice(0, 4);
-  }
+  const categories = await getNavCategories();
+  // Each collection's header panel: its stocked sub-categories and pages.
+  const menu = await getHeaderMenu(categories);
 
   return (
     <CartProvider>
       <SmoothScroll />
       <ScrollProgress />
-      <Header categories={categories} menuProducts={menuProducts} />
+      <Header categories={categories} menu={menu} />
       <main className="flex-1">{children}</main>
       <Footer categories={categories} />
       <CartDrawer />

@@ -5,36 +5,57 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
-import type { Category, Product } from "@/lib/types";
+import type { Category, Subcategory } from "@/lib/types";
+import type { CollectionPage } from "@/lib/collection-art";
 import { site, whatsappLink, formatPrice, FREE_DELIVERY_FROM } from "@/lib/site";
 import { HeaderSearch, HeaderSearchFallback } from "./HeaderSearch";
 import { useCart } from "./cart/CartContext";
 
-// Shared by the collection links and About us in the second row.
+// Shared by the collection toggles and About us in the second row.
 const navLinkClass =
   "whitespace-nowrap px-2.5 py-3 text-[0.62rem] font-medium tracking-[0.1em] uppercase transition-colors xl:px-3.5 xl:text-[0.68rem] xl:tracking-[0.14em]";
+
+/** What a collection's panel lists: its stocked sub-categories, then any editorial pages. */
+export type HeaderMenuEntry = {
+  subcategories: Subcategory[];
+  pages: CollectionPage[];
+  /** The collection's wide banner, cropped into the panel's photograph. */
+  banner: string;
+  tagline: string;
+};
+
+export type HeaderMenu = Record<string, HeaderMenuEntry>;
 
 /**
  * Etsy's header structure in Enivrant dress (measured from etsy.com):
  * one row — logo far left, a DOMINANT search field taking ~64% of the width,
- * then icons far right — over a second row of centred collection links, each
- * opening a mega panel on hover. The six collections ARE the navigation: no
- * dropdown button stands in front of them (client request, Aug 2026).
+ * then icons far right — over a second row of centred collection names. The
+ * six collections ARE the navigation: no single "Collections" button stands in
+ * front of them (client request, Aug 2026).
+ *
+ * Each name opens its collection's panel — the sub-categories, the editorial
+ * pages and a photograph — on CLICK, never on hover (client request, Oct
+ * 2026: a panel that appeared whenever the pointer crossed the bar got in the
+ * way of everything else on the page). It closes on a second click, a click
+ * anywhere else, Escape, or choosing a link. It fades; it does not slide.
+ * A collection with nothing to list stays a plain link to its shop page.
  */
 export function Header({
   categories,
-  menuProducts = {},
+  menu = {},
 }: {
   categories: Category[];
-  /** category slug → a few products, shown inside that collection's mega panel */
-  menuProducts?: Record<string, Product[]>;
+  /** category slug → what that collection's panel lists */
+  menu?: HeaderMenu;
 }) {
   const pathname = usePathname();
   const { count } = useCart();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [megaSlug, setMegaSlug] = useState<string | null>(null);
-  const megaTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [drawerSection, setDrawerSection] = useState<string | null>(null);
+  const navRef = useRef<HTMLElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -44,6 +65,8 @@ export function Header({
   }, []);
 
   // Close panels when the route changes (covers back/forward navigation).
+  // A change of query string alone — one collection's shop page to another's
+  // — keeps the same pathname, so every link in a panel also closes it itself.
   const [lastPath, setLastPath] = useState(pathname);
   if (lastPath !== pathname) {
     setLastPath(pathname);
@@ -51,25 +74,44 @@ export function Header({
     setMegaSlug(null);
   }
 
-  useEffect(() => () => {
-    if (megaTimer.current) clearTimeout(megaTimer.current);
-  }, []);
+  // While a panel is open: a press anywhere outside the collection row and the
+  // panel closes it, and so does Escape, which hands focus back to the name
+  // that opened it.
+  useEffect(() => {
+    if (!megaSlug) return;
+    const onPointerDown = (e: PointerEvent) => {
+      const target = e.target as Node;
+      if (navRef.current?.contains(target) || panelRef.current?.contains(target)) return;
+      setMegaSlug(null);
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      setMegaSlug(null);
+      document.getElementById(`nav-collection-${megaSlug}`)?.focus();
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [megaSlug]);
 
-  // A small close delay keeps the panel alive while the pointer crosses the gap
-  // between the link and the panel itself.
-  const openMega = (slug: string) => {
-    if (megaTimer.current) clearTimeout(megaTimer.current);
-    setMegaSlug(slug);
-  };
-  const closeMega = () => {
-    if (megaTimer.current) clearTimeout(megaTimer.current);
-    megaTimer.current = setTimeout(() => setMegaSlug(null), 140);
+  const entriesOf = (slug: string) => {
+    const entry = menu[slug];
+    return entry ? entry.subcategories.length + entry.pages.length : 0;
   };
 
   const activeMega = categories.find((c) => c.slug === megaSlug) ?? null;
+  const activeEntry = activeMega ? menu[activeMega.slug] : undefined;
+  const closeMega = () => setMegaSlug(null);
+  const closeAll = () => {
+    setMegaSlug(null);
+    setMenuOpen(false);
+  };
 
   return (
-    <header className="sticky top-0 z-40" onMouseLeave={closeMega}>
+    <header className="sticky top-0 z-40">
       {/* Announcement rail. On a phone the sticky header is already eating a
           fifth of the screen, so the rail carries a short line and rolls itself
           up the moment the page is scrolled; on desktop it always stays. */}
@@ -163,33 +205,51 @@ export function Header({
           </Suspense>
         </div>
 
-        {/* Row 2 — the six collections under their full names, each with a
-            mega panel on hover, then About us behind a hairline (client
+        {/* Row 2 — the six collections under their full names, each opening
+            its panel on click, then About us behind a hairline (client
             request, Sep 2026). Long names, so the type tightens at lg and
             opens back up at xl where there is room. */}
         <nav
+          ref={navRef}
           aria-label="Main"
           className="relative hidden items-center justify-center gap-0 border-t hairline lg:flex"
         >
-          {categories.map((c) => (
-            <Link
-              key={c.slug}
-              href={`/shop?category=${c.slug}`}
-              onMouseEnter={() => openMega(c.slug)}
-              onFocus={() => openMega(c.slug)}
-              className={`${navLinkClass} ${
-                megaSlug === c.slug ? "text-clay" : "text-ink-soft hover:text-clay"
-              }`}
-            >
-              {c.name}
-            </Link>
-          ))}
+          {categories.map((c) => {
+            const open = megaSlug === c.slug;
+            const tone = open ? "text-clay" : "text-ink-soft hover:text-clay";
+            if (entriesOf(c.slug) === 0) {
+              return (
+                <Link
+                  key={c.slug}
+                  href={`/shop?category=${c.slug}`}
+                  onClick={closeMega}
+                  className={`${navLinkClass} ${tone}`}
+                >
+                  {c.name}
+                </Link>
+              );
+            }
+            return (
+              <button
+                key={c.slug}
+                id={`nav-collection-${c.slug}`}
+                type="button"
+                aria-expanded={open}
+                aria-controls="collection-panel"
+                onClick={() => setMegaSlug((cur) => (cur === c.slug ? null : c.slug))}
+                className={`${navLinkClass} ${tone} inline-flex cursor-pointer items-center gap-1.5`}
+              >
+                {c.name}
+                <ChevronDown
+                  className={`h-2 w-2 shrink-0 transition-transform duration-300 ${open ? "rotate-180" : ""}`}
+                />
+              </button>
+            );
+          })}
           <span aria-hidden className="mx-1 h-3 w-px bg-board xl:mx-2" />
           <Link
             href="/about"
-            // No panel of its own, so arriving here closes whichever is open.
-            onMouseEnter={() => setMegaSlug(null)}
-            onFocus={() => setMegaSlug(null)}
+            onClick={closeMega}
             aria-current={pathname === "/about" ? "page" : undefined}
             className={`${navLinkClass} ${
               pathname === "/about" ? "text-clay" : "text-ink-soft hover:text-clay"
@@ -200,51 +260,86 @@ export function Header({
         </nav>
       </div>
 
-      {/* Mega panel */}
+      {/* Collection panel — opacity only, so nothing slides in under the pointer */}
       <AnimatePresence>
-        {activeMega && (
+        {activeMega && activeEntry && (
           <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-            onMouseEnter={() => openMega(activeMega.slug)}
-            onMouseLeave={closeMega}
+            key="collection-panel"
+            ref={panelRef}
+            id="collection-panel"
+            role="region"
+            aria-label={activeMega.name}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
             className="absolute inset-x-0 top-full hidden border-t hairline bg-white shadow-pop lg:block"
           >
-            <div className="container-x grid grid-cols-[1fr_2fr] gap-10 py-9">
+            <div className="container-x grid grid-cols-[minmax(0,1fr)_minmax(0,2.3fr)_minmax(0,0.85fr)] gap-10 py-9 xl:gap-14">
               <div>
                 <p className="eyebrow">{activeMega.name}</p>
                 <p className="mt-3 max-w-xs text-sm leading-relaxed text-ink-soft">
                   {activeMega.description}
                 </p>
-                <Link href={`/shop?category=${activeMega.slug}`} className="link-rule mt-6 inline-block">
-                  Explore your collection
+                <Link
+                  href={`/shop?category=${activeMega.slug}`}
+                  onClick={closeMega}
+                  className="link-rule mt-6 inline-block"
+                >
+                  Explore the collection
                 </Link>
               </div>
 
-              <div className="grid grid-cols-4 gap-5">
-                {(menuProducts[activeMega.slug] ?? []).slice(0, 4).map((p) => (
-                  <Link key={p.slug} href={`/product/${p.slug}`} className="group block">
-                    <span className="relative block aspect-[4/5] overflow-hidden rounded-sm bg-sand">
-                      <Image
-                        src={p.images[0]}
-                        alt=""
-                        fill
-                        sizes="180px"
-                        className="object-cover transition-transform duration-700 group-hover:scale-[1.06]"
-                      />
-                    </span>
-                    <span className="mt-2.5 block truncate font-display text-[0.95rem] transition-colors group-hover:text-clay">
-                      {p.name}
-                    </span>
-                    <span className="mt-0.5 block text-[0.75rem] text-ink-soft">
-                      {p.sizes.length > 1 ? "From " : ""}
-                      {formatPrice(p.sizes[0].price)}
-                    </span>
-                  </Link>
+              <ul
+                className={`grid content-start gap-x-6 gap-y-3 ${
+                  activeEntry.subcategories.length + activeEntry.pages.length > 6
+                    ? "grid-cols-3"
+                    : "grid-cols-2"
+                }`}
+              >
+                {activeEntry.subcategories.map((s) => (
+                  <li key={s.slug}>
+                    <PanelLink
+                      href={`/shop?category=${activeMega.slug}&sub=${s.slug}`}
+                      image={s.image || activeMega.image}
+                      name={s.name}
+                      onNavigate={closeMega}
+                    />
+                  </li>
                 ))}
-              </div>
+                {activeEntry.pages.map((page) => (
+                  <li key={page.href}>
+                    <PanelLink
+                      href={page.href}
+                      image={page.image}
+                      name={page.name}
+                      label="Feature"
+                      onNavigate={closeMega}
+                    />
+                  </li>
+                ))}
+              </ul>
+
+              <Link
+                href={`/shop?category=${activeMega.slug}`}
+                onClick={closeMega}
+                tabIndex={-1}
+                aria-hidden
+                className="group block"
+              >
+                <span className="relative block aspect-[4/5] overflow-hidden rounded-sm bg-sand">
+                  <Image
+                    src={activeEntry.banner}
+                    alt=""
+                    fill
+                    sizes="280px"
+                    className="object-cover object-[70%_50%] transition-transform duration-700 group-hover:scale-[1.04]"
+                  />
+                </span>
+                <span className="mt-3 block font-display text-[1.05rem] italic leading-snug text-clay">
+                  {activeEntry.tagline}
+                </span>
+              </Link>
             </div>
           </motion.div>
         )}
@@ -262,38 +357,162 @@ export function Header({
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
           >
             {/* Capped and scrollable so the drawer still works on a short
-                phone in landscape, where 10 items overflow the viewport. */}
+                phone in landscape, where the list overflows the viewport. */}
             <div className="container-x flex max-h-[calc(100svh-8rem)] flex-col gap-0.5 overflow-y-auto py-4">
+              <DrawerRow index={0}>
+                <Link href="/shop" className={drawerLinkClass} onClick={closeAll}>
+                  Shop everything
+                </Link>
+              </DrawerRow>
+
+              {categories.map((c, i) => {
+                const entry = menu[c.slug];
+                if (!entry || entriesOf(c.slug) === 0) {
+                  return (
+                    <DrawerRow key={c.slug} index={i + 1}>
+                      <Link href={`/shop?category=${c.slug}`} className={drawerLinkClass} onClick={closeAll}>
+                        {c.name}
+                      </Link>
+                    </DrawerRow>
+                  );
+                }
+                const open = drawerSection === c.slug;
+                return (
+                  <DrawerRow key={c.slug} index={i + 1}>
+                    <button
+                      type="button"
+                      aria-expanded={open}
+                      aria-controls={`drawer-${c.slug}`}
+                      onClick={() => setDrawerSection((cur) => (cur === c.slug ? null : c.slug))}
+                      className={`${drawerLinkClass} flex w-full items-center justify-between text-left`}
+                    >
+                      {c.name}
+                      <ChevronDown
+                        className={`h-3 w-3 shrink-0 text-clay transition-transform duration-300 ${open ? "rotate-180" : ""}`}
+                      />
+                    </button>
+                    <AnimatePresence initial={false}>
+                      {open && (
+                        <motion.ul
+                          id={`drawer-${c.slug}`}
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                          className="overflow-hidden border-l hairline ml-3 pl-3"
+                        >
+                          <li>
+                            <Link href={`/shop?category=${c.slug}`} className={drawerSubClass} onClick={closeAll}>
+                              All {c.name}
+                            </Link>
+                          </li>
+                          {entry.subcategories.map((s) => (
+                            <li key={s.slug}>
+                              <Link
+                                href={`/shop?category=${c.slug}&sub=${s.slug}`}
+                                className={drawerSubClass}
+                                onClick={closeAll}
+                              >
+                                {s.name}
+                              </Link>
+                            </li>
+                          ))}
+                          {entry.pages.map((page) => (
+                            <li key={page.href}>
+                              <Link href={page.href} className={drawerSubClass} onClick={closeAll}>
+                                {page.name}
+                              </Link>
+                            </li>
+                          ))}
+                        </motion.ul>
+                      )}
+                    </AnimatePresence>
+                  </DrawerRow>
+                );
+              })}
+
               {[
-                { href: "/shop", label: "Shop everything" },
-                ...categories.map((c) => ({
-                  href: `/shop?category=${c.slug}`,
-                  label: c.name,
-                })),
                 { href: "/hotel-bulk", label: "Hotel & Trade" },
                 { href: "/about", label: "About us" },
                 { href: "/contact", label: "Contact" },
               ].map((item, i) => (
-                <motion.div
-                  key={item.label}
-                  initial={{ opacity: 0, x: -14 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.04 + i * 0.035 }}
-                >
-                  <Link
-                    href={item.href}
-                    className="block rounded-sm px-3 py-3 font-display text-xl hover:bg-cream"
-                    onClick={() => setMenuOpen(false)}
-                  >
+                <DrawerRow key={item.label} index={categories.length + 1 + i}>
+                  <Link href={item.href} className={drawerLinkClass} onClick={closeAll}>
                     {item.label}
                   </Link>
-                </motion.div>
+                </DrawerRow>
               ))}
             </div>
           </motion.nav>
         )}
       </AnimatePresence>
     </header>
+  );
+}
+
+const drawerLinkClass = "block rounded-sm px-3 py-3 font-display text-xl hover:bg-cream";
+const drawerSubClass =
+  "block rounded-sm px-3 py-2.5 text-[0.95rem] text-ink-soft transition-colors hover:bg-cream hover:text-clay";
+
+/** One row of the mobile drawer, easing in after the one above it. */
+function DrawerRow({ index, children }: { index: number; children: React.ReactNode }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -14 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: 0.04 + index * 0.035 }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+/** A sub-category or page in a collection panel: a small square photograph and its name. */
+function PanelLink({
+  href,
+  image,
+  name,
+  label,
+  onNavigate,
+}: {
+  href: string;
+  image: string;
+  name: string;
+  label?: string;
+  onNavigate: () => void;
+}) {
+  return (
+    <Link href={href} onClick={onNavigate} className="group flex items-center gap-3.5 py-1">
+      <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-sm bg-sand">
+        {image && (
+          <Image
+            src={image}
+            alt=""
+            fill
+            sizes="56px"
+            className="object-cover transition-transform duration-700 group-hover:scale-[1.08]"
+          />
+        )}
+      </span>
+      <span className="min-w-0">
+        <span className="block font-display text-[1.02rem] leading-snug transition-colors group-hover:text-clay">
+          {name}
+        </span>
+        {label && (
+          <span className="mt-0.5 block text-[0.56rem] font-medium tracking-[0.2em] uppercase text-clay">
+            {label}
+          </span>
+        )}
+      </span>
+    </Link>
+  );
+}
+
+function ChevronDown({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.3" aria-hidden>
+      <path d="M1.5 3.5 5 7l3.5-3.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   );
 }
 
