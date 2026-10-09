@@ -95,6 +95,7 @@ export function Footer({ categories }: { categories: Category[] }) {
               {[
                 { href: "/about", label: "About us" },
                 { href: "/hotel-bulk", label: "Hotel & trade" },
+                { href: "/wellness-tourism", label: "Wellness tourism & spa vouchers" },
                 { href: "/contact", label: "Contact & concierge" },
                 { href: "/basket", label: "Your basket" },
                 { href: "/terms", label: "Terms & conditions" },

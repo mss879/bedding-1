@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { getNavCategories, getProducts } from "@/lib/catalog";
+import { getNavCategories, getNavSubcategories, getProducts, stockedSubcategoriesByCollection } from "@/lib/catalog";
 import { site } from "@/lib/site";
 
 const STATIC_PAGES: { path: string; priority: number; changeFrequency: "daily" | "weekly" | "monthly" }[] = [
@@ -7,13 +7,20 @@ const STATIC_PAGES: { path: string; priority: number; changeFrequency: "daily" |
   { path: "/shop", priority: 0.9, changeFrequency: "daily" },
   { path: "/about", priority: 0.6, changeFrequency: "monthly" },
   { path: "/hotel-bulk", priority: 0.6, changeFrequency: "monthly" },
+  { path: "/wellness-tourism", priority: 0.6, changeFrequency: "monthly" },
   { path: "/contact", priority: 0.5, changeFrequency: "monthly" },
   { path: "/terms", priority: 0.3, changeFrequency: "monthly" },
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [products, categories] = await Promise.all([getProducts(), getNavCategories()]);
+  const [products, categories, subcategories] = await Promise.all([
+    getProducts(),
+    getNavCategories(),
+    getNavSubcategories(),
+  ]);
   const lastModified = new Date();
+  // Only sub-categories with something in stock: an empty one is noindex.
+  const stocked = stockedSubcategoriesByCollection(subcategories, products);
 
   return [
     ...STATIC_PAGES.map(({ path, priority, changeFrequency }) => ({
@@ -30,6 +37,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly" as const,
       priority: 0.8,
     })),
+    ...categories.flatMap((c) =>
+      (stocked[c.slug] ?? []).map((s) => ({
+        // Next writes each url into the XML as it is, unescaped, so the
+        // ampersand has to arrive already written as an entity.
+        url: `${site.url}/shop?category=${c.slug}&amp;sub=${s.slug}`,
+        lastModified,
+        changeFrequency: "weekly" as const,
+        priority: 0.75,
+      }))
+    ),
     ...products.map((p) => ({
       url: `${site.url}/product/${p.slug}`,
       lastModified,
