@@ -59,10 +59,9 @@ Supabase Auth email and password and manages the data held there (see
    - [`supabase/migrations/0011_subcategories_and_vouchers.sql`](supabase/migrations/0011_subcategories_and_vouchers.sql) —
      sub-categories under every collection (the nine bedlinen headings among
      them), every piece filed under one, product kinds, the spa-voucher codes
-     table and three draft spa vouchers. **Run it before deploying the code
-     that needs it** — see [Sub-categories and spa vouchers](#sub-categories-and-spa-vouchers).
-   - [`supabase/migrations/0012_voucher_photos_to_storage.sql`](supabase/migrations/0012_voucher_photos_to_storage.sql) —
-     serves the vouchers' photographs from Supabase Storage, like 0010.
+     table and three draft spa vouchers, whose photographs it points at the
+     copies already uploaded to the bucket. **Run it before deploying the
+     code that needs it** — see [Sub-categories and spa vouchers](#sub-categories-and-spa-vouchers).
 3. Copy `.env.example` to `.env.local` and fill in:
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY` — reads the catalogue, and checks admin
@@ -199,8 +198,12 @@ deploy that lands first breaks nothing for shoppers. The home page and the
 sitemap are built at deploy time, so they pick up 0011's sub-categories on the
 next deploy (or the next save in the dashboard).
 
-Then, for the voucher photographs: drag `public/images/products/vouchers` into
-the `product-images` bucket and run 0012, exactly as for the Molee photos.
+The vouchers' photographs were uploaded to the `product-images` bucket, under
+`vouchers/`, before 0011 was written, so 0011 points the vouchers straight at
+them — there is nothing to drag in. On another Supabase project, upload
+`public/images/products/vouchers` to that bucket and change the bucket address
+in 0011, which is written for this project; a photo the bucket does not have
+stays on the website's copy until 0011 is run again.
 
 **How a spa voucher sells**
 

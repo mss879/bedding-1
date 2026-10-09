@@ -27,6 +27,14 @@
 --    Spa Discounts; their prices and inclusions are placeholders to confirm
 --    with the partner spas in the dashboard.
 --
+--    Their photographs are already in the product-images bucket, under
+--    vouchers/ (SQL can say where a photo lives but cannot carry the file),
+--    so the vouchers are pointed at those copies, where the dashboard can
+--    replace them like any other photo. A photo missing from the bucket keeps
+--    the copy that ships with the website instead, so this never fails on it.
+--    The bucket address is this project's, as in 0010; on another project,
+--    change it below.
+--
 -- RUN THIS BEFORE DEPLOYING THE CODE THAT NEEDS IT. Once that code is live,
 -- saving a product in the dashboard writes the new columns, so the dashboard
 -- cannot save products until this has run. The storefront itself keeps
@@ -462,6 +470,26 @@ VALUES (
 )
 ON CONFLICT (slug) DO NOTHING;
 
+-- Point the vouchers at their photographs in the bucket. '/images/products/
+-- vouchers/' is 26 characters, so the file name starts at 27. A photo the
+-- bucket does not have stays on the website's copy; running this file again
+-- after uploading it moves it across.
+UPDATE public.products AS p
+   SET images = ARRAY(
+     SELECT COALESCE(
+              (SELECT 'https://dfvnesvowiideynfelva.supabase.co/storage/v1/object/public/product-images/' || o.name
+                 FROM storage.objects o
+                WHERE o.bucket_id = 'product-images'
+                  AND t.photo LIKE '/images/products/vouchers/%'
+                  AND o.name IN ('vouchers/' || substr(t.photo, 27), substr(t.photo, 27))
+                ORDER BY o.name LIKE 'vouchers/%' DESC
+                LIMIT 1),
+              t.photo)
+       FROM unnest(p.images) WITH ORDINALITY AS t(photo, position)
+      ORDER BY t.position)
+ WHERE p.kind = 'voucher'
+   AND EXISTS (SELECT 1 FROM unnest(p.images) AS i(photo) WHERE i.photo LIKE '/images/products/vouchers/%');
+
 COMMIT;
 
 -- What the SQL editor shows when this finishes: every sub-category with the
@@ -475,9 +503,17 @@ SELECT c.name AS collection, s.name AS sub_category, count(p.id) AS pieces
  GROUP BY c.sort_order, c.name, s.sort_order, s.name
  ORDER BY c.sort_order, s.sort_order;
 
--- ... and any piece not filed yet — anything added in the dashboard before
--- this ran. File each one under a sub-category in the dashboard.
+-- ... any piece not filed yet — anything added in the dashboard before this
+-- ran. File each one under a sub-category in the dashboard ...
 SELECT p.slug, p.name, p.category_slug
   FROM public.products p
  WHERE p.subcategory_slug IS NULL
  ORDER BY p.category_slug, p.name;
+
+-- ... and where each voucher's photograph is served from (Supabase, unless it
+-- was missing from the bucket).
+SELECT p.slug,
+       CASE WHEN p.images[1] LIKE 'https://%' THEN 'Supabase' ELSE 'website copy' END AS photo
+  FROM public.products p
+ WHERE p.kind = 'voucher'
+ ORDER BY p.slug;
