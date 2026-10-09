@@ -60,6 +60,7 @@ const AVAILABLE_COLORS = [
 
 export function FilterPanel({
   category,
+  sub,
   q,
   sort,
   sale,
@@ -70,6 +71,8 @@ export function FilterPanel({
   inStock,
 }: {
   category?: string;
+  /** The open sub-category — kept through every filter change. */
+  sub?: string;
   q?: string;
   sort?: string;
   sale?: boolean;
@@ -101,6 +104,7 @@ export function FilterPanel({
   const baseParams = () => {
     const params = new URLSearchParams();
     if (category) params.set("category", category);
+    if (sub) params.set("sub", sub);
     if (q) params.set("q", q);
     if (sort) params.set("sort", sort);
     if (sale) params.set("sale", "1");

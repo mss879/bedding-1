@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getCategories, getProduct, getRelatedProducts } from "@/lib/catalog";
+import { getCategories, getProduct, getRelatedProducts, getSubcategories } from "@/lib/catalog";
 import { site } from "@/lib/site";
 import { productRating, formatCount } from "@/lib/ratings";
 import type { Product } from "@/lib/types";
@@ -19,7 +19,8 @@ function productJsonLd(product: Product) {
     name: product.name,
     description: product.short_description,
     image: product.images,
-    material: product.material,
+    // A spa voucher has no material; leave the property out rather than empty.
+    ...(product.material ? { material: product.material } : {}),
     brand: { "@type": "Brand", name: site.name },
     // No aggregateRating: the on-page ratings are placeholders until the store
     // has a real review system, and Google's structured-data policy treats
@@ -101,11 +102,15 @@ export default async function ProductPage({
   const product = await getProduct(slug);
   if (!product) notFound();
 
-  const [related, categories] = await Promise.all([
+  const [related, categories, subcategories] = await Promise.all([
     getRelatedProducts(product),
     getCategories(),
+    getSubcategories(),
   ]);
   const category = categories.find((c) => c.slug === product.category_slug);
+  const subcategory = subcategories.find(
+    (s) => s.slug === product.subcategory_slug && s.category_slug === product.category_slug
+  );
   const { rating, count } = productRating(product.slug);
   // Deterministic pick of three reviews so server and client agree.
   const start = count % reviewPool.length;
@@ -140,6 +145,19 @@ export default async function ProductPage({
                   className="transition-colors hover:text-clay"
                 >
                   {category.name}
+                </Link>
+              </li>
+            </>
+          )}
+          {category && subcategory && (
+            <>
+              <li aria-hidden>/</li>
+              <li>
+                <Link
+                  href={`/shop?category=${category.slug}&sub=${subcategory.slug}`}
+                  className="transition-colors hover:text-clay"
+                >
+                  {subcategory.name}
                 </Link>
               </li>
             </>
@@ -191,9 +209,15 @@ export default async function ProductPage({
         <ProductRail
           products={related}
           eyebrow="You may also like"
-          title="From the same collection"
-          moreHref="/shop"
-          moreLabel="Shop everything"
+          title={subcategory ? `More ${subcategory.name}` : "From the same collection"}
+          moreHref={
+            category
+              ? subcategory
+                ? `/shop?category=${category.slug}&sub=${subcategory.slug}`
+                : `/shop?category=${category.slug}`
+              : "/shop"
+          }
+          moreLabel={subcategory ? `All ${subcategory.name}` : category ? `All ${category.name}` : "Shop everything"}
         />
       )}
     </div>

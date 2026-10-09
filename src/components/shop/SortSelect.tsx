@@ -11,6 +11,7 @@ const OPTIONS = [
 
 export function SortSelect({
   category,
+  sub,
   q,
   sale,
   sort,
@@ -21,6 +22,7 @@ export function SortSelect({
   inStock,
 }: {
   category?: string;
+  sub?: string;
   q?: string;
   sale?: boolean;
   sort?: string;
@@ -37,6 +39,7 @@ export function SortSelect({
   const onChange = (value: string) => {
     const params = new URLSearchParams();
     if (category) params.set("category", category);
+    if (sub) params.set("sub", sub);
     if (q) params.set("q", q);
     if (sale) params.set("sale", "1");
     if (minPrice) params.set("minPrice", minPrice);
