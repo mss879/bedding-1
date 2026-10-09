@@ -56,6 +56,13 @@ Supabase Auth email and password and manages the data held there (see
    - [`supabase/migrations/0010_molee_photos_to_storage.sql`](supabase/migrations/0010_molee_photos_to_storage.sql) —
      serves 0008's photographs from Supabase Storage. Upload the photos to
      the bucket first (see [Product photographs](#product-photographs)).
+   - [`supabase/migrations/0011_subcategories_and_vouchers.sql`](supabase/migrations/0011_subcategories_and_vouchers.sql) —
+     sub-categories under every collection (the nine bedlinen headings among
+     them), every piece filed under one, product kinds, the spa-voucher codes
+     table and three draft spa vouchers. **Run it before deploying the code
+     that needs it** — see [Sub-categories and spa vouchers](#sub-categories-and-spa-vouchers).
+   - [`supabase/migrations/0012_voucher_photos_to_storage.sql`](supabase/migrations/0012_voucher_photos_to_storage.sql) —
+     serves the vouchers' photographs from Supabase Storage, like 0010.
 3. Copy `.env.example` to `.env.local` and fill in:
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY` — reads the catalogue, and checks admin
@@ -83,6 +90,8 @@ whichever variable is missing.
 | `inquiries` | Contact + hotel/bulk inquiries | none — server-only writes |
 | `newsletter_subscribers` | Footer signups | none — server-only writes |
 | `admin_users` | Supabase accounts allowed into `/admin` | none — server-only |
+| `subcategories` | One level under each collection (migration 0011) | read (anon) |
+| `vouchers` | One code per spa voucher bought, and its status | none — server-only |
 
 The storefront reads the catalog with the **anon key** (public read policies).
 All *writes* — orders, inquiries, newsletter — happen inside server actions
@@ -134,6 +143,18 @@ browser bundle.
   the same bucket); **storefront control**: per-collection
   "show in navigation" and "show on homepage" toggles + sort order drive the
   header menus, footer, and homepage sections.
+- **Sub-categories** — on each collection's edit page: create, edit (name,
+  slug, one-line description, square photo by upload, sort order, show on the
+  storefront) and delete. Deleting one leaves its products in the collection,
+  unfiled. A product is filed from its own page with the **Sub-category**
+  select, which offers the chosen collection's sub-categories only. The
+  storefront shows a sub-category — in the header panel, the shop's chips and
+  its tiles — once it holds something in stock, so the four empty bedlinen
+  headings appear by themselves as soon as a piece is added to them.
+- **Spa vouchers** (`/admin/vouchers`) — every code sold, with the order and
+  customer, filterable by status and searchable by code. A product becomes a
+  voucher with **Type → Spa voucher** on its page: its options are treatments
+  and its compare-at price is the spa's own price.
 
 ## Product photographs
 
@@ -167,6 +188,39 @@ npm run photos:upload
 
 The copies in `public/` stay as the upload source and for the demo-mode
 catalogue.
+
+## Sub-categories and spa vouchers
+
+**Order of operations: run 0011, then deploy.** Once this build is live the
+dashboard saves a product's sub-category and kind, so it cannot save products
+until 0011 has run (it says so). The storefront and the checkout keep working
+on a database without 0011 — the site simply shows no sub-categories — so a
+deploy that lands first breaks nothing for shoppers. The home page and the
+sitemap are built at deploy time, so they pick up 0011's sub-categories on the
+next deploy (or the next save in the dashboard).
+
+Then, for the voucher photographs: drag `public/images/products/vouchers` into
+the `product-images` bucket and run 0012, exactly as for the Molee photos.
+
+**How a spa voucher sells**
+
+1. The shopper buys it like any piece. A basket of vouchers only skips the
+   delivery step, needs no address, and is paid by card or bank transfer —
+   cash on delivery is not offered for a basket with a voucher in it.
+2. Each voucher bought gets its own code, `ENV-XXXX-XXXX`, stored as
+   *awaiting payment*.
+3. **Card:** the codes are issued the moment the payment is confirmed, and the
+   confirmation page shows them to the browser that paid (a short-lived signed
+   cookie decides that — the page's URL cannot). **Bank transfer:** setting the
+   order to *Confirmed* in the dashboard issues them. Cancelling an order voids
+   codes not yet issued.
+4. Send the codes to the customer on WhatsApp from the order page.
+5. When a spa checks a code, find it on **Vouchers** and *Mark redeemed* (with
+   an optional note); it can be undone, or a code voided for a refund.
+
+The three vouchers 0011 adds are drafts: their prices, inclusions and terms are
+placeholders to replace with the partner spas' real ones in the dashboard, and
+no partner spa is named yet.
 
 ## Card payments (Paycorp — Commercial Bank of Ceylon)
 
