@@ -470,3 +470,116 @@ body[data-sticky-buy="on"] .whatsapp-float {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/*
+ * The maison curtain (components/Preloader.tsx) — its INTRO.
+ *
+ * The intro is CSS, not JavaScript, so it starts with the very first paint of
+ * the server-rendered page. Driven from JS, the curtain sat in its finished
+ * frame (hairlines drawn, lockup shown) until the page's scripts arrived, and
+ * then snapped back and played the intro from the top — seen as the preloader
+ * completing and starting again. GSAP still runs the exit.
+ *
+ * Every element rests in its FINAL state; the keyframes animate from the start
+ * state with `backwards` fill only, so nothing is left holding a value once an
+ * intro animation ends and GSAP's inline styles take over cleanly. Timings and
+ * eases mirror the original GSAP timeline (power3/4 as cubic-béziers).
+ */
+@keyframes curtain-rule {
+  from {
+    transform: scaleX(0);
+  }
+}
+@keyframes curtain-mark {
+  from {
+    transform: translateY(108%);
+  }
+}
+@keyframes curtain-sheen {
+  from {
+    transform: translateX(-130%) skewX(-18deg);
+  }
+  to {
+    transform: translateX(130%) skewX(-18deg);
+  }
+}
+@keyframes curtain-meta {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+/* One word's turn in an 8.7s loop of six: rise in (0.5s), hold (0.5s), leave (0.45s). */
+@keyframes curtain-word {
+  0% {
+    opacity: 0;
+    transform: translateY(100%);
+    animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+  }
+  5.747% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  11.494% {
+    opacity: 1;
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0.55, 0.055, 0.675, 0.19);
+  }
+  16.667%,
+  100% {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+}
+
+.curtain-rule {
+  animation: curtain-rule 1.1s cubic-bezier(0.645, 0.045, 0.355, 1) backwards;
+}
+.curtain-rule + .curtain-rule {
+  animation-delay: 0.08s;
+}
+.curtain-mark {
+  animation: curtain-mark 1.15s cubic-bezier(0.165, 0.84, 0.44, 1) 0.43s backwards;
+}
+.curtain-sheen {
+  animation: curtain-sheen 1.5s cubic-bezier(0.455, 0.03, 0.515, 0.955) 0.98s backwards;
+}
+.curtain-meta {
+  animation: curtain-meta 0.8s cubic-bezier(0.215, 0.61, 0.355, 1) 1.38s backwards;
+}
+.curtain-meta-late {
+  animation-delay: 1.48s;
+}
+.curtain-word {
+  opacity: 0;
+  animation: curtain-word 8.7s linear 0.9s infinite backwards;
+}
+.curtain-word:nth-child(2) {
+  animation-delay: 2.35s;
+}
+.curtain-word:nth-child(3) {
+  animation-delay: 3.8s;
+}
+.curtain-word:nth-child(4) {
+  animation-delay: 5.25s;
+}
+.curtain-word:nth-child(5) {
+  animation-delay: 6.7s;
+}
+.curtain-word:nth-child(6) {
+  animation-delay: 8.15s;
+}
+
+/* Reduced motion: the finished frame from the start, one collection named. */
+@media (prefers-reduced-motion: reduce) {
+  .curtain-rule,
+  .curtain-mark,
+  .curtain-sheen,
+  .curtain-meta,
+  .curtain-word {
+    animation: none;
+  }
+  .curtain-word:first-child {
+    opacity: 1;
+  }
+}

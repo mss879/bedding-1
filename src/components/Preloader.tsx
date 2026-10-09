@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { gsap } from "@/lib/gsap";
 import { site } from "@/lib/site";
 
@@ -8,48 +8,110 @@ const COLLECTIONS = ["Fragrance", "Wellness", "Pearls", "Fashion", "Home", "Slee
 const PANELS = 6;
 
 /**
- * The intro timeline runs ~2.6s. On a warm cache the assets resolve in under a
- * second, which would flash the curtain open before the sequence reads as
- * intentional — so the exit also waits on this floor.
+ * The curtain never lifts sooner than this after the page started loading. On
+ * a warm cache the assets resolve in well under a second, which would flash
+ * the curtain open before the sequence reads as intentional.
  */
 const MIN_DURATION_MS = 2200;
 
+/** How long the CSS intro runs, for browsers that cannot report it themselves. */
+const INTRO_FALLBACK_MS = 2500;
+
+type PreloaderWindow = Window & { __preloaderComplete?: boolean };
+
+/** Tells the hero the curtain is lifting (or was never needed), so it can start its entrance. */
+function announceComplete() {
+  (window as PreloaderWindow).__preloaderComplete = true;
+  window.dispatchEvent(new CustomEvent("preloader-complete"));
+}
+
+const subscribeNothing = () => () => {};
+
 /**
- * The maison curtain — a fully GSAP-driven opening title sequence.
+ * The maison curtain — the opening title sequence of a visit.
  *
- * Build: six ivory panels stand as a curtain; a gold hairline draws across the
- * centre; the ENIVRANT lockup is wiped in behind a moving satin sheen; the six
- * collection names cycle on a loop while assets load, tracking real progress
- * silently. On completion the sheen sweeps once more, the content lifts,
- * and the six panels rise in a stagger to reveal the page — then
- * `preloader-complete` fires so the hero can start its own entrance.
+ * Six ivory panels stand as a curtain; gold hairlines draw out from the
+ * centre, the ENIVRANT lockup is wiped in behind a moving satin sheen, and the
+ * collection names cycle while the hero's own assets load (poster, film and
+ * fonts). Then the sheen sweeps once more, the content lifts, the panels rise
+ * in a stagger, and `preloader-complete` fires so the hero starts its entrance
+ * behind the lifting curtain.
  *
- * The curtain waits on the hero's own assets (poster, film and fonts), so the
- * hero is fully painted and ready to animate the instant it is revealed.
+ * The intro is CSS (globals.css, "The maison curtain"), so it begins with the
+ * first paint of the server-rendered page and is never restarted when the
+ * page's JavaScript takes over; the exit is GSAP. The curtain plays once, on a
+ * real page load: arriving on the home page from elsewhere on the site skips
+ * it, because the visitor has already seen the maison open.
  *
- * Reduced motion gets the same sequence with no transforms: a static mark, a
- * fade, and a straight cut to the page.
+ * Reduced motion gets the finished frame, a fade, and a straight cut to the page.
  */
 export function Preloader({ images, videos = [] }: { images: string[]; videos?: string[] }) {
+  // True only when this render is hydrating the server's HTML — a real page
+  // load. A client-side navigation renders on the client from the start, so
+  // the curtain it would show is skipped. Captured once, at first render.
+  const hydrating = useSyncExternalStore(
+    subscribeNothing,
+    () => false,
+    () => true
+  );
+  const [play] = useState(hydrating);
+
   const [progress, setProgress] = useState(0);
-  const [minElapsed, setMinElapsed] = useState(false);
+  const [introDone, setIntroDone] = useState(false);
   const [isMounted, setIsMounted] = useState(true);
   const rootRef = useRef<HTMLDivElement>(null);
 
+  // Skipped: let the hero start straight away.
   useEffect(() => {
-    const t = setTimeout(() => setMinElapsed(true), MIN_DURATION_MS);
-    return () => clearTimeout(t);
-  }, []);
+    if (!play) announceComplete();
+  }, [play]);
+
+  // The intro's floor: its CSS animations have finished, and the page has been
+  // loading for at least MIN_DURATION_MS.
+  useEffect(() => {
+    if (!play) return;
+    const root = rootRef.current;
+    let cancelled = false;
+
+    const floor = new Promise<void>((resolve) =>
+      setTimeout(resolve, Math.max(0, MIN_DURATION_MS - performance.now()))
+    );
+    // The curtain's finite CSS animations still running (the word loop never
+    // ends, so it is left out). An intro that finished before the scripts
+    // arrived is simply no longer listed. Without the Web Animations API, wait
+    // out the intro's length instead.
+    const finite =
+      root && typeof document.getAnimations === "function"
+        ? document
+            .getAnimations()
+            .filter(
+              (a) =>
+                a.effect instanceof KeyframeEffect &&
+                a.effect.target instanceof Node &&
+                root.contains(a.effect.target) &&
+                a.effect.getComputedTiming().iterations !== Infinity
+            )
+        : null;
+    const intro = finite
+      ? Promise.all(finite.map((a) => a.finished.then(() => undefined, () => undefined)))
+      : new Promise<void>((resolve) => setTimeout(resolve, INTRO_FALLBACK_MS));
+
+    Promise.all([floor, intro]).then(() => {
+      if (!cancelled) setIntroDone(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [play]);
 
   // Load tracking — never let a failed asset hold the curtain shut.
   useEffect(() => {
+    if (!play) return;
     let loaded = 0;
     const total = images.length + videos.length + 1; // images + films + fonts
     const state = { val: 0 };
 
-    if (typeof window !== "undefined") {
-      (window as unknown as { __preloaderComplete?: boolean }).__preloaderComplete = false;
-    }
+    (window as PreloaderWindow).__preloaderComplete = false;
 
     const bump = () => {
       loaded++;
@@ -85,7 +147,7 @@ export function Preloader({ images, videos = [] }: { images: string[]; videos?: 
       return v;
     });
 
-    if (typeof document !== "undefined" && document.fonts) {
+    if (document.fonts) {
       document.fonts.ready.then(bump).catch(bump);
     } else {
       setTimeout(bump, 500);
@@ -98,92 +160,28 @@ export function Preloader({ images, videos = [] }: { images: string[]; videos?: 
         v.load();
       });
     };
-  }, [images, videos]);
-
-  // Intro timeline
-  useEffect(() => {
-    const root = rootRef.current;
-    if (!root) return;
-
-    const ctx = gsap.context(() => {
-      const q = gsap.utils.selector(root);
-      const mm = gsap.matchMedia();
-
-      mm.add("(prefers-reduced-motion: reduce)", () => {
-        gsap.set(q("[data-mark], [data-meta], [data-rule], [data-word]"), {
-          clearProps: "all",
-          autoAlpha: 1,
-        });
-        gsap.set(q("[data-word]"), { autoAlpha: 0 });
-        gsap.set(q("[data-word]:first-child"), { autoAlpha: 1 });
-      });
-
-      mm.add("(prefers-reduced-motion: no-preference)", () => {
-        const tl = gsap.timeline();
-
-        // 1. Gold hairlines draw out from the centre.
-        tl.fromTo(
-          q("[data-rule]"),
-          { scaleX: 0 },
-          { scaleX: 1, duration: 1.1, ease: "power3.inOut", stagger: 0.08 }
-        )
-          // 2. The lockup wipes in from below its own mask.
-          .fromTo(
-            q("[data-mark-inner]"),
-            { yPercent: 108 },
-            { yPercent: 0, duration: 1.15, ease: "power4.out" },
-            "-=0.75"
-          )
-          // 3. A satin sheen crosses the mark.
-          .fromTo(
-            q("[data-sheen]"),
-            { xPercent: -130 },
-            { xPercent: 130, duration: 1.5, ease: "power2.inOut" },
-            "-=0.6"
-          )
-          // 4. Rule, cycling words and tagline arrive.
-          .fromTo(
-            q("[data-meta]"),
-            { autoAlpha: 0, y: 16 },
-            { autoAlpha: 1, y: 0, duration: 0.8, stagger: 0.1, ease: "power3.out" },
-            "-=1.1"
-          );
-
-        // Collection names cycle on their own loop while assets load.
-        const words = q("[data-word]");
-        if (words.length) {
-          gsap.set(words, { autoAlpha: 0, yPercent: 100 });
-          const cycle = gsap.timeline({ repeat: -1, delay: 0.9 });
-          words.forEach((word) => {
-            cycle
-              .to(word, { autoAlpha: 1, yPercent: 0, duration: 0.5, ease: "power3.out" })
-              .to(word, { autoAlpha: 0, yPercent: -100, duration: 0.45, ease: "power3.in" }, "+=0.5");
-          });
-        }
-      });
-    }, root);
-
-    return () => ctx.revert();
-  }, []);
+  }, [play, images, videos]);
 
   // Exit timeline — runs once loading is done AND the intro has had its floor.
   useEffect(() => {
-    if (progress < 100 || !minElapsed) return;
+    if (!play || progress < 100 || !introDone) return;
     const root = rootRef.current;
     if (!root) return;
+
+    // From here GSAP owns these elements. Their CSS intro has finished; this
+    // only guarantees no stray CSS animation can outrank GSAP's inline styles.
+    root
+      .querySelectorAll<HTMLElement>(".curtain-rule, .curtain-mark, .curtain-sheen, .curtain-meta")
+      .forEach((el) => {
+        el.style.animation = "none";
+      });
 
     // Announcing and unmounting are deliberately separate. The hero is told to
     // start the moment the panels BEGIN to rise, so its headline animates in
     // behind the lifting curtain; the overlay itself is only torn down once the
     // panels have finished travelling.
-    const announce = () => {
-      if (typeof window !== "undefined") {
-        (window as unknown as { __preloaderComplete?: boolean }).__preloaderComplete = true;
-        window.dispatchEvent(new CustomEvent("preloader-complete"));
-      }
-    };
     const finish = () => {
-      announce(); // no-op if the panel tween already fired it
+      announceComplete(); // harmless if the panel tween already announced
       setIsMounted(false);
     };
 
@@ -219,7 +217,7 @@ export function Preloader({ images, videos = [] }: { images: string[]; videos?: 
               duration: 1.05,
               ease: "power4.inOut",
               stagger: 0.07,
-              onStart: announce,
+              onStart: announceComplete,
             },
             "-=0.25"
           );
@@ -227,9 +225,9 @@ export function Preloader({ images, videos = [] }: { images: string[]; videos?: 
     }, root);
 
     return () => ctx.revert();
-  }, [progress, minElapsed]);
+  }, [play, progress, introDone]);
 
-  if (!isMounted) return null;
+  if (!play || !isMounted) return null;
 
   return (
     <div ref={rootRef} className="fixed inset-0 z-50" aria-hidden>
@@ -244,13 +242,13 @@ export function Preloader({ images, videos = [] }: { images: string[]; videos?: 
       <div className="relative flex h-full flex-col items-center justify-center px-6">
         {/* Hairline rules flanking the mark */}
         <div className="mb-12 flex w-full max-w-2xl items-center gap-6">
-          <span data-rule className="h-px flex-1 origin-right bg-clay/45" />
-          <span data-rule className="h-px flex-1 origin-left bg-clay/45" />
+          <span data-rule className="curtain-rule h-px flex-1 origin-right bg-clay/45" />
+          <span data-rule className="curtain-rule h-px flex-1 origin-left bg-clay/45" />
         </div>
 
         {/* Lockup, wiped in behind a moving sheen */}
         <div data-mark className="relative overflow-hidden">
-          <div data-mark-inner className="will-change-transform">
+          <div data-mark-inner className="curtain-mark will-change-transform">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/brand/enivrant-lockup.png"
@@ -262,18 +260,17 @@ export function Preloader({ images, videos = [] }: { images: string[]; videos?: 
           </div>
           <span
             data-sheen
-            className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 skew-x-[-18deg] bg-gradient-to-r from-transparent via-white/70 to-transparent will-change-transform"
+            className="curtain-sheen pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 skew-x-[-18deg] bg-gradient-to-r from-transparent via-white/70 to-transparent will-change-transform"
           />
         </div>
 
         {/* Cycling collection names */}
-        <div data-meta className="mt-9 h-5 overflow-hidden">
+        <div data-meta className="curtain-meta mt-9 h-5 overflow-hidden">
           <div className="relative h-5">
             {COLLECTIONS.map((word) => (
               <span
                 key={word}
-                data-word
-                className="absolute inset-0 flex items-center justify-center whitespace-nowrap text-[0.6rem] font-medium tracking-[0.34em] uppercase text-ink-soft"
+                className="curtain-word absolute inset-0 flex items-center justify-center whitespace-nowrap text-[0.6rem] font-medium tracking-[0.34em] uppercase text-ink-soft"
               >
                 {word}
               </span>
@@ -283,7 +280,7 @@ export function Preloader({ images, videos = [] }: { images: string[]; videos?: 
 
         <p
           data-meta
-          className="mt-6 text-[0.58rem] font-medium tracking-[0.3em] uppercase text-taupe"
+          className="curtain-meta curtain-meta-late mt-6 text-[0.58rem] font-medium tracking-[0.3em] uppercase text-taupe"
         >
           {site.tagline}
         </p>
